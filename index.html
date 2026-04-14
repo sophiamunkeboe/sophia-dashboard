@@ -1,640 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sophia Dashboard</title>
-  <style>
-    :root {
-      --bg-1: #020617;
-      --bg-2: #081225;
-      --card: rgba(7, 18, 36, 0.78);
-      --line: rgba(103, 232, 249, 0.18);
-      --text: #f8fbff;
-      --muted: #9fb3c8;
-      --cyan: #67e8f9;
-      --blue: #60a5fa;
-      --green: #4ade80;
-      --amber: #fbbf24;
-      --red: #fb7185;
-      --button: rgba(8, 15, 30, 0.88);
-      --button-hover: rgba(18, 34, 64, 0.98);
-    }
+<meta charset="UTF-8">
+<title>Sophia Systems Dashboard</title>
 
-    * {
-      box-sizing: border-box;
-    }
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(96, 165, 250, 0.15), transparent 22%),
-        radial-gradient(circle at top right, rgba(34, 211, 238, 0.14), transparent 20%),
-        linear-gradient(180deg, var(--bg-1), var(--bg-2));
-      min-height: 100vh;
-    }
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: radial-gradient(circle at top, #0a0f2a, #02040a);
+    color: white;
+}
 
-    .container {
-      max-width: 1500px;
-      margin: 0 auto;
-      padding: 24px;
-    }
+/* HEADER */
+.header {
+    display: flex;
+    align-items: center;
+    padding: 20px 30px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
 
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-bottom: 24px;
-    }
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
 
-    .brand h1 {
-      margin: 0;
-      font-size: 34px;
-      letter-spacing: 0.04em;
-    }
+.logo img {
+    height: 50px;
+    filter: drop-shadow(0 0 10px #00eaff);
+}
 
-    .brand p {
-      margin: 8px 0 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
+.logo-text {
+    display: flex;
+    flex-direction: column;
+}
 
-    .status-box {
-      padding: 14px 18px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: rgba(8, 15, 30, 0.68);
-      box-shadow: 0 0 24px rgba(34, 211, 238, 0.08);
-      min-width: 240px;
-    }
+.logo-text h1 {
+    margin: 0;
+    font-size: 20px;
+    letter-spacing: 2px;
+}
 
-    .status-box .small {
-      color: var(--muted);
-      font-size: 13px;
-    }
+.logo-text span {
+    font-size: 12px;
+    opacity: 0.7;
+}
 
-    .status-box .big {
-      margin-top: 6px;
-      font-size: 20px;
-      font-weight: bold;
-    }
+/* CARDS */
+.cards {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
 
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    }
+.card {
+    flex: 1;
+    padding: 20px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    box-shadow: 0 0 15px rgba(0,255,255,0.1);
+    backdrop-filter: blur(10px);
+}
 
-    .card {
-      position: relative;
-      overflow: hidden;
-      padding: 20px;
-      border-radius: 22px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      box-shadow: 0 0 30px rgba(34, 211, 238, 0.08);
-    }
+/* TABLE */
+.table {
+    margin: 20px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    padding: 20px;
+}
 
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at top left, rgba(34, 211, 238, 0.14), transparent 55%);
-      pointer-events: none;
-    }
+.row {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    padding: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    transition: 0.2s;
+}
 
-    .card .label {
-      color: var(--muted);
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
+.row:hover {
+    background: rgba(0,255,255,0.08);
+}
 
-    .card .value {
-      font-size: 38px;
-      font-weight: bold;
-      line-height: 1;
-    }
+/* BUTTONS */
+button {
+    background: linear-gradient(45deg, #00eaff, #0077ff);
+    border: none;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,255,255,0.5);
+}
 
-    .card .sub {
-      margin-top: 8px;
-      color: var(--cyan);
-      font-size: 12px;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
+button:hover {
+    transform: scale(1.05);
+}
 
-    .panel {
-      border-radius: 24px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      box-shadow: 0 0 30px rgba(34, 211, 238, 0.08);
-      overflow: hidden;
-    }
+/* STATUS */
+.status {
+    padding: 5px 10px;
+    border-radius: 10px;
+}
 
-    .panel-head {
-      padding: 18px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .panel-head h2 {
-      margin: 0;
-      font-size: 24px;
-    }
-
-    .panel-head p {
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .search {
-      width: min(380px, 100%);
-      padding: 12px 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(2, 8, 23, 0.75);
-      color: white;
-      outline: none;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 1280px;
-    }
-
-    th, td {
-      padding: 14px 16px;
-      text-align: left;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      vertical-align: top;
-    }
-
-    th {
-      color: var(--muted);
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      background: rgba(255,255,255,0.02);
-    }
-
-    td {
-      font-size: 14px;
-    }
-
-    .status {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: bold;
-      border: 1px solid transparent;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .ready {
-      background: rgba(74, 222, 128, 0.16);
-      color: #bbf7d0;
-      border-color: rgba(74, 222, 128, 0.24);
-    }
-
-    .partial, .service {
-      background: rgba(251, 191, 36, 0.16);
-      color: #fde68a;
-      border-color: rgba(251, 191, 36, 0.24);
-    }
-
-    .incomplete {
-      background: rgba(251, 113, 133, 0.16);
-      color: #fecdd3;
-      border-color: rgba(251, 113, 133, 0.24);
-    }
-
-    .muted {
-      color: var(--muted);
-    }
-
-    .error-box {
-      margin-top: 16px;
-      padding: 14px 16px;
-      border-radius: 16px;
-      background: rgba(127, 29, 29, 0.35);
-      border: 1px solid rgba(251, 113, 133, 0.25);
-      color: #fecdd3;
-      display: none;
-    }
-
-    .footer-note {
-      margin-top: 14px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .action-cell {
-      min-width: 170px;
-    }
-
-    .action-button {
-      width: 100%;
-      border: 1px solid rgba(103, 232, 249, 0.22);
-      background: var(--button);
-      color: white;
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 12px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s ease;
-      margin-bottom: 8px;
-      box-shadow: 0 0 18px rgba(34, 211, 238, 0.06);
-    }
-
-    .action-button:hover {
-      background: var(--button-hover);
-      border-color: rgba(103, 232, 249, 0.4);
-    }
-
-    .action-button.done {
-      border-color: rgba(74, 222, 128, 0.22);
-    }
-
-    .assigned-pill,
-    .follow-pill {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: bold;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.04);
-    }
-
-    .follow-yes {
-      background: rgba(74, 222, 128, 0.16);
-      color: #bbf7d0;
-      border-color: rgba(74, 222, 128, 0.24);
-    }
-
-    .follow-no {
-      background: rgba(251, 113, 133, 0.16);
-      color: #fecdd3;
-      border-color: rgba(251, 113, 133, 0.24);
-    }
-
-    .small-note {
-      display: block;
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.4;
-    }
-
-    @media (max-width: 1100px) {
-      .cards {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 680px) {
-      .cards {
-        grid-template-columns: 1fr;
-      }
-
-      .brand h1 {
-        font-size: 28px;
-      }
-
-      .card .value {
-        font-size: 32px;
-      }
-    }
-  </style>
+.ready { background: rgba(0,255,100,0.2); }
+.incomplete { background: rgba(255,0,0,0.2); }
+</style>
 </head>
+
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="brand">
-        <h1>🧠 Sophia Dashboard</h1>
-        <p>Live call intelligence powered by Retell, Make, and Supabase</p>
-      </div>
-      <div class="status-box">
-        <div class="small">Data Source</div>
-        <div class="big">public.leads</div>
-      </div>
-    </div>
 
-    <div class="cards">
-      <div class="card">
-        <div class="label">Calls Today</div>
-        <div class="value" id="callsToday">0</div>
-        <div class="sub">Live from Supabase</div>
-      </div>
-      <div class="card">
-        <div class="label">Ready Quotes</div>
-        <div class="value" id="readyQuotes">0</div>
-        <div class="sub">Quote readiness ready</div>
-      </div>
-      <div class="card">
-        <div class="label">Service Calls</div>
-        <div class="value" id="serviceCalls">0</div>
-        <div class="sub">Workflow route service</div>
-      </div>
-      <div class="card">
-        <div class="label">Incomplete</div>
-        <div class="value" id="incompleteCalls">0</div>
-        <div class="sub">Missing info or incomplete</div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head">
-        <div>
-          <h2>Live Leads</h2>
-          <p>Recent calls, assignments, and follow-up activity</p>
+<!-- HEADER -->
+<div class="header">
+    <div class="logo">
+        <img src="https://i.imgur.com/your-logo.png">
+        <div class="logo-text">
+            <h1>SOPHIA SYSTEMS</h1>
+            <span>Capture every call. Convert every opportunity.</span>
         </div>
-        <input id="searchInput" class="search" placeholder="Search name, phone, products, notes..." />
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Event Date</th>
-              <th>Products</th>
-              <th>Route</th>
-              <th>Status</th>
-              <th>Assigned</th>
-              <th>Follow Up</th>
-              <th>Actions</th>
-              <th>Received</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody">
-            <tr>
-              <td colspan="10" class="muted">Loading data...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </div>
+</div>
 
-    <div id="errorBox" class="error-box"></div>
-    <div class="footer-note">Next step after this: real employee logins and ownership filters.</div>
-  </div>
+<!-- CARDS -->
+<div class="cards">
+    <div class="card">Calls Today: <span id="calls">0</span></div>
+    <div class="card">Ready Quotes: <span id="ready">0</span></div>
+    <div class="card">Service: <span id="service">0</span></div>
+    <div class="card">Incomplete: <span id="incomplete">0</span></div>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const SUPABASE_URL = "https://aeonjnohadmbxfuoirqa.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf";
+<!-- TABLE -->
+<div class="table" id="table"></div>
 
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    let allRows = [];
+<script>
+const supabase = window.supabase.createClient(
+  "https://aeonjnohadmbxfuoirqa.supabase.co",
+  "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf"
+);
 
-    function showError(message) {
-      const box = document.getElementById("errorBox");
-      box.style.display = "block";
-      box.textContent = message;
-    }
+async function loadData() {
+    let { data } = await supabase.from("leads").select("*");
 
-    function clearError() {
-      const box = document.getElementById("errorBox");
-      box.style.display = "none";
-      box.textContent = "";
-    }
+    document.getElementById("calls").innerText = data.length;
+    document.getElementById("ready").innerText = data.filter(x => x.status === "ready").length;
+    document.getElementById("incomplete").innerText = data.filter(x => x.status === "incomplete").length;
 
-    function safeText(value) {
-      if (value === null || value === undefined || value === "") return "—";
-      return String(value);
-    }
+    let html = "";
 
-    function lower(value) {
-      return String(value || "").toLowerCase().trim();
-    }
-
-    function isToday(dateString) {
-      if (!dateString) return false;
-      const rowDate = new Date(dateString);
-      const now = new Date();
-
-      return (
-        rowDate.getFullYear() === now.getFullYear() &&
-        rowDate.getMonth() === now.getMonth() &&
-        rowDate.getDate() === now.getDate()
-      );
-    }
-
-    function formatDateTime(dateString) {
-      if (!dateString) return "—";
-      const d = new Date(dateString);
-      if (Number.isNaN(d.getTime())) return safeText(dateString);
-
-      return d.toLocaleString([], {
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit"
-      });
-    }
-
-    function deriveStatus(row) {
-      const dashboardStatus = lower(row.dashboard_status);
-      const status = lower(row.status);
-      const quoteReadiness = lower(row.quote_readiness);
-      const workflowRoute = lower(row.workflow_route);
-      const missingInfo = lower(row.missing_information);
-
-      if (dashboardStatus) return dashboardStatus;
-      if (status === "incomplete") return "incomplete";
-      if (quoteReadiness === "ready") return "ready";
-      if (workflowRoute === "service") return "service";
-      if (missingInfo && missingInfo !== "none") return "incomplete";
-      if (status) return status;
-      return "partial";
-    }
-
-    function statusClass(value) {
-      const v = lower(value);
-      if (v === "ready") return "ready";
-      if (v === "service") return "service";
-      if (v === "incomplete") return "incomplete";
-      return "partial";
-    }
-
-    function renderCards(rows) {
-      const callsToday = rows.filter(r => isToday(r.created_at)).length;
-      const readyQuotes = rows.filter(r => lower(r.quote_readiness) === "ready" || deriveStatus(r) === "ready").length;
-      const serviceCalls = rows.filter(r => lower(r.workflow_route) === "service" || deriveStatus(r) === "service").length;
-      const incompleteCalls = rows.filter(r => {
-        const missing = lower(r.missing_information);
-        return deriveStatus(r) === "incomplete" || (missing && missing !== "none");
-      }).length;
-
-      document.getElementById("callsToday").textContent = callsToday;
-      document.getElementById("readyQuotes").textContent = readyQuotes;
-      document.getElementById("serviceCalls").textContent = serviceCalls;
-      document.getElementById("incompleteCalls").textContent = incompleteCalls;
-    }
-
-    function renderTable(rows) {
-      const tbody = document.getElementById("tableBody");
-
-      if (!rows.length) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="10" class="muted">No rows found.</td>
-          </tr>
+    data.forEach(d => {
+        html += `
+        <div class="row">
+            <div>${d.full_name}</div>
+            <div>${d.phone}</div>
+            <div>${d.event_date}</div>
+            <div>${d.products_requested}</div>
+            <div>${d.workflow_route}</div>
+            <div class="status ${d.status}">${d.status}</div>
+            <div>${d.assigned_to || "-"}</div>
+            <div>
+                <button onclick="assign('${d.id}','Carina')">Carina</button>
+                <button onclick="assign('${d.id}','James')">James</button>
+                <button onclick="assign('${d.id}','Linda')">Linda</button>
+            </div>
+        </div>
         `;
-        return;
-      }
+    });
 
-      tbody.innerHTML = rows.map(row => {
-        const status = deriveStatus(row);
-        const assigned = safeText(row.assigned_to);
-        const followed = row.follow_up_status === true;
-        const followedBy = safeText(row.followed_up_by);
-        const followTime = row.follow_up_time ? formatDateTime(row.follow_up_time) : "—";
+    document.getElementById("table").innerHTML = html;
+}
 
-        return `
-          <tr>
-            <td>${safeText(row.full_name)}</td>
-            <td>${safeText(row.phone)}</td>
-            <td>${safeText(row.event_date)}</td>
-            <td>${safeText(row.products_requested)}</td>
-            <td>${safeText(row.workflow_route)}</td>
-            <td><span class="status ${statusClass(status)}">${safeText(status)}</span></td>
-            <td>
-              <span class="assigned-pill">${assigned}</span>
-            </td>
-            <td>
-              <span class="follow-pill ${followed ? "follow-yes" : "follow-no"}">
-                ${followed ? "Done" : "Pending"}
-              </span>
-              <span class="small-note">
-                ${followed ? "By: " + followedBy + "<br>At: " + followTime : ""}
-              </span>
-            </td>
-            <td class="action-cell">
-              <button class="action-button" onclick="assignLead('${row.id}')">Assign to Me</button>
-              <button class="action-button done" onclick="markFollowed('${row.id}')">Mark Done</button>
-            </td>
-            <td>${formatDateTime(row.created_at)}</td>
-          </tr>
-        `;
-      }).join("");
-    }
+async function assign(id, name) {
+    await supabase.from("leads").update({ assigned_to: name }).eq("id", id);
+    loadData();
+}
 
-    function applySearch() {
-      const term = lower(document.getElementById("searchInput").value);
+loadData();
+</script>
 
-      if (!term) {
-        renderTable(allRows);
-        return;
-      }
-
-      const filtered = allRows.filter(row => {
-        return [
-          row.full_name,
-          row.phone,
-          row.event_date,
-          row.products_requested,
-          row.workflow_route,
-          row.notes,
-          row.coordinator_notes,
-          row.assigned_to,
-          row.followed_up_by
-        ].some(field => lower(field).includes(term));
-      });
-
-      renderTable(filtered);
-    }
-
-    async function loadDashboard() {
-      clearError();
-
-      const { data, error } = await supabaseClient
-        .from("leads")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(100);
-
-      if (error) {
-        showError("Could not load dashboard data: " + error.message);
-        document.getElementById("tableBody").innerHTML = `
-          <tr>
-            <td colspan="10" class="muted">Failed to load data.</td>
-          </tr>
-        `;
-        return;
-      }
-
-      allRows = data || [];
-      renderCards(allRows);
-      renderTable(allRows);
-    }
-
-    async function assignLead(id) {
-      const name = prompt("Enter your name to claim this lead:");
-      if (!name) return;
-
-      clearError();
-
-      const { error } = await supabaseClient
-        .from("leads")
-        .update({
-          assigned_to: name.trim()
-        })
-        .eq("id", id);
-
-      if (error) {
-        showError("Could not assign lead: " + error.message);
-        return;
-      }
-
-      await loadDashboard();
-    }
-
-    async function markFollowed(id) {
-      const name = prompt("Who followed up on this call?");
-      if (!name) return;
-
-      clearError();
-
-      const { error } = await supabaseClient
-        .from("leads")
-        .update({
-          follow_up_status: true,
-          followed_up_by: name.trim(),
-          follow_up_time: new Date().toISOString()
-        })
-        .eq("id", id);
-
-      if (error) {
-        showError("Could not mark follow-up: " + error.message);
-        return;
-      }
-
-      await loadDashboard();
-    }
-
-    document.getElementById("searchInput").addEventListener("input", applySearch);
-    loadDashboard();
-  </script>
 </body>
 </html>
