@@ -881,6 +881,7 @@ font-size: 14px;
     if (v === "service" || v === "delivery") return "service";
     if (v === "existing" || v === "order") return "existing";
     if (v === "incomplete") return "incomplete";
+    if (v === "lowdata") return "incomplete";
     return "partial";
   }
 
@@ -890,6 +891,7 @@ font-size: 14px;
     if (v === "existing") return "Order Update";
     if (v === "incomplete") return "Incomplete";
     if (v === "partial") return "Partial";
+    if (v === "lowdata") return "Low Data"
     return "Ready";
   }
 
@@ -916,35 +918,41 @@ font-size: 14px;
     }, 2200);
   }
 
-  function getRowStatus(row) {
-    const status = lower(row.status);
-    const quoteReadiness = lower(row.quote_readiness);
-    const missingInfo = lower(row.missing_information);
+function getRowStatus(row) {
+  const status = lower(row.status);
+  const quoteReadiness = lower(row.quote_readiness);
+  const missingInfo = lower(row.missing_information);
 
-    const hasName = !!lower(row.full_name);
-    const hasPhone = !!lower(row.phone);
-    const hasProducts = !!lower(row.products_requested);
-    const hasEventDate = !!lower(row.event_date);
+  const hasName = !!lower(row.full_name);
+  const hasPhone = !!lower(row.phone);
+  const hasProducts = !!lower(row.products_requested);
+  const hasEventDate = !!lower(row.event_date);
 
-    const hasCoreLeadData = (hasName || hasPhone) && hasProducts;
-    const hasStrongQuoteData = (hasName || hasPhone) && hasProducts && hasEventDate;
+  const hasCoreLeadData = (hasName || hasPhone) && hasProducts;
+  const hasStrongQuoteData = (hasName || hasPhone) && hasProducts && hasEventDate;
 
-    const missingIsSignificant =
-      missingInfo &&
-      missingInfo !== "none" &&
-      missingInfo !== "no" &&
-      missingInfo !== "false";
+  const missingIsSignificant =
+    missingInfo &&
+    missingInfo !== "none" &&
+    missingInfo !== "no" &&
+    missingInfo !== "false";
 
-    if ((status === "ready" || quoteReadiness === "ready") && hasStrongQuoteData) {
-      return "ready";
-    }
-
-    if (status === "incomplete" || missingIsSignificant || !hasCoreLeadData) {
-      return "incomplete";
-    }
-
-    return "partial";
+  // 🔥 LOW DATA FIRST
+  if (!hasName && !hasProducts) {
+    return "lowdata";
   }
+
+  if ((status === "ready" || quoteReadiness === "ready") && hasStrongQuoteData) {
+    return "ready";
+  }
+
+  if (status === "incomplete" || missingIsSignificant || !hasCoreLeadData) {
+    return "incomplete";
+  }
+
+  return "partial";
+}
+
 
   function getPipelineBucket(row) {
     const status = lower(row.status);
