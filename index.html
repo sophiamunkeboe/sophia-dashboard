@@ -872,30 +872,38 @@
       });
     }
 
-    function classifyLead(row) {
-      const quoteReady = lower(row.quote_readiness) === 'ready';
-      const existingOrder = asBool(row.existing_order_request);
-      const deliveryIssue = asBool(row.delivery_change_request) || asBool(row.delivery_alert_request) || !!lower(row.issue_type) || lower(row.workflow_route).includes('delivery');
-      const newQuote = asBool(row.new_quote_request) || lower(row.workflow_route).includes('quote');
-      const missingInfo = lower(row.missing_information);
-      const missingIsSignificant = missingInfo && missingInfo !== 'none' && missingInfo !== 'no';
+   function classifyLead(row) {
+  const quoteReady = lower(row.quote_readiness) === 'ready';
 
-      if (quoteReady) return 'ready';
-      if (existingOrder) return 'existing';
-      if (deliveryIssue) return 'service';
-      if (newQuote && !quoteReady) return missingIsSignificant ? 'partial' : 'partial';
-      if (missingIsSignificant) return 'incomplete';
-      return 'partial';
-    }
+  const existingOrder =
+    asBool(row.existing_order_request) ||
+    lower(row.workflow_route).includes('existing');
 
-    function statusClass(value) {
-      const v = lower(value);
-      if (v === 'ready') return 'ready';
-      if (v === 'service' || v === 'delivery') return 'service';
-      if (v === 'existing' || v === 'order') return 'existing';
-      if (v === 'incomplete') return 'incomplete';
-      return 'partial';
-    }
+  const deliveryIssue =
+    asBool(row.delivery_change_request) ||
+    asBool(row.delivery_alert_request) ||
+    !!lower(row.issue_type) ||
+    lower(row.workflow_route).includes('delivery');
+
+  const missingInfo = lower(row.missing_information);
+  const missingIsSignificant =
+    missingInfo &&
+    missingInfo !== 'none' &&
+    missingInfo !== 'no' &&
+    missingInfo !== 'false';
+
+  const newQuote =
+    asBool(row.new_quote_request) ||
+    lower(row.workflow_route).includes('quote');
+
+  if (quoteReady) return 'ready';
+  if (existingOrder) return 'existing';
+  if (deliveryIssue) return 'service';
+  if (missingIsSignificant) return 'incomplete';
+  if (newQuote) return 'partial';
+
+  return 'partial';
+}
 
     function statusLabel(value) {
       const v = lower(value);
