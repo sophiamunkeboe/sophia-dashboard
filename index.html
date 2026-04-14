@@ -991,18 +991,19 @@ function getRowStatus(row) {
       missingInfo !== "no" &&
       missingInfo !== "false";
 
-    if (existingOrder) return "existing";
-    if (deliveryIssue) return "service";
-
-    if ((status === "ready" || quoteReadiness === "ready") && hasStrongQuoteData) {
-      return "ready";
-    }
-
-  if (!hasName && !hasProducts) return "lowdata";
+    iif (!hasName && !hasProducts) return "lowdata";
 if (!hasCoreLeadData) return "incomplete";
 if (status === "incomplete" || missingIsSignificant) return "incomplete";
 
+if (existingOrder) return "existing";
+if (deliveryIssue) return "service";
+
+if ((status === "ready" || quoteReadiness === "ready") && hasStrongQuoteData) {
+  return "ready";
+}
+
 return "partial";
+
 }
 
  function renderCards(rows) {
