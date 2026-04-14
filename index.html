@@ -905,14 +905,15 @@
   return 'partial';
 }
 
-    function statusLabel(value) {
-      const v = lower(value);
-      if (v === 'service') return 'Delivery';
-      if (v === 'existing') return 'Order Update';
-      if (v === 'partial') return 'Partial';
-      if (v === 'incomplete') return 'Incomplete';
-      return 'Ready';
-    }
+function statusClass(value) {
+const v = lower(value);
+if (v === 'ready') return 'ready';
+if (v === 'service' || v === 'delivery') return 'service';
+if (v === 'existing' || v === 'order') return 'existing';
+if (v === 'incomplete') return 'incomplete';
+return 'partial';
+}
+
 
     function showError(message) {
       const box = document.getElementById('errorBox');
