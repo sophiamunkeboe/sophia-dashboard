@@ -136,17 +136,17 @@ margin-bottom: 12px;
 display: flex;
 align-items: center;
 justify-content: space-between;
-gap: 18px;
-flex-wrap: wrap;
-margin-bottom: 12px;
+margin-bottom: 2px;
+gap: 12px;
 }
+
 
 .brand-wrap {
 display: flex;
 align-items: center;
 gap: 10px;
 padding-left: 8px;
-min-height: 72px;
+min-height: auto;
 }
 
 .logo-main {
@@ -243,6 +243,7 @@ border-radius: 18px;
 background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
 border: 1px solid rgba(124,236,255,.14);
 box-shadow: var(--glow);
+margin-top: -4px;
 margin-bottom: 12px;
 overflow-x: auto;
 white-space: nowrap;
@@ -613,6 +614,36 @@ font-size: 14px;
     padding-left: 4px;
   }
 }
+
+@keyframes logoPulse {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(0, 200, 255, 0.4));
+  }
+
+  40% {
+    transform: scale(1.06);
+    filter: drop-shadow(0 0 22px rgba(0, 200, 255, 0.8))
+            drop-shadow(0 0 40px rgba(0, 200, 255, 0.5));
+  }
+
+  55% {
+    transform: scale(1.08); /* 👈 peak hit */
+    filter: drop-shadow(0 0 30px rgba(0, 200, 255, 1))
+            drop-shadow(0 0 60px rgba(0, 200, 255, 0.7));
+  }
+
+  70% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 20px rgba(0, 200, 255, 0.7));
+  }
+
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(0, 200, 255, 0.4));
+  }
+}
+
 
 </style>
 </head>
