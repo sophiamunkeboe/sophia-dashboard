@@ -1,184 +1,551 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Sophia Systems Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sophia Systems Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg-1: #020617;
+      --bg-2: #081225;
+      --card: rgba(7, 18, 36, 0.82);
+      --line: rgba(103, 232, 249, 0.18);
+      --text: #f8fbff;
+      --muted: #9fb3c8;
+      --cyan: #67e8f9;
+      --green: #4ade80;
+      --amber: #fbbf24;
+      --red: #fb7185;
+      --blue: #60a5fa;
+    }
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    * { box-sizing: border-box; }
 
-<style>
-body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: radial-gradient(circle at top, #0a0f2a, #02040a);
-    color: white;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(96,165,250,.16), transparent 22%),
+        radial-gradient(circle at top right, rgba(34,211,238,.12), transparent 18%),
+        linear-gradient(180deg, var(--bg-1), var(--bg-2));
+      min-height: 100vh;
+    }
 
-/* HEADER */
-.header {
-    display: flex;
-    align-items: center;
-    padding: 20px 30px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
+    .container {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 24px;
+    }
 
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding-bottom: 18px;
+    }
 
-.logo img {
-    height: 50px;
-    filter: drop-shadow(0 0 10px #00eaff);
-}
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
 
-.logo-text {
-    display: flex;
-    flex-direction: column;
-}
+    .logo-wrap img {
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 12px rgba(103,232,249,.45));
+      border-radius: 10px;
+    }
 
-.logo-text h1 {
-    margin: 0;
-    font-size: 20px;
-    letter-spacing: 2px;
-}
+    .brand h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: .08em;
+    }
 
-.logo-text span {
-    font-size: 12px;
-    opacity: 0.7;
-}
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
 
-/* CARDS */
-.cards {
-    display: flex;
-    gap: 20px;
-    padding: 20px;
-}
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
 
-.card {
-    flex: 1;
-    padding: 20px;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.05);
-    box-shadow: 0 0 15px rgba(0,255,255,0.1);
-    backdrop-filter: blur(10px);
-}
+    .card {
+      padding: 20px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border: 1px solid var(--line);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.02) inset,
+        0 0 24px rgba(34,211,238,.08);
+    }
 
-/* TABLE */
-.table {
-    margin: 20px;
-    background: rgba(255,255,255,0.03);
-    border-radius: 12px;
-    padding: 20px;
-}
+    .card .label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
 
-.row {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    padding: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    transition: 0.2s;
-}
+    .card .value {
+      font-size: 38px;
+      font-weight: bold;
+      line-height: 1;
+    }
 
-.row:hover {
-    background: rgba(0,255,255,0.08);
-}
+    .panel {
+      border-radius: 20px;
+      background: rgba(7,18,36,.78);
+      border: 1px solid var(--line);
+      overflow: hidden;
+      box-shadow: 0 0 28px rgba(34,211,238,.08);
+    }
 
-/* BUTTONS */
-button {
-    background: linear-gradient(45deg, #00eaff, #0077ff);
-    border: none;
-    color: white;
-    padding: 6px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    box-shadow: 0 0 10px rgba(0,255,255,0.5);
-}
+    .panel-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
 
-button:hover {
-    transform: scale(1.05);
-}
+    .panel-head h2 {
+      margin: 0;
+      font-size: 24px;
+    }
 
-/* STATUS */
-.status {
-    padding: 5px 10px;
-    border-radius: 10px;
-}
+    .panel-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
 
-.ready { background: rgba(0,255,100,0.2); }
-.incomplete { background: rgba(255,0,0,0.2); }
-</style>
+    .search {
+      width: min(360px, 100%);
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(2,8,23,.72);
+      color: white;
+      outline: none;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1220px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      background: rgba(255,255,255,.02);
+    }
+
+    td {
+      font-size: 14px;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      border: 1px solid transparent;
+    }
+
+    .ready {
+      background: rgba(74,222,128,.16);
+      color: #bbf7d0;
+      border-color: rgba(74,222,128,.24);
+      box-shadow: 0 0 12px rgba(74,222,128,.12);
+    }
+
+    .service, .partial {
+      background: rgba(251,191,36,.16);
+      color: #fde68a;
+      border-color: rgba(251,191,36,.24);
+      box-shadow: 0 0 12px rgba(251,191,36,.12);
+    }
+
+    .incomplete {
+      background: rgba(251,113,133,.16);
+      color: #fecdd3;
+      border-color: rgba(251,113,133,.24);
+      box-shadow: 0 0 12px rgba(251,113,133,.12);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .follow-yes {
+      background: rgba(74,222,128,.16);
+      color: #bbf7d0;
+      border-color: rgba(74,222,128,.24);
+    }
+
+    .follow-no {
+      background: rgba(251,191,36,.16);
+      color: #fde68a;
+      border-color: rgba(251,191,36,.24);
+    }
+
+    .action-cell {
+      min-width: 180px;
+    }
+
+    .action-button {
+      width: 100%;
+      margin-bottom: 8px;
+      border: 1px solid rgba(103,232,249,.24);
+      background: linear-gradient(180deg, rgba(30,41,59,.96), rgba(8,15,30,.96));
+      color: white;
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow:
+        0 0 12px rgba(34,211,238,.12),
+        0 0 0 1px rgba(255,255,255,.02) inset;
+    }
+
+    .action-button:hover {
+      border-color: rgba(103,232,249,.45);
+      box-shadow: 0 0 18px rgba(34,211,238,.18);
+    }
+
+    .error-box {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(127,29,29,.34);
+      border: 1px solid rgba(251,113,133,.25);
+      color: #fecdd3;
+      display: none;
+    }
+
+    .muted { color: var(--muted); }
+
+    @media (max-width: 1100px) {
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 680px) {
+      .cards { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
-
 <body>
-
-<!-- HEADER -->
-<div class="header">
-    <div class="logo">
-        <img src="https://i.imgur.com/your-logo.png">
-        <div class="logo-text">
-            <h1>SOPHIA SYSTEMS</h1>
-            <span>Capture every call. Convert every opportunity.</span>
+  <div class="container">
+    <div class="header">
+      <div class="logo-wrap">
+        <img src="https://i.imgur.com/your-logo.png" alt="Sophia Systems Logo">
+        <div class="brand">
+          <h1>SOPHIA SYSTEMS</h1>
+          <p>Capture every call. Convert every opportunity.</p>
         </div>
+      </div>
     </div>
-</div>
 
-<!-- CARDS -->
-<div class="cards">
-    <div class="card">Calls Today: <span id="calls">0</span></div>
-    <div class="card">Ready Quotes: <span id="ready">0</span></div>
-    <div class="card">Service: <span id="service">0</span></div>
-    <div class="card">Incomplete: <span id="incomplete">0</span></div>
-</div>
+    <div class="cards">
+      <div class="card">
+        <div class="label">Calls Today</div>
+        <div class="value" id="callsToday">0</div>
+      </div>
+      <div class="card">
+        <div class="label">Ready Quotes</div>
+        <div class="value" id="readyQuotes">0</div>
+      </div>
+      <div class="card">
+        <div class="label">Service Calls</div>
+        <div class="value" id="serviceCalls">0</div>
+      </div>
+      <div class="card">
+        <div class="label">Incomplete</div>
+        <div class="value" id="incompleteCalls">0</div>
+      </div>
+    </div>
 
-<!-- TABLE -->
-<div class="table" id="table"></div>
-
-<script>
-const supabase = window.supabase.createClient(
-  "https://aeonjnohadmbxfuoirqa.supabase.co",
-  "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf"
-);
-
-async function loadData() {
-    let { data } = await supabase.from("leads").select("*");
-
-    document.getElementById("calls").innerText = data.length;
-    document.getElementById("ready").innerText = data.filter(x => x.status === "ready").length;
-    document.getElementById("incomplete").innerText = data.filter(x => x.status === "incomplete").length;
-
-    let html = "";
-
-    data.forEach(d => {
-        html += `
-        <div class="row">
-            <div>${d.full_name}</div>
-            <div>${d.phone}</div>
-            <div>${d.event_date}</div>
-            <div>${d.products_requested}</div>
-            <div>${d.workflow_route}</div>
-            <div class="status ${d.status}">${d.status}</div>
-            <div>${d.assigned_to || "-"}</div>
-            <div>
-                <button onclick="assign('${d.id}','Carina')">Carina</button>
-                <button onclick="assign('${d.id}','James')">James</button>
-                <button onclick="assign('${d.id}','Linda')">Linda</button>
-            </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>Live Leads</h2>
+          <p>Recent calls, assignments, and follow-up activity</p>
         </div>
+        <input id="searchInput" class="search" placeholder="Search name, phone, products, notes...">
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Event Date</th>
+              <th>Products</th>
+              <th>Route</th>
+              <th>Status</th>
+              <th>Assigned</th>
+              <th>Follow Up</th>
+              <th>Actions</th>
+              <th>Received</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr>
+              <td colspan="10" class="muted">Loading data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="errorBox" class="error-box"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://aeonjnohadmbxfuoirqa.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let allRows = [];
+
+    function showError(message) {
+      const box = document.getElementById("errorBox");
+      box.style.display = "block";
+      box.textContent = message;
+    }
+
+    function clearError() {
+      const box = document.getElementById("errorBox");
+      box.style.display = "none";
+      box.textContent = "";
+    }
+
+    function safeText(value) {
+      if (value === null || value === undefined || value === "") return "—";
+      return String(value);
+    }
+
+    function lower(value) {
+      return String(value || "").toLowerCase().trim();
+    }
+
+    function isToday(dateString) {
+      if (!dateString) return false;
+      const rowDate = new Date(dateString);
+      const now = new Date();
+      return rowDate.getFullYear() === now.getFullYear() &&
+             rowDate.getMonth() === now.getMonth() &&
+             rowDate.getDate() === now.getDate();
+    }
+
+    function formatDateTime(dateString) {
+      if (!dateString) return "—";
+      const d = new Date(dateString);
+      if (Number.isNaN(d.getTime())) return safeText(dateString);
+      return d.toLocaleString([], {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      });
+    }
+
+    function deriveStatus(row) {
+      const dashboardStatus = lower(row.dashboard_status);
+      const status = lower(row.status);
+      const quoteReadiness = lower(row.quote_readiness);
+      const workflowRoute = lower(row.workflow_route);
+      const missingInfo = lower(row.missing_information);
+
+      if (dashboardStatus) return dashboardStatus;
+      if (status === "incomplete") return "incomplete";
+      if (quoteReadiness === "ready") return "ready";
+      if (workflowRoute === "service") return "service";
+      if (missingInfo && missingInfo !== "none") return "incomplete";
+      if (status) return status;
+      return "partial";
+    }
+
+    function statusClass(value) {
+      const v = lower(value);
+      if (v === "ready") return "ready";
+      if (v === "service") return "service";
+      if (v === "incomplete") return "incomplete";
+      return "partial";
+    }
+
+    function renderCards(rows) {
+      document.getElementById("callsToday").textContent = rows.filter(r => isToday(r.created_at)).length;
+      document.getElementById("readyQuotes").textContent = rows.filter(r => lower(r.quote_readiness) === "ready" || deriveStatus(r) === "ready").length;
+      document.getElementById("serviceCalls").textContent = rows.filter(r => lower(r.workflow_route) === "service" || deriveStatus(r) === "service").length;
+      document.getElementById("incompleteCalls").textContent = rows.filter(r => {
+        const missing = lower(r.missing_information);
+        return deriveStatus(r) === "incomplete" || (missing && missing !== "none");
+      }).length;
+    }
+
+    function renderTable(rows) {
+      const tbody = document.getElementById("tableBody");
+
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="10" class="muted">No rows found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.map(row => {
+        const status = deriveStatus(row);
+        const followed = row.follow_up_status === true;
+        return `
+          <tr>
+            <td>${safeText(row.full_name)}</td>
+            <td>${safeText(row.phone)}</td>
+            <td>${safeText(row.event_date)}</td>
+            <td>${safeText(row.products_requested)}</td>
+            <td>${safeText(row.workflow_route)}</td>
+            <td><span class="status ${statusClass(status)}">${safeText(status)}</span></td>
+            <td><span class="pill">${safeText(row.assigned_to)}</span></td>
+            <td><span class="pill ${followed ? "follow-yes" : "follow-no"}">${followed ? "Done" : "Pending"}</span></td>
+            <td class="action-cell">
+              <button class="action-button" onclick="assignLead('${row.id}')">Assign</button>
+              <button class="action-button" onclick="markFollowed('${row.id}')">Mark Done</button>
+            </td>
+            <td>${formatDateTime(row.created_at)}</td>
+          </tr>
         `;
-    });
+      }).join("");
+    }
 
-    document.getElementById("table").innerHTML = html;
-}
+    function applySearch() {
+      const term = lower(document.getElementById("searchInput").value);
+      if (!term) return renderTable(allRows);
 
-async function assign(id, name) {
-    await supabase.from("leads").update({ assigned_to: name }).eq("id", id);
-    loadData();
-}
+      const filtered = allRows.filter(row =>
+        [
+          row.full_name,
+          row.phone,
+          row.event_date,
+          row.products_requested,
+          row.workflow_route,
+          row.notes,
+          row.coordinator_notes,
+          row.assigned_to,
+          row.followed_up_by
+        ].some(field => lower(field).includes(term))
+      );
 
-loadData();
-</script>
+      renderTable(filtered);
+    }
 
+    async function loadDashboard() {
+      clearError();
+
+      const { data, error } = await supabaseClient
+        .from("leads")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) {
+        showError("Could not load dashboard data: " + error.message);
+        document.getElementById("tableBody").innerHTML = `<tr><td colspan="10" class="muted">Failed to load data.</td></tr>`;
+        return;
+      }
+
+      allRows = data || [];
+      renderCards(allRows);
+      renderTable(allRows);
+    }
+
+    async function assignLead(id) {
+      const employee = prompt("Assign to: Carina, James, or Linda");
+      if (!employee) return;
+
+      const clean = employee.trim();
+      if (!["Carina", "James", "Linda"].includes(clean)) {
+        alert("Use exactly: Carina, James, or Linda");
+        return;
+      }
+
+      const { error } = await supabaseClient
+        .from("leads")
+        .update({ assigned_to: clean })
+        .eq("id", id);
+
+      if (error) {
+        showError("Could not assign lead: " + error.message);
+        return;
+      }
+
+      loadDashboard();
+    }
+
+    async function markFollowed(id) {
+      const employee = prompt("Who followed up? Carina, James, or Linda");
+      if (!employee) return;
+
+      const clean = employee.trim();
+      if (!["Carina", "James", "Linda"].includes(clean)) {
+        alert("Use exactly: Carina, James, or Linda");
+        return;
+      }
+
+      const { error } = await supabaseClient
+        .from("leads")
+        .update({
+          follow_up_status: true,
+          followed_up_by: clean,
+          follow_up_time: new Date().toISOString()
+        })
+        .eq("id", id);
+
+      if (error) {
+        showError("Could not mark follow-up: " + error.message);
+        return;
+      }
+
+      loadDashboard();
+    }
+
+    document.getElementById("searchInput").addEventListener("input", applySearch);
+    loadDashboard();
+  </script>
 </body>
 </html>
