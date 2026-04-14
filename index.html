@@ -955,45 +955,53 @@
       document.getElementById('openAlerts').textContent = openAlerts;
     }
 
-    function renderTable(rows) {
-      const tbody = document.getElementById('tableBody');
-      if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="11" class="muted">No rows found.</td></tr>';
-        return;
-      }
+   function renderTable(rows) {
+  const tbody = document.getElementById('tableBody');
 
-      tbody.innerHTML = rows.map(row => {
-        const classification = classifyLead(row);
-        const followed = asBool(row.follow_up_status);
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="11" class="muted">No rows found.</td></tr>';
+    return;
+  }
 
-        return `
-          <tr onclick="openDrawer('${row.id}')">
-            <td class="name-cell">${safeText(row.full_name)}</td>
-            <td>${safeText(row.phone)}</td>
-            <td>${safeText(row.event_date)}</td>
-            <td class="products-cell">${safeText(row.products_requested)}</td>
-            <td>${safeText(row.workflow_route)}</td>
-            <td><span class="pill ${statusClass(classification)}">${statusLabel(classification)}</span></td>
-            <td><span class="pill">${safeText(row.assigned_to)}</span></td>
-            <td>
-              <span class="pill ${followed ? 'ready' : 'partial'}">${followed ? 'Done' : 'Pending'}</span>
-              ${followed && row.followed_up_by ? `<span class="follow-note">By ${safeText(row.followed_up_by)}</span>` : ''}
-            </td>
-            <td onclick="event.stopPropagation()">
-              <div class="employee-buttons">
-                <button class="glass-btn" onclick="assignLead('${row.id}', 'Carina')">Carina</button>
-                <button class="glass-btn" onclick="assignLead('${row.id}', 'James')">James</button>
-                <button class="glass-btn" onclick="assignLead('${row.id}', 'Linda')">Linda</button>
-              </div>
-            </td>
-            <td onclick="event.stopPropagation()">
-              <button class="glass-btn done-btn" onclick="markFollowed('${row.id}')">Mark Done</button>
-            </td>
-            <td>${formatDateTime(row.created_at)}</td>
-          </tr>
-        `;
-      }).join('');
-    }
+  try {
+    tbody.innerHTML = rows.map(row => {
+      const classification = classifyLead(row);
+      const followed = asBool(row.follow_up_status);
+      const rowId = String(row.id ?? '');
+
+      return `
+        <tr onclick="openDrawer('${rowId}')">
+          <td class="name-cell">${safeText(row.full_name)}</td>
+          <td>${safeText(row.phone)}</td>
+          <td>${safeText(row.event_date)}</td>
+          <td class="products-cell">${safeText(row.products_requested)}</td>
+          <td>${safeText(row.workflow_route)}</td>
+          <td><span class="pill ${statusClass(classification)}">${statusLabel(classification)}</span></td>
+          <td><span class="pill">${safeText(row.assigned_to)}</span></td>
+          <td>
+            <span class="pill ${followed ? 'ready' : 'partial'}">${followed ? 'Done' : 'Pending'}</span>
+            ${followed && row.followed_up_by ? `<span class="follow-note">By ${safeText(row.followed_up_by)}</span>` : ''}
+          </td>
+          <td onclick="event.stopPropagation()">
+            <div class="employee-buttons">
+              <button class="glass-btn" onclick="assignLead('${rowId}', 'Carina')">Carina</button>
+              <button class="glass-btn" onclick="assignLead('${rowId}', 'James')">James</button>
+              <button class="glass-btn" onclick="assignLead('${rowId}', 'Linda')">Linda</button>
+            </div>
+          </td>
+          <td onclick="event.stopPropagation()">
+            <button class="glass-btn done-btn" onclick="markFollowed('${rowId}')">Mark Done</button>
+          </td>
+          <td>${formatDateTime(row.created_at)}</td>
+        </tr>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('renderTable failed:', err);
+    tbody.innerHTML = '<tr><td colspan="11" class="muted">Table render failed. Check console.</td></tr>';
+    showError('Table render failed: ' + err.message);
+  }
+}
 
     function applySearch() {
       const term = lower(document.getElementById('searchInput').value);
@@ -1092,9 +1100,10 @@
         return;
       }
 
-      allRows = data || [];
-      renderCards(allRows);
-      renderTable(allRows);
+     allRows = data || [];
+console.log('Dashboard rows:', allRows);
+renderCards(allRows);
+renderTable(allRows);
     }
 
     async function assignLead(id, employee) {
@@ -1184,3 +1193,5 @@
   </script>
 </body>
 </html>
+
+
