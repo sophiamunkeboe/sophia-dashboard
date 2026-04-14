@@ -32,7 +32,7 @@
 
     html, body {
       margin: 0;
-      min-height: 100%;
+      height: 100%;
       font-family: "Segoe UI", Arial, sans-serif;
       color: var(--text);
       background:
@@ -40,7 +40,7 @@
         radial-gradient(circle at 80% 8%, rgba(88, 235, 255, 0.14), transparent 18%),
         radial-gradient(circle at 50% 55%, rgba(255,255,255,0.05), transparent 30%),
         linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%);
-      overflow-x: hidden;
+      overflow: hidden;
     }
 
     body::before {
@@ -55,6 +55,65 @@
         radial-gradient(1.2px 1.2px at 140px 40px, rgba(255,255,255,.5), transparent),
         radial-gradient(1px 1px at 50px 160px, rgba(100,168,255,.45), transparent);
       background-size: 220px 220px;
+      z-index: 0;
+    }
+
+    .background-logo {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(700px, 72vw);
+      opacity: 0.05;
+      filter: blur(1.8px) drop-shadow(0 0 30px rgba(124,236,255,.18));
+      pointer-events: none;
+      z-index: 0;
+      user-select: none;
+    }
+
+    .app-shell {
+      position: relative;
+      z-index: 1;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-fixed {
+      flex: 0 0 auto;
+      position: relative;
+      z-index: 10;
+      background: rgba(5, 11, 22, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(124,236,255,.14);
+      box-shadow: 0 12px 30px rgba(0,0,0,.18);
+    }
+
+    .bottom-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
+      z-index: 1;
+    }
+
+    .bottom-scroll::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .bottom-scroll::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+    }
+
+    .bottom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(110, 231, 255, 0.22);
+      border-radius: 10px;
+    }
+
+    .bottom-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(110, 231, 255, 0.38);
     }
 
     .app {
@@ -103,6 +162,7 @@
         inset 0 0 22px rgba(124,236,255,.08),
         0 0 24px rgba(50,214,255,.14);
       overflow: hidden;
+      flex-shrink: 0;
     }
 
     .logo-shell img {
@@ -245,6 +305,7 @@
         inset 0 0 18px rgba(255,255,255,.02),
         0 0 28px rgba(50,214,255,.08);
       overflow: hidden;
+      margin-bottom: 18px;
     }
 
     .panel-head {
@@ -308,6 +369,9 @@
       letter-spacing: .12em;
       border-bottom: 1px solid rgba(255,255,255,.06);
       background: rgba(255,255,255,.015);
+      position: sticky;
+      top: 0;
+      z-index: 2;
     }
 
     tbody td {
@@ -455,6 +519,7 @@
       .metric-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
       .panel-title {
         font-size: 30px;
       }
@@ -464,105 +529,130 @@
       .metric-grid {
         grid-template-columns: 1fr;
       }
+
       .brand-title {
         font-size: 26px;
       }
+
       .header-actions {
         display: none;
       }
+
       .panel-title {
         font-size: 26px;
+      }
+
+      .logo-shell {
+        width: 62px;
+        height: 62px;
+      }
+
+      .logo-shell img {
+        width: 48px;
+        height: 48px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <div class="top-glow-line"></div>
+  <img src="/assets/logo-bg.png" class="background-logo" alt="Sophia background logo" />
 
-    <div class="header">
-      <div class="brand-wrap">
-        <div class="logo-shell">
-          <img src="https://i.imgur.com/your-logo.png" alt="Sophia Systems Logo">
-        </div>
-        <div>
-          <h1 class="brand-title">Sophia Systems</h1>
-          <div class="brand-sub">Capture every call. Convert every opportunity.</div>
-        </div>
-      </div>
+  <div class="app-shell">
+    <section class="top-fixed">
+      <div class="app">
+        <div class="top-glow-line"></div>
 
-      <div class="header-actions">
-        <div class="head-chip">🔔</div>
-        <div class="head-chip">✉️</div>
-        <div class="head-chip">⏱️</div>
-      </div>
-    </div>
-
-    <div class="hero-bar">
-      <div class="hero-tab active">Overview</div>
-      <div class="hero-tab">Leads</div>
-      <div class="hero-tab">Call Log</div>
-      <div class="hero-tab">Routing Log</div>
-      <div class="hero-tab">Settings</div>
-    </div>
-
-    <div class="grid">
-      <div class="metric-grid">
-        <div class="metric">
-          <div class="label">Calls Today</div>
-          <div class="value" id="callsToday">0</div>
-        </div>
-        <div class="metric">
-          <div class="label">Ready Quotes</div>
-          <div class="value" id="readyQuotes">0</div>
-        </div>
-        <div class="metric">
-          <div class="label">Service Calls</div>
-          <div class="value" id="serviceCalls">0</div>
-        </div>
-        <div class="metric">
-          <div class="label">Incomplete Calls</div>
-          <div class="value" id="incompleteCalls">0</div>
-        </div>
-      </div>
-
-      <div class="content-panel">
-        <div class="panel-head">
-          <div>
-            <h2 class="panel-title">Live Leads</h2>
-            <div class="panel-sub">Recent calls, assignments, and follow-up activity</div>
+        <div class="header">
+          <div class="brand-wrap">
+            <div class="logo-shell">
+              <img src="/assets/logo-main.png" alt="Sophia Systems Logo">
+            </div>
+            <div>
+              <h1 class="brand-title">Sophia Systems</h1>
+              <div class="brand-sub">Capture every call. Convert every opportunity.</div>
+            </div>
           </div>
-          <input id="searchInput" class="search" placeholder="Search name, phone, products, notes...">
+
+          <div class="header-actions">
+            <div class="head-chip">🔔</div>
+            <div class="head-chip">✉️</div>
+            <div class="head-chip">⏱️</div>
+          </div>
         </div>
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Event Date</th>
-                <th>Products</th>
-                <th>Route</th>
-                <th>Status</th>
-                <th>Assigned</th>
-                <th>Follow Up</th>
-                <th>Assign</th>
-                <th>Done</th>
-                <th>Received</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody">
-              <tr>
-                <td colspan="11" class="muted">Loading data...</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="hero-bar">
+          <div class="hero-tab active">Overview</div>
+          <div class="hero-tab">Leads</div>
+          <div class="hero-tab">Call Log</div>
+          <div class="hero-tab">Routing Log</div>
+          <div class="hero-tab">Settings</div>
+        </div>
+
+        <div class="grid">
+          <div class="metric-grid">
+            <div class="metric">
+              <div class="label">Calls Today</div>
+              <div class="value" id="callsToday">0</div>
+            </div>
+            <div class="metric">
+              <div class="label">Ready Quotes</div>
+              <div class="value" id="readyQuotes">0</div>
+            </div>
+            <div class="metric">
+              <div class="label">Service Calls</div>
+              <div class="value" id="serviceCalls">0</div>
+            </div>
+            <div class="metric">
+              <div class="label">Incomplete Calls</div>
+              <div class="value" id="incompleteCalls">0</div>
+            </div>
+          </div>
         </div>
       </div>
+    </section>
 
-      <div id="errorBox" class="error-box"></div>
-    </div>
+    <main class="bottom-scroll">
+      <div class="app">
+        <div class="grid">
+          <div class="content-panel">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title">Live Leads</h2>
+                <div class="panel-sub">Recent calls, assignments, and follow-up activity</div>
+              </div>
+              <input id="searchInput" class="search" placeholder="Search name, phone, products, notes...">
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Event Date</th>
+                    <th>Products</th>
+                    <th>Route</th>
+                    <th>Status</th>
+                    <th>Assigned</th>
+                    <th>Follow Up</th>
+                    <th>Assign</th>
+                    <th>Done</th>
+                    <th>Received</th>
+                  </tr>
+                </thead>
+                <tbody id="tableBody">
+                  <tr>
+                    <td colspan="11" class="muted">Loading data...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="errorBox" class="error-box"></div>
+        </div>
+      </div>
+    </main>
   </div>
 
   <script>
@@ -659,7 +749,7 @@
       const tbody = document.getElementById("tableBody");
 
       if (!rows.length) {
-        tbody.innerHTML = `<tr><td colspan="11" class="muted">No rows found.</td></tr>`;
+        tbody.innerHTML = '<tr><td colspan="11" class="muted">No rows found.</td></tr>';
         return;
       }
 
@@ -732,7 +822,7 @@
       if (error) {
         showError("Could not load dashboard data: " + error.message);
         document.getElementById("tableBody").innerHTML =
-          `<tr><td colspan="11" class="muted">Failed to load data.</td></tr>`;
+          '<tr><td colspan="11" class="muted">Failed to load data.</td></tr>';
         return;
       }
 
