@@ -872,16 +872,44 @@ minute: '2-digit'
 });
 }
 
-function classifyLead(row) {
+function getRowStatus(row) {
+  const status = lower(row.status);
+  const quoteReadiness = lower(row.quote_readiness);
+  const missingInfo = lower(row.missing_information);
+
+  const missingIsSignificant =
+    missingInfo &&
+    missingInfo !== 'none' &&
+    missingInfo !== 'no' &&
+    missingInfo !== 'false';
+
+  if (status === 'ready') return 'ready';
+  if (status === 'incomplete') return 'incomplete';
+  if (status === 'partial') return 'partial';
+
+  if (quoteReadiness === 'ready') return 'ready';
+  if (missingIsSignificant) return 'incomplete';
+
+  return 'partial';
+}
+
+function getPipelineBucket(row) {
   const status = lower(row.status);
   const quoteReadiness = lower(row.quote_readiness);
   const workflowRoute = lower(row.workflow_route);
   const issueType = lower(row.issue_type);
+  const products = lower(row.products_requested);
+  const notes = lower(row.notes);
   const missingInfo = lower(row.missing_information);
 
   const existingOrder =
     asBool(row.existing_order_request) ||
-    workflowRoute.includes('existing');
+    workflowRoute.includes('existing') ||
+    products.includes('return update') ||
+    notes.includes('return update') ||
+    notes.includes('update') ||
+    notes.includes('change order') ||
+    notes.includes('change quote');
 
   const deliveryIssue =
     asBool(row.delivery_change_request) ||
@@ -891,7 +919,8 @@ function classifyLead(row) {
 
   const newQuote =
     asBool(row.new_quote_request) ||
-    workflowRoute.includes('quote');
+    workflowRoute.includes('quote') ||
+    quoteReadiness === 'ready';
 
   const missingIsSignificant =
     missingInfo &&
@@ -899,20 +928,15 @@ function classifyLead(row) {
     missingInfo !== 'no' &&
     missingInfo !== 'false';
 
-  // 🔥 TRUST FINAL STATUS FIRST
-  if (status === 'ready') return 'ready';
-  if (status === 'incomplete') return 'incomplete';
-
-  // THEN FALL BACK
-  if (quoteReadiness === 'ready') return 'ready';
   if (existingOrder) return 'existing';
   if (deliveryIssue) return 'service';
-  if (missingIsSignificant) return 'incomplete';
+  if (status === 'ready' || quoteReadiness === 'ready') return 'ready';
+  if (status === 'incomplete' && !existingOrder && !deliveryIssue) return 'incomplete';
+  if (missingIsSignificant && !existingOrder && !deliveryIssue) return 'incomplete';
   if (newQuote) return 'partial';
 
   return 'partial';
 }
-
 
 function statusClass(value) {
 const v = lower(value);
@@ -956,21 +980,21 @@ banner.textContent = '';
 }
 
 function renderCards(rows) {
-const ready = rows.filter(r => classifyLead(r) === 'ready').length;
-const partial = rows.filter(r => classifyLead(r) === 'partial').length;
-const delivery = rows.filter(r => classifyLead(r) === 'service').length;
-const existing = rows.filter(r => classifyLead(r) === 'existing').length;
-const incomplete = rows.filter(r => classifyLead(r) === 'incomplete').length;
-const callsToday = rows.filter(r => isToday(r.created_at)).length;
-const openAlerts = rows.filter(r => classifyLead(r) === 'incomplete' || asBool(r.follow_up_needed) || asBool(r.human_request)).length;
+  const ready = rows.filter(r => getPipelineBucket(r) === 'ready').length;
+  const partial = rows.filter(r => getPipelineBucket(r) === 'partial').length;
+  const delivery = rows.filter(r => getPipelineBucket(r) === 'service').length;
+  const existing = rows.filter(r => getPipelineBucket(r) === 'existing').length;
+  const incomplete = rows.filter(r => getPipelineBucket(r) === 'incomplete').length;
+  const callsToday = rows.filter(r => isToday(r.created_at)).length;
+  const openAlerts = rows.filter(r => getRowStatus(r) === 'incomplete' || asBool(r.follow_up_needed) || asBool(r.human_request)).length;
 
-document.getElementById('readyQuotes').textContent = ready;
-document.getElementById('partialCalls').textContent = partial;
-document.getElementById('deliveryIssues').textContent = delivery;
-document.getElementById('orderUpdates').textContent = existing;
-document.getElementById('incompleteCalls').textContent = incomplete;
-document.getElementById('callsToday').textContent = callsToday;
-document.getElementById('openAlerts').textContent = openAlerts;
+  document.getElementById('readyQuotes').textContent = ready;
+  document.getElementById('partialCalls').textContent = partial;
+  document.getElementById('deliveryIssues').textContent = delivery;
+  document.getElementById('orderUpdates').textContent = existing;
+  document.getElementById('incompleteCalls').textContent = incomplete;
+  document.getElementById('callsToday').textContent = callsToday;
+  document.getElementById('openAlerts').textContent = openAlerts;
 }
 
 function renderTable(rows) {
@@ -981,7 +1005,7 @@ return;
 }
 
 tbody.innerHTML = rows.map(row => {
-const classification = classifyLead(row);
+const rowStatus = getRowStatus(row);
 const followed = asBool(row.follow_up_status);
 
 return `
@@ -991,7 +1015,7 @@ return `
 <td>${safeText(row.event_date)}</td>
 <td class="products-cell">${safeText(row.products_requested)}</td>
 <td>${safeText(row.workflow_route)}</td>
-<td><span class="pill ${statusClass(classification)}">${statusLabel(classification)}</span></td>
+<td><span class="pill ${statusClass(rowStatus)}">${statusLabel(rowStatus)}</span></td>
 <td><span class="pill">${safeText(row.assigned_to)}</span></td>
 <td>
 <span class="pill ${followed ? 'ready' : 'partial'}">${followed ? 'Done' : 'Pending'}</span>
@@ -1072,8 +1096,10 @@ document.getElementById('drawerEventDate').textContent = safeText(row.event_date
 document.getElementById('drawerDeliveryMethod').textContent = safeText(row.delivery_method);
 document.getElementById('drawerAddress').textContent = buildAddress(row);
 document.getElementById('drawerProducts').textContent = safeText(row.products_requested);
-document.getElementById('drawerRoute').innerHTML = `${safeText(row.workflow_route)}<span class="pill tiny-route ${statusClass(classifyLead(row))}">${statusLabel(classifyLead(row))}</span>`;
-document.getElementById('drawerStatus').textContent = statusLabel(classifyLead(row));
+const rowStatus = getRowStatus(row);
+const pipelineBucket = getPipelineBucket(row);
+document.getElementById('drawerRoute').innerHTML = `${safeText(row.workflow_route || pipelineBucket)}<span class="pill tiny-route ${statusClass(rowStatus)}">${statusLabel(rowStatus)}</span>`;
+document.getElementById('drawerStatus').textContent = statusLabel(rowStatus);
 document.getElementById('drawerRequestedEmployee').textContent = safeText(row.requested_employee);
 document.getElementById('drawerSentiment').textContent = safeText(row.sentiment);
 document.getElementById('drawerMissingInformation').textContent = safeText(row.missing_information);
