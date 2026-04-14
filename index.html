@@ -1,872 +1,208 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sophia Systems Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --bg-1: #020611;
-      --bg-2: #050c1d;
-      --bg-3: #08152d;
-      --panel: rgba(10, 20, 40, 0.68);
-      --panel-2: rgba(10, 24, 50, 0.78);
-      --line: rgba(116, 225, 255, 0.18);
-      --line-strong: rgba(116, 225, 255, 0.4);
-      --text: #eef7ff;
-      --muted: #9fb3c8;
-      --cyan: #7cecff;
-      --blue: #64a8ff;
-      --glow: 0 0 35px rgba(50, 214, 255, 0.16);
-      --green: #6effa8;
-      --amber: #ffd46a;
-      --red: #ff8aa3;
-      --violet: #9ab7ff;
-      --white-glow: 0 0 16px rgba(255,255,255,0.08);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html, body {
-      margin: 0;
-      height: 100%;
-      font-family: "Segoe UI", Arial, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 20% 10%, rgba(81, 146, 255, 0.18), transparent 18%),
-        radial-gradient(circle at 80% 8%, rgba(88, 235, 255, 0.14), transparent 18%),
-        radial-gradient(circle at 50% 55%, rgba(255,255,255,0.05), transparent 30%),
-        linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%);
-      overflow: hidden;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0.55;
-      background-image:
-        radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,.75), transparent),
-        radial-gradient(1.5px 1.5px at 80px 120px, rgba(122,236,255,.55), transparent),
-        radial-gradient(1.2px 1.2px at 140px 40px, rgba(255,255,255,.5), transparent),
-        radial-gradient(1px 1px at 50px 160px, rgba(100,168,255,.45), transparent);
-      background-size: 220px 220px;
-      z-index: 0;
-    }
-
-    .background-logo {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: min(700px, 72vw);
-      opacity: 0.05;
-      filter: blur(1.8px) drop-shadow(0 0 30px rgba(124,236,255,.18));
-      pointer-events: none;
-      z-index: 0;
-      user-select: none;
-    }
-
-    .app-shell {
-      position: relative;
-      z-index: 1;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .top-fixed {
-      flex: 0 0 auto;
-      position: relative;
-      z-index: 10;
-      background: rgba(5, 11, 22, 0.88);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(124,236,255,.14);
-      box-shadow: 0 12px 30px rgba(0,0,0,.18);
-    }
-
-    .bottom-scroll {
-      flex: 1 1 auto;
-      min-height: 0;
-      overflow-y: auto;
-      overflow-x: hidden;
-      position: relative;
-      z-index: 1;
-    }
-
-    .bottom-scroll::-webkit-scrollbar {
-      width: 10px;
-    }
-
-    .bottom-scroll::-webkit-scrollbar-track {
-      background: rgba(255,255,255,0.04);
-      border-radius: 10px;
-    }
-
-    .bottom-scroll::-webkit-scrollbar-thumb {
-      background: rgba(110, 231, 255, 0.22);
-      border-radius: 10px;
-    }
-
-    .bottom-scroll::-webkit-scrollbar-thumb:hover {
-      background: rgba(110, 231, 255, 0.38);
-    }
-
-    .app {
-      position: relative;
-      max-width: 1540px;
-      margin: 0 auto;
-      padding: 22px;
-      z-index: 1;
-    }
-
-    .top-glow-line {
-      height: 1px;
-      width: 100%;
-      background: linear-gradient(90deg, transparent, rgba(124,236,255,.55), transparent);
-      box-shadow: 0 0 20px rgba(124,236,255,.35);
-      margin-bottom: 14px;
-    }
-
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
-    }
-
-    .brand-wrap {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .logo-shell {
-      width: 74px;
-      height: 74px;
-      border-radius: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background:
-        radial-gradient(circle at 50% 30%, rgba(124,236,255,.16), transparent 70%),
-        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border: 1px solid rgba(124,236,255,.24);
-      box-shadow:
-        inset 0 0 22px rgba(124,236,255,.08),
-        0 0 24px rgba(50,214,255,.14);
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .logo-shell img {
-      width: 56px;
-      height: 56px;
-      object-fit: contain;
-      filter: drop-shadow(0 0 12px rgba(124,236,255,.45));
-    }
-
-    .brand-title {
-      margin: 0;
-      font-size: 34px;
-      line-height: 1;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      text-shadow: 0 0 18px rgba(124,236,255,.12);
-    }
-
-    .brand-sub {
-      margin-top: 6px;
-      color: #d9ebff;
-      font-size: 13px;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      opacity: .9;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .head-chip {
-      min-width: 58px;
-      height: 58px;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border: 1px solid rgba(124,236,255,.16);
-      box-shadow: var(--white-glow), 0 0 16px rgba(50,214,255,.08);
-      color: white;
-      font-size: 22px;
-    }
-
-    .hero-bar {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      padding: 14px 18px;
-      border-radius: 20px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
-      border: 1px solid rgba(124,236,255,.14);
-      box-shadow: var(--glow);
-      margin-bottom: 22px;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
-
-    .hero-tab {
-      font-size: 17px;
-      color: #d7e7ff;
-      opacity: .9;
-      letter-spacing: .04em;
-    }
-
-    .hero-tab.active {
-      color: white;
-      text-shadow: 0 0 12px rgba(124,236,255,.35);
-      border-bottom: 2px solid rgba(124,236,255,.8);
-      padding-bottom: 6px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 18px;
-    }
-
-    .metric-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 18px;
-    }
-
-    .metric {
-      position: relative;
-      overflow: hidden;
-      min-height: 140px;
-      border-radius: 24px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.018));
-      border: 1px solid rgba(124,236,255,.2);
-      box-shadow:
-        inset 0 0 16px rgba(255,255,255,.02),
-        0 0 25px rgba(50,214,255,.1);
-      padding: 22px;
-    }
-
-    .metric::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 20% 0%, rgba(124,236,255,.14), transparent 38%),
-        linear-gradient(90deg, transparent, rgba(255,255,255,.02), transparent);
-    }
-
-    .metric .label {
-      position: relative;
-      z-index: 1;
-      color: #d7e8ff;
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: .12em;
-      opacity: .9;
-    }
-
-    .metric .value {
-      position: relative;
-      z-index: 1;
-      margin-top: 18px;
-      font-size: 56px;
-      font-weight: 700;
-      line-height: 1;
-      text-shadow: 0 0 18px rgba(124,236,255,.1);
-    }
-
-    .content-panel {
-      border-radius: 26px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
-      border: 1px solid rgba(124,236,255,.18);
-      box-shadow:
-        inset 0 0 18px rgba(255,255,255,.02),
-        0 0 28px rgba(50,214,255,.08);
-      overflow: hidden;
-      margin-bottom: 18px;
-    }
-
-    .panel-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      flex-wrap: wrap;
-      padding: 22px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-    }
-
-    .panel-title {
-      font-size: 36px;
-      font-weight: 700;
-      letter-spacing: .02em;
-      margin: 0;
-    }
-
-    .panel-sub {
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 13px;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-    }
-
-    .search {
-      min-width: min(390px, 100%);
-      padding: 14px 18px;
-      border-radius: 16px;
-      border: 1px solid rgba(124,236,255,.16);
-      background:
-        linear-gradient(180deg, rgba(0,0,0,.22), rgba(255,255,255,.02));
-      color: white;
-      outline: none;
-      box-shadow: inset 0 0 14px rgba(124,236,255,.04);
-      font-size: 14px;
-    }
-
-    .search::placeholder {
-      color: #9eb2ca;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      min-width: 1400px;
-      border-collapse: collapse;
-    }
-
-    thead th {
-      text-align: left;
-      padding: 16px 18px;
-      font-size: 12px;
-      color: #c4d8f2;
-      text-transform: uppercase;
-      letter-spacing: .12em;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-      background: rgba(255,255,255,.015);
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
-
-    tbody td {
-      padding: 16px 18px;
-      font-size: 14px;
-      color: white;
-      border-bottom: 1px solid rgba(255,255,255,.05);
-      vertical-align: top;
-    }
-
-    tbody tr {
-      transition: 0.18s ease;
-    }
-
-    tbody tr:hover {
-      background: linear-gradient(90deg, rgba(124,236,255,.08), rgba(255,255,255,.015));
-      box-shadow: inset 0 0 0 1px rgba(124,236,255,.08);
-    }
-
-    .name-cell {
-      font-weight: 700;
-      font-size: 15px;
-    }
-
-    .products-cell {
-      max-width: 360px;
-      line-height: 1.35;
-      color: #deebff;
-    }
-
-    .muted {
-      color: var(--muted);
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 84px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.08);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      backdrop-filter: blur(8px);
-      box-shadow: inset 0 0 10px rgba(255,255,255,.02);
-    }
-
-    .ready {
-      color: #d9ffe8;
-      background: linear-gradient(180deg, rgba(110,255,168,.2), rgba(40,130,76,.18));
-      border-color: rgba(110,255,168,.26);
-      box-shadow: 0 0 18px rgba(110,255,168,.16);
-    }
-
-    .service {
-      color: #dbe8ff;
-      background: linear-gradient(180deg, rgba(100,168,255,.22), rgba(46,83,146,.18));
-      border-color: rgba(100,168,255,.24);
-      box-shadow: 0 0 18px rgba(100,168,255,.15);
-    }
-
-    .partial {
-      color: #fff1c9;
-      background: linear-gradient(180deg, rgba(255,212,106,.2), rgba(132,92,20,.18));
-      border-color: rgba(255,212,106,.24);
-      box-shadow: 0 0 18px rgba(255,212,106,.14);
-    }
-
-    .incomplete {
-      color: #ffe0e7;
-      background: linear-gradient(180deg, rgba(255,138,163,.22), rgba(124,38,63,.18));
-      border-color: rgba(255,138,163,.24);
-      box-shadow: 0 0 18px rgba(255,138,163,.16);
-    }
-
-    .employee-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-width: 116px;
-    }
-
-    .glass-btn {
-      border: 1px solid rgba(124,236,255,.18);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
-      color: white;
-      border-radius: 12px;
-      padding: 9px 10px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: .04em;
-      cursor: pointer;
-      box-shadow:
-        inset 0 0 10px rgba(255,255,255,.02),
-        0 0 12px rgba(124,236,255,.08);
-      transition: 0.18s ease;
-    }
-
-    .glass-btn:hover {
-      transform: translateY(-1px);
-      border-color: rgba(124,236,255,.4);
-      box-shadow:
-        inset 0 0 12px rgba(255,255,255,.03),
-        0 0 18px rgba(124,236,255,.18);
-    }
-
-    .done-btn {
-      border-color: rgba(110,255,168,.18);
-      box-shadow:
-        inset 0 0 10px rgba(255,255,255,.02),
-        0 0 12px rgba(110,255,168,.08);
-    }
-
-    .done-btn:hover {
-      border-color: rgba(110,255,168,.34);
-      box-shadow:
-        inset 0 0 12px rgba(255,255,255,.03),
-        0 0 18px rgba(110,255,168,.16);
-    }
-
-    .follow-note {
-      display: block;
-      margin-top: 6px;
-      font-size: 11px;
-      color: #b7cae3;
-      line-height: 1.4;
-    }
-
-    .error-box {
-      margin-top: 14px;
-      display: none;
-      padding: 14px 16px;
-      border-radius: 14px;
-      color: #ffd8e0;
-      background: rgba(120, 18, 45, 0.28);
-      border: 1px solid rgba(255,138,163,.24);
-      box-shadow: 0 0 18px rgba(255,138,163,.08);
-    }
-
-    @media (max-width: 1100px) {
-      .metric-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .panel-title {
-        font-size: 30px;
-      }
-    }
-
-    @media (max-width: 720px) {
-      .metric-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .brand-title {
-        font-size: 26px;
-      }
-
-      .header-actions {
-        display: none;
-      }
-
-      .panel-title {
-        font-size: 26px;
-      }
-
-      .logo-shell {
-        width: 62px;
-        height: 62px;
-      }
-
-      .logo-shell img {
-        width: 48px;
-        height: 48px;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Sophia Systems</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body {
+  margin:0;
+  font-family:Arial;
+  background:#020611;
+  color:white;
+}
+
+/* HEADER */
+.header {
+  position:fixed;
+  top:0;
+  width:100%;
+  background:#050c1d;
+  padding:15px;
+  z-index:10;
+}
+
+.logo {
+  height:60px;
+}
+
+/* KPI STRIP */
+.metrics {
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:10px;
+  margin-top:10px;
+}
+
+.metric {
+  background:#0a152d;
+  padding:10px;
+  border-radius:10px;
+  text-align:center;
+}
+
+.metric h3 {
+  margin:5px 0;
+}
+
+/* TABLE */
+.content {
+  margin-top:160px;
+  padding:20px;
+}
+
+table {
+  width:100%;
+  border-collapse:collapse;
+}
+
+td,th {
+  padding:10px;
+  border-bottom:1px solid #222;
+}
+
+tr:hover {
+  background:#0a1a30;
+  cursor:pointer;
+}
+
+/* PANEL */
+.panel {
+  position:fixed;
+  right:-400px;
+  top:0;
+  width:400px;
+  height:100%;
+  background:#0a152d;
+  padding:20px;
+  transition:.3s;
+}
+
+.panel.open {
+  right:0;
+}
+</style>
 </head>
+
 <body>
-  <img src="/assets/logo-bg.png" class="background-logo" alt="Sophia background logo" />
 
-  <div class="app-shell">
-    <section class="top-fixed">
-      <div class="app">
-        <div class="top-glow-line"></div>
+<div class="header">
+  <img src="/logo-header.png" class="logo">
 
-        <div class="header">
-          <div class="brand-wrap">
-            <div class="logo-shell">
-              <img src="/assets/logo-main.png" alt="Sophia Systems Logo">
-            </div>
-            <div>
-              <h1 class="brand-title">Sophia Systems</h1>
-              <div class="brand-sub">Capture every call. Convert every opportunity.</div>
-            </div>
-          </div>
-
-          <div class="header-actions">
-            <div class="head-chip">🔔</div>
-            <div class="head-chip">✉️</div>
-            <div class="head-chip">⏱️</div>
-          </div>
-        </div>
-
-        <div class="hero-bar">
-          <div class="hero-tab active">Overview</div>
-          <div class="hero-tab">Leads</div>
-          <div class="hero-tab">Call Log</div>
-          <div class="hero-tab">Routing Log</div>
-          <div class="hero-tab">Settings</div>
-        </div>
-
-        <div class="grid">
-          <div class="metric-grid">
-            <div class="metric">
-              <div class="label">Calls Today</div>
-              <div class="value" id="callsToday">0</div>
-            </div>
-            <div class="metric">
-              <div class="label">Ready Quotes</div>
-              <div class="value" id="readyQuotes">0</div>
-            </div>
-            <div class="metric">
-              <div class="label">Service Calls</div>
-              <div class="value" id="serviceCalls">0</div>
-            </div>
-            <div class="metric">
-              <div class="label">Incomplete Calls</div>
-              <div class="value" id="incompleteCalls">0</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <main class="bottom-scroll">
-      <div class="app">
-        <div class="grid">
-          <div class="content-panel">
-            <div class="panel-head">
-              <div>
-                <h2 class="panel-title">Live Leads</h2>
-                <div class="panel-sub">Recent calls, assignments, and follow-up activity</div>
-              </div>
-              <input id="searchInput" class="search" placeholder="Search name, phone, products, notes...">
-            </div>
-
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Phone</th>
-                    <th>Event Date</th>
-                    <th>Products</th>
-                    <th>Route</th>
-                    <th>Status</th>
-                    <th>Assigned</th>
-                    <th>Follow Up</th>
-                    <th>Assign</th>
-                    <th>Done</th>
-                    <th>Received</th>
-                  </tr>
-                </thead>
-                <tbody id="tableBody">
-                  <tr>
-                    <td colspan="11" class="muted">Loading data...</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div id="errorBox" class="error-box"></div>
-        </div>
-      </div>
-    </main>
+  <div class="metrics">
+    <div class="metric"><h3 id="ready">0</h3>Ready</div>
+    <div class="metric"><h3 id="partial">0</h3>Partial</div>
+    <div class="metric"><h3 id="service">0</h3>Service</div>
+    <div class="metric"><h3 id="existing">0</h3>Existing</div>
+    <div class="metric"><h3 id="incomplete">0</h3>Incomplete</div>
   </div>
+</div>
 
-  <script>
-    const SUPABASE_URL = "https://aeonjnohadmbxfuoirqa.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf";
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<div class="content">
+<table id="table"></table>
+</div>
 
-    let allRows = [];
+<div id="panel" class="panel"></div>
 
-    function showError(message) {
-      const box = document.getElementById("errorBox");
-      box.style.display = "block";
-      box.textContent = message;
-    }
+<script>
+const supabase = window.supabase.createClient(
+  "https://aeonjnohadmbxfuoirqa.supabase.co",
+  "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf"
+);
 
-    function clearError() {
-      const box = document.getElementById("errorBox");
-      box.style.display = "none";
-      box.textContent = "";
-    }
+let data = [];
 
-    function safeText(value) {
-      if (value === null || value === undefined || value === "") return "—";
-      return String(value);
-    }
+async function load() {
+  let res = await supabase.from("leads").select("*");
+  data = res.data;
+  render();
+}
 
-    function lower(value) {
-      return String(value || "").toLowerCase().trim();
-    }
+function render() {
+  let ready=0,partial=0,service=0,existing=0,incomplete=0;
 
-    function isToday(dateString) {
-      if (!dateString) return false;
-      const rowDate = new Date(dateString);
-      const now = new Date();
-      return rowDate.getFullYear() === now.getFullYear() &&
-             rowDate.getMonth() === now.getMonth() &&
-             rowDate.getDate() === now.getDate();
-    }
+  data.forEach(r=>{
+    if(r.quote_readiness==="ready") ready++;
+    else if(r.existing_order_request) existing++;
+    else if(r.delivery_change_request || r.delivery_alert_request) service++;
+    else if(r.missing_information && r.missing_information!=="none") incomplete++;
+    else partial++;
+  });
 
-    function formatDateTime(dateString) {
-      if (!dateString) return "—";
-      const d = new Date(dateString);
-      if (Number.isNaN(d.getTime())) return safeText(dateString);
-      return d.toLocaleString([], {
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit"
-      });
-    }
+  document.getElementById("ready").innerText=ready;
+  document.getElementById("partial").innerText=partial;
+  document.getElementById("service").innerText=service;
+  document.getElementById("existing").innerText=existing;
+  document.getElementById("incomplete").innerText=incomplete;
 
-    function deriveStatus(row) {
-      const dashboardStatus = lower(row.dashboard_status);
-      const status = lower(row.status);
-      const quoteReadiness = lower(row.quote_readiness);
-      const workflowRoute = lower(row.workflow_route);
-      const missingInfo = lower(row.missing_information);
+  let html="<tr><th>Name</th><th>Phone</th><th>Products</th><th>Assign</th><th>Done</th></tr>";
 
-      if (dashboardStatus) return dashboardStatus;
-      if (status === "incomplete") return "incomplete";
-      if (quoteReadiness === "ready") return "ready";
-      if (workflowRoute === "service") return "service";
-      if (missingInfo && missingInfo !== "none") return "incomplete";
-      if (status) return status;
-      return "partial";
-    }
+  data.forEach(r=>{
+    html+=`
+    <tr onclick='openPanel(${JSON.stringify(r)})'>
+      <td>${r.full_name||""}</td>
+      <td>${r.phone||""}</td>
+      <td>${r.products_requested||""}</td>
+      <td>
+        <button onclick="assign(event,'${r.id}','Carina')">Carina</button>
+        <button onclick="assign(event,'${r.id}','James')">James</button>
+      </td>
+      <td>
+        <button onclick="done(event,'${r.id}')">Done</button>
+      </td>
+    </tr>`;
+  });
 
-    function statusClass(value) {
-      const v = lower(value);
-      if (v === "ready") return "ready";
-      if (v === "service") return "service";
-      if (v === "incomplete") return "incomplete";
-      return "partial";
-    }
+  document.getElementById("table").innerHTML=html;
+}
 
-    function renderCards(rows) {
-      document.getElementById("callsToday").textContent =
-        rows.filter(r => isToday(r.created_at)).length;
+function openPanel(r) {
+  let p=document.getElementById("panel");
+  p.classList.add("open");
 
-      document.getElementById("readyQuotes").textContent =
-        rows.filter(r => lower(r.quote_readiness) === "ready" || deriveStatus(r) === "ready").length;
+  p.innerHTML=`
+  <h2>${r.full_name}</h2>
+  <p>${r.phone}</p>
 
-      document.getElementById("serviceCalls").textContent =
-        rows.filter(r => lower(r.workflow_route) === "service" || deriveStatus(r) === "service").length;
+  <label>Quote</label>
+  <input id="q" value="${r.quote_number||""}">
 
-      document.getElementById("incompleteCalls").textContent =
-        rows.filter(r => {
-          const missing = lower(r.missing_information);
-          return deriveStatus(r) === "incomplete" || (missing && missing !== "none");
-        }).length;
-    }
+  <label>Order</label>
+  <input id="o" value="${r.order_number||""}">
 
-    function renderTable(rows) {
-      const tbody = document.getElementById("tableBody");
+  <button onclick="save('${r.id}')">Save</button>
+  `;
+}
 
-      if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="11" class="muted">No rows found.</td></tr>';
-        return;
-      }
+async function save(id){
+  let q=document.getElementById("q").value;
+  let o=document.getElementById("o").value;
 
-      tbody.innerHTML = rows.map(row => {
-        const status = deriveStatus(row);
-        const followed = row.follow_up_status === true;
+  await supabase.from("leads").update({
+    quote_number:q,
+    order_number:o
+  }).eq("id",id);
 
-        return `
-          <tr>
-            <td class="name-cell">${safeText(row.full_name)}</td>
-            <td>${safeText(row.phone)}</td>
-            <td>${safeText(row.event_date)}</td>
-            <td class="products-cell">${safeText(row.products_requested)}</td>
-            <td>${safeText(row.workflow_route)}</td>
-            <td><span class="pill ${statusClass(status)}">${safeText(status)}</span></td>
-            <td><span class="pill">${safeText(row.assigned_to)}</span></td>
-            <td>
-              <span class="pill ${followed ? "ready" : "partial"}">${followed ? "Done" : "Pending"}</span>
-              ${followed && row.followed_up_by ? `<span class="follow-note">By ${safeText(row.followed_up_by)}</span>` : ""}
-            </td>
-            <td>
-              <div class="employee-buttons">
-                <button class="glass-btn" onclick="assignLead('${row.id}', 'Carina')">Carina</button>
-                <button class="glass-btn" onclick="assignLead('${row.id}', 'James')">James</button>
-                <button class="glass-btn" onclick="assignLead('${row.id}', 'Linda')">Linda</button>
-              </div>
-            </td>
-            <td>
-              <button class="glass-btn done-btn" onclick="markFollowed('${row.id}')">Mark Done</button>
-            </td>
-            <td>${formatDateTime(row.created_at)}</td>
-          </tr>
-        `;
-      }).join("");
-    }
+  load();
+}
 
-    function applySearch() {
-      const term = lower(document.getElementById("searchInput").value);
-      if (!term) {
-        renderTable(allRows);
-        return;
-      }
+async function assign(e,id,name){
+  e.stopPropagation();
+  await supabase.from("leads").update({assigned_to:name}).eq("id",id);
+  load();
+}
 
-      const filtered = allRows.filter(row => {
-        return [
-          row.full_name,
-          row.phone,
-          row.event_date,
-          row.products_requested,
-          row.workflow_route,
-          row.notes,
-          row.coordinator_notes,
-          row.assigned_to,
-          row.followed_up_by
-        ].some(field => lower(field).includes(term));
-      });
+async function done(e,id){
+  e.stopPropagation();
+  await supabase.from("leads").update({
+    follow_up_status:true
+  }).eq("id",id);
+  load();
+}
 
-      renderTable(filtered);
-    }
+load();
+</script>
 
-    async function loadDashboard() {
-      clearError();
-
-      const { data, error } = await supabaseClient
-        .from("leads")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(100);
-
-      if (error) {
-        showError("Could not load dashboard data: " + error.message);
-        document.getElementById("tableBody").innerHTML =
-          '<tr><td colspan="11" class="muted">Failed to load data.</td></tr>';
-        return;
-      }
-
-      allRows = data || [];
-      renderCards(allRows);
-      renderTable(allRows);
-    }
-
-    async function assignLead(id, employee) {
-      const { error } = await supabaseClient
-        .from("leads")
-        .update({ assigned_to: employee })
-        .eq("id", id);
-
-      if (error) {
-        showError("Could not assign lead: " + error.message);
-        return;
-      }
-
-      await loadDashboard();
-    }
-
-    async function markFollowed(id) {
-      const assignee = allRows.find(x => x.id === id)?.assigned_to || "Unassigned";
-
-      const { error } = await supabaseClient
-        .from("leads")
-        .update({
-          follow_up_status: true,
-          followed_up_by: assignee,
-          follow_up_time: new Date().toISOString()
-        })
-        .eq("id", id);
-
-      if (error) {
-        showError("Could not mark follow-up: " + error.message);
-        return;
-      }
-
-      await loadDashboard();
-    }
-
-    document.getElementById("searchInput").addEventListener("input", applySearch);
-    loadDashboard();
-  </script>
 </body>
 </html>
