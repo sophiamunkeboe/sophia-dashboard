@@ -1176,10 +1176,16 @@ target.classList.add("active-row");
   }
 
   function closeDrawer() {
-    document.getElementById("drawerOverlay").classList.remove("open");
-    document.getElementById("leadDrawer").classList.remove("open");
-    activeLeadId = null;
-  }
+document.getElementById("drawerOverlay").classList.remove("open");
+document.getElementById("leadDrawer").classList.remove("open");
+
+activeLeadId = null;
+
+// 🔥 force clear highlight AFTER UI closes
+setTimeout(() => {
+setActiveRow(null);
+}, 50);
+}
 
   async function loadDashboard() {
     clearError();
