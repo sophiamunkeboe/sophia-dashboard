@@ -1,265 +1,1178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Sophia Systems Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sophia Systems Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg-1: #020611;
+      --bg-2: #050c1d;
+      --bg-3: #08152d;
+      --text: #eef7ff;
+      --muted: #9fb3c8;
+      --cyan: #7cecff;
+      --blue: #64a8ff;
+      --green: #6effa8;
+      --amber: #ffd46a;
+      --red: #ff8aa3;
+      --violet: #b89cff;
+      --line: rgba(116, 225, 255, 0.18);
+      --line-strong: rgba(116, 225, 255, 0.35);
+      --panel: rgba(10, 20, 40, 0.72);
+      --panel-2: rgba(10, 24, 50, 0.82);
+      --white-glow: 0 0 16px rgba(255,255,255,0.08);
+      --glow: 0 0 35px rgba(50, 214, 255, 0.16);
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+    }
 
-<style>
-body {
-margin: 0;
-font-family: 'Segoe UI', sans-serif;
-background: radial-gradient(circle at center, #020617 0%, #000 100%);
-color: white;
-overflow: hidden;
-}
+    * { box-sizing: border-box; }
 
-/* BACKGROUND LOGO (FADED + FIXED) */
-body::before {
-content: "";
-position: fixed;
-top: 50%;
-left: 50%;
-width: 900px;
-height: 900px;
-background: url("images/logo-bg.png") no-repeat center;
-background-size: contain;
-opacity: 0.05;
-transform: translate(-50%, -50%);
-pointer-events: none;
-}
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 10%, rgba(81, 146, 255, 0.18), transparent 18%),
+        radial-gradient(circle at 80% 8%, rgba(88, 235, 255, 0.14), transparent 18%),
+        radial-gradient(circle at 50% 55%, rgba(255,255,255,0.05), transparent 30%),
+        linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%);
+      overflow: hidden;
+    }
 
-/* HEADER */
-.header {
-display: flex;
-align-items: center;
-padding: 20px;
-border-bottom: 1px solid rgba(255,255,255,0.1);
-}
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.55;
+      background-image:
+        radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,.75), transparent),
+        radial-gradient(1.5px 1.5px at 80px 120px, rgba(122,236,255,.55), transparent),
+        radial-gradient(1.2px 1.2px at 140px 40px, rgba(255,255,255,.5), transparent),
+        radial-gradient(1px 1px at 50px 160px, rgba(100,168,255,.45), transparent);
+      background-size: 220px 220px;
+      z-index: 0;
+    }
 
-.logo {
-height: 55px;
-margin-right: 15px;
-}
+    .background-logo {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(720px, 68vw);
+      opacity: 0.045;
+      filter: blur(1.6px) drop-shadow(0 0 28px rgba(124,236,255,.16));
+      pointer-events: none;
+      z-index: 0;
+      user-select: none;
+    }
 
-.title {
-font-size: 22px;
-font-weight: 600;
-}
+    .app-shell {
+      position: relative;
+      z-index: 1;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
-.subtitle {
-font-size: 12px;
-opacity: 0.6;
-}
+    .top-fixed {
+      flex: 0 0 auto;
+      position: relative;
+      z-index: 12;
+      background: rgba(5, 11, 22, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(124,236,255,.14);
+      box-shadow: 0 12px 30px rgba(0,0,0,.16);
+    }
 
-/* DASHBOARD GRID */
-.grid {
-display: grid;
-grid-template-columns: repeat(4, 1fr);
-gap: 15px;
-padding: 20px;
-}
+    .bottom-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
+      z-index: 2;
+    }
 
-/* GLOW CARDS */
-.card {
-background: rgba(255,255,255,0.03);
-border-radius: 12px;
-padding: 20px;
-box-shadow: 0 0 15px rgba(0,255,255,0.1);
-transition: 0.3s;
-}
+    .bottom-scroll::-webkit-scrollbar,
+    .drawer::-webkit-scrollbar { width: 10px; }
+    .bottom-scroll::-webkit-scrollbar-track,
+    .drawer::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+    }
+    .bottom-scroll::-webkit-scrollbar-thumb,
+    .drawer::-webkit-scrollbar-thumb {
+      background: rgba(110, 231, 255, 0.22);
+      border-radius: 10px;
+    }
+    .bottom-scroll::-webkit-scrollbar-thumb:hover,
+    .drawer::-webkit-scrollbar-thumb:hover {
+      background: rgba(110, 231, 255, 0.38);
+    }
 
-.card:hover {
-transform: translateY(-4px);
-box-shadow: 0 0 25px rgba(0,255,255,0.4);
-}
+    .app {
+      position: relative;
+      max-width: 1540px;
+      margin: 0 auto;
+      padding: 16px 22px;
+      z-index: 1;
+    }
 
-/* LEADS TABLE */
-.table-container {
-padding: 20px;
-height: calc(100vh - 180px);
-overflow-y: auto;
-}
+    .top-glow-line {
+      height: 1px;
+      width: 100%;
+      background: linear-gradient(90deg, transparent, rgba(124,236,255,.55), transparent);
+      box-shadow: 0 0 20px rgba(124,236,255,.35);
+      margin-bottom: 12px;
+    }
 
-table {
-width: 100%;
-border-collapse: collapse;
-}
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
 
-th, td {
-padding: 12px;
-text-align: left;
-}
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
 
-th {
-opacity: 0.6;
-}
+    .logo-shell {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(124,236,255,.16), transparent 70%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border: 1px solid rgba(124,236,255,.24);
+      box-shadow:
+        inset 0 0 22px rgba(124,236,255,.08),
+        0 0 24px rgba(50,214,255,.14);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
 
-tr {
-border-bottom: 1px solid rgba(255,255,255,0.05);
-}
+    .logo-shell img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 12px rgba(124,236,255,.42));
+    }
 
-/* STATUS TAGS */
-.status {
-padding: 6px 12px;
-border-radius: 20px;
-font-size: 12px;
-}
+    .brand-title {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      text-shadow: 0 0 18px rgba(124,236,255,.12);
+    }
 
-.ready { background: rgba(0,255,100,0.2); }
-.incomplete { background: rgba(255,0,0,0.2); }
-.pending { background: rgba(255,200,0,0.2); }
+    .brand-sub {
+      margin-top: 6px;
+      color: #d9ebff;
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      opacity: .9;
+    }
 
-/* BUTTONS */
-button {
-background: rgba(0,255,255,0.1);
-border: 1px solid rgba(0,255,255,0.3);
-color: white;
-padding: 6px 12px;
-border-radius: 8px;
-cursor: pointer;
-transition: 0.2s;
-}
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
 
-button:hover {
-box-shadow: 0 0 12px cyan;
-}
+    .mini-stat {
+      padding: 9px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(124,236,255,.16);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      box-shadow: var(--white-glow), 0 0 16px rgba(50,214,255,.08);
+      min-width: 120px;
+    }
 
-/* SLIDE PANEL */
-.panel {
-position: fixed;
-right: -400px;
-top: 0;
-width: 400px;
-height: 100%;
-background: #020617;
-box-shadow: -5px 0 20px rgba(0,255,255,0.2);
-padding: 20px;
-transition: 0.4s;
-}
+    .mini-stat .mini-label {
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #bfd2e7;
+      margin-bottom: 4px;
+    }
 
-.panel.open {
-right: 0;
-}
+    .mini-stat .mini-value {
+      font-size: 20px;
+      font-weight: 700;
+    }
 
-/* AUDIO */
-audio {
-display: none;
-}
+    .hero-bar {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      padding: 10px 16px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+      border: 1px solid rgba(124,236,255,.14);
+      box-shadow: var(--glow);
+      margin-bottom: 12px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
 
-</style>
+    .hero-tab {
+      font-size: 15px;
+      color: #d7e7ff;
+      opacity: .9;
+      letter-spacing: .04em;
+      cursor: default;
+    }
+
+    .hero-tab.active {
+      color: white;
+      text-shadow: 0 0 12px rgba(124,236,255,.35);
+      border-bottom: 2px solid rgba(124,236,255,.8);
+      padding-bottom: 5px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .metric {
+      position: relative;
+      overflow: hidden;
+      min-height: 98px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.018));
+      border: 1px solid rgba(124,236,255,.18);
+      box-shadow: inset 0 0 16px rgba(255,255,255,.02), 0 0 20px rgba(50,214,255,.08);
+      padding: 14px 18px;
+    }
+
+    .metric::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 20% 0%, rgba(124,236,255,.12), transparent 38%), linear-gradient(90deg, transparent, rgba(255,255,255,.02), transparent);
+    }
+
+    .metric.ready-metric { border-color: rgba(110,255,168,.22); box-shadow: inset 0 0 16px rgba(255,255,255,.02), 0 0 20px rgba(110,255,168,.08); }
+    .metric.partial-metric { border-color: rgba(255,212,106,.22); box-shadow: inset 0 0 16px rgba(255,255,255,.02), 0 0 20px rgba(255,212,106,.08); }
+    .metric.delivery-metric { border-color: rgba(100,168,255,.22); box-shadow: inset 0 0 16px rgba(255,255,255,.02), 0 0 20px rgba(100,168,255,.08); }
+    .metric.order-metric { border-color: rgba(184,156,255,.22); box-shadow: inset 0 0 16px rgba(255,255,255,.02), 0 0 20px rgba(184,156,255,.08); }
+    .metric.incomplete-metric { border-color: rgba(255,138,163,.22); box-shadow: inset 0 0 16px rgba(255,255,255,.02), 0 0 20px rgba(255,138,163,.08); }
+
+    .metric .label {
+      position: relative;
+      z-index: 1;
+      color: #d7e8ff;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      opacity: .82;
+    }
+
+    .metric .value {
+      position: relative;
+      z-index: 1;
+      margin-top: 12px;
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .content-panel {
+      border-radius: 26px;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+      border: 1px solid rgba(124,236,255,.18);
+      box-shadow: inset 0 0 18px rgba(255,255,255,.02), 0 0 28px rgba(50,214,255,.08);
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 20px 22px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    .panel-title { font-size: 34px; font-weight: 700; letter-spacing: .02em; margin: 0; }
+    .panel-sub { margin-top: 6px; color: var(--muted); font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+
+    .search {
+      min-width: min(390px, 100%);
+      padding: 14px 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(124,236,255,.16);
+      background: linear-gradient(180deg, rgba(0,0,0,.22), rgba(255,255,255,.02));
+      color: white;
+      outline: none;
+      box-shadow: inset 0 0 14px rgba(124,236,255,.04);
+      font-size: 14px;
+    }
+
+    .search::placeholder { color: #9eb2ca; }
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      min-width: 1380px;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 15px 18px;
+      font-size: 12px;
+      color: #c4d8f2;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      background: rgba(255,255,255,.015);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    tbody td {
+      padding: 15px 18px;
+      font-size: 14px;
+      color: white;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      vertical-align: top;
+    }
+
+    tbody tr {
+      transition: 0.18s ease;
+      cursor: pointer;
+    }
+
+    tbody tr:hover {
+      background: linear-gradient(90deg, rgba(124,236,255,.08), rgba(255,255,255,.015));
+      box-shadow: inset 0 0 0 1px rgba(124,236,255,.08);
+    }
+
+    .name-cell { font-weight: 700; font-size: 15px; }
+    .products-cell { max-width: 360px; line-height: 1.35; color: #deebff; }
+    .muted { color: var(--muted); }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 84px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.08);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+      box-shadow: inset 0 0 10px rgba(255,255,255,.02);
+    }
+
+    .ready { color: #d9ffe8; background: linear-gradient(180deg, rgba(110,255,168,.2), rgba(40,130,76,.18)); border-color: rgba(110,255,168,.26); box-shadow: 0 0 18px rgba(110,255,168,.16); }
+    .service { color: #dbe8ff; background: linear-gradient(180deg, rgba(100,168,255,.22), rgba(46,83,146,.18)); border-color: rgba(100,168,255,.24); box-shadow: 0 0 18px rgba(100,168,255,.15); }
+    .partial { color: #fff1c9; background: linear-gradient(180deg, rgba(255,212,106,.2), rgba(132,92,20,.18)); border-color: rgba(255,212,106,.24); box-shadow: 0 0 18px rgba(255,212,106,.14); }
+    .existing { color: #efe2ff; background: linear-gradient(180deg, rgba(184,156,255,.22), rgba(95,67,164,.18)); border-color: rgba(184,156,255,.24); box-shadow: 0 0 18px rgba(184,156,255,.14); }
+    .incomplete { color: #ffe0e7; background: linear-gradient(180deg, rgba(255,138,163,.22), rgba(124,38,63,.18)); border-color: rgba(255,138,163,.24); box-shadow: 0 0 18px rgba(255,138,163,.16); }
+
+    .employee-buttons { display: flex; flex-direction: column; gap: 8px; min-width: 116px; }
+
+    .glass-btn {
+      border: 1px solid rgba(124,236,255,.18);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      color: white;
+      border-radius: 12px;
+      padding: 9px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      cursor: pointer;
+      box-shadow: inset 0 0 10px rgba(255,255,255,.02), 0 0 12px rgba(124,236,255,.08);
+      transition: 0.18s ease;
+    }
+
+    .glass-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(124,236,255,.4);
+      box-shadow: inset 0 0 12px rgba(255,255,255,.03), 0 0 18px rgba(124,236,255,.18);
+    }
+
+    .done-btn { border-color: rgba(110,255,168,.18); box-shadow: inset 0 0 10px rgba(255,255,255,.02), 0 0 12px rgba(110,255,168,.08); }
+    .done-btn:hover { border-color: rgba(110,255,168,.34); box-shadow: inset 0 0 12px rgba(255,255,255,.03), 0 0 18px rgba(110,255,168,.16); }
+    .follow-note { display: block; margin-top: 6px; font-size: 11px; color: #b7cae3; line-height: 1.4; }
+
+    .error-box, .save-banner {
+      margin-top: 14px;
+      display: none;
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-size: 13px;
+    }
+
+    .error-box {
+      color: #ffd8e0;
+      background: rgba(120, 18, 45, 0.28);
+      border: 1px solid rgba(255,138,163,.24);
+      box-shadow: 0 0 18px rgba(255,138,163,.08);
+    }
+
+    .save-banner {
+      color: #d9ffe8;
+      background: rgba(30, 92, 58, 0.28);
+      border: 1px solid rgba(110,255,168,.24);
+      box-shadow: 0 0 18px rgba(110,255,168,.08);
+    }
+
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 17, 0.58);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease;
+      z-index: 40;
+    }
+
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(560px, 100vw);
+      height: 100vh;
+      background: linear-gradient(180deg, rgba(8,16,32,.98), rgba(7,17,38,.96));
+      border-left: 1px solid rgba(124,236,255,.18);
+      box-shadow: -20px 0 40px rgba(0,0,0,.32);
+      transform: translateX(100%);
+      transition: transform .26s ease;
+      z-index: 50;
+      overflow-y: auto;
+      padding: 22px;
+    }
+
+    .drawer.open { transform: translateX(0); }
+
+    .drawer-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .drawer-title {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: .02em;
+    }
+
+    .drawer-sub {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .drawer-close {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      border: 1px solid rgba(124,236,255,.18);
+      background: rgba(255,255,255,.04);
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .drawer-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .drawer-card {
+      grid-column: span 2;
+      border-radius: 18px;
+      padding: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border: 1px solid rgba(124,236,255,.14);
+      box-shadow: inset 0 0 12px rgba(255,255,255,.02);
+    }
+
+    .drawer-card.half { grid-column: span 1; }
+    .drawer-label { color: #c8d9ef; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 8px; opacity: .85; }
+    .drawer-value { font-size: 14px; color: white; line-height: 1.45; word-break: break-word; }
+
+    .drawer-input,
+    .drawer-textarea,
+    .drawer-select {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(124,236,255,.16);
+      background: rgba(255,255,255,.03);
+      color: white;
+      padding: 12px 12px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .drawer-textarea { min-height: 90px; resize: vertical; }
+    .drawer-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    .drawer-save-note { margin-top: 10px; font-size: 12px; color: #a9c3df; }
+    .tiny-route { display: inline-flex; margin-top: 8px; }
+
+    @media (max-width: 1220px) {
+      .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 900px) {
+      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .panel-title { font-size: 28px; }
+      .drawer-grid { grid-template-columns: 1fr; }
+      .drawer-card, .drawer-card.half { grid-column: span 1; }
+    }
+
+    @media (max-width: 720px) {
+      .metric-grid { grid-template-columns: 1fr; }
+      .brand-title { font-size: 24px; }
+      .header-right { width: 100%; }
+      .panel-title { font-size: 24px; }
+      .logo-shell { width: 60px; height: 60px; }
+      .logo-shell img { width: 44px; height: 44px; }
+      .app { padding: 14px; }
+      .mini-stat { min-width: 0; flex: 1 1 auto; }
+    }
+  </style>
 </head>
-
 <body>
+  <!-- APP BACKGROUND LOGO START -->
+  <img src="/assets/logo-bg.png" class="background-logo" alt="Sophia background logo" />
+  <!-- APP BACKGROUND LOGO END -->
 
-<!-- SOUNDS -->
-<audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-interface-click-1126.mp3"></audio>
-<audio id="panelSound" src="https://assets.mixkit.co/sfx/preview/mixkit-sci-fi-door-901.mp3"></audio>
+  <div class="app-shell">
+    <!-- TOP FIXED SECTION START -->
+    <section class="top-fixed">
+      <div class="app">
+        <div class="top-glow-line"></div>
 
-<!-- HEADER -->
-<div class="header">
-<img src="images/logo-header.png" class="logo">
-<div>
-<div class="title">Sophia Systems</div>
-<div class="subtitle">Capture every call. Convert every opportunity.</div>
-</div>
-</div>
+        <!-- HEADER SECTION START -->
+        <div class="header">
+          <div class="brand-wrap">
+            <div class="logo-shell">
+              <img src="/assets/logo-main.png" alt="Sophia Systems Logo" />
+            </div>
+            <div>
+              <h1 class="brand-title">Sophia Systems</h1>
+              <div class="brand-sub">Capture every call. Convert every opportunity.</div>
+            </div>
+          </div>
 
-<!-- METRICS -->
-<div class="grid">
-<div class="card">Calls Today<br><h2 id="calls">0</h2></div>
-<div class="card">Ready Quotes<br><h2 id="ready">0</h2></div>
-<div class="card">Service Calls<br><h2 id="service">0</h2></div>
-<div class="card">Incomplete<br><h2 id="incomplete">0</h2></div>
-</div>
+          <div class="header-right">
+            <div class="mini-stat">
+              <div class="mini-label">Calls Today</div>
+              <div class="mini-value" id="callsToday">0</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-label">Open Alerts</div>
+              <div class="mini-value" id="openAlerts">0</div>
+            </div>
+          </div>
+        </div>
+        <!-- HEADER SECTION END -->
 
-<!-- TABLE -->
-<div class="table-container">
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Phone</th>
-<th>Status</th>
-<th>Assigned</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody id="tableBody"></tbody>
-</table>
-</div>
+        <!-- NAV SECTION START -->
+        <div class="hero-bar">
+          <div class="hero-tab active">Overview</div>
+          <div class="hero-tab">Leads</div>
+          <div class="hero-tab">Call Log</div>
+          <div class="hero-tab">Routing Log</div>
+          <div class="hero-tab">Settings</div>
+        </div>
+        <!-- NAV SECTION END -->
 
-<!-- SLIDE PANEL -->
-<div class="panel" id="panel">
-<h2>Client Details</h2>
-<div id="panelContent"></div>
-</div>
+        <!-- KPI SECTION START -->
+        <div class="metric-grid">
+          <div class="metric ready-metric">
+            <div class="label">Ready Quotes</div>
+            <div class="value" id="readyQuotes">0</div>
+          </div>
+          <div class="metric partial-metric">
+            <div class="label">Partial Calls</div>
+            <div class="value" id="partialCalls">0</div>
+          </div>
+          <div class="metric delivery-metric">
+            <div class="label">Delivery Issues</div>
+            <div class="value" id="deliveryIssues">0</div>
+          </div>
+          <div class="metric order-metric">
+            <div class="label">Order Updates</div>
+            <div class="value" id="orderUpdates">0</div>
+          </div>
+          <div class="metric incomplete-metric">
+            <div class="label">Incomplete Calls</div>
+            <div class="value" id="incompleteCalls">0</div>
+          </div>
+        </div>
+        <!-- KPI SECTION END -->
+      </div>
+    </section>
+    <!-- TOP FIXED SECTION END -->
 
-<script>
+    <!-- BOTTOM SCROLL SECTION START -->
+    <main class="bottom-scroll">
+      <div class="app">
+        <div class="content-panel">
+          <!-- LEADS PANEL HEAD START -->
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title">Live Leads</h2>
+              <div class="panel-sub">Recent calls, assignments, follow-up, and routing outcomes</div>
+            </div>
+            <input id="searchInput" class="search" placeholder="Search name, phone, products, route, notes..." />
+          </div>
+          <!-- LEADS PANEL HEAD END -->
 
-const clickSound = document.getElementById("clickSound");
-const panelSound = document.getElementById("panelSound");
+          <!-- LEADS TABLE SECTION START -->
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Event Date</th>
+                  <th>Products</th>
+                  <th>Route</th>
+                  <th>Status</th>
+                  <th>Assigned</th>
+                  <th>Follow Up</th>
+                  <th>Assign</th>
+                  <th>Done</th>
+                  <th>Received</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                <tr>
+                  <td colspan="11" class="muted">Loading data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- LEADS TABLE SECTION END -->
+        </div>
 
-function playClick(){ clickSound.play(); }
-function openPanel(data){
-panelSound.play();
-document.getElementById("panel").classList.add("open");
-document.getElementById("panelContent").innerHTML = `
-<p><b>Name:</b> ${data.full_name}</p>
-<p><b>Phone:</b> ${data.phone}</p>
-<p><b>Products:</b> ${data.products_requested}</p>
-<p><b>Notes:</b> ${data.notes}</p>
-<p><b>Quote #:</b> <input placeholder="Enter Quote"></p>
-<p><b>Order #:</b> <input placeholder="Enter Order"></p>
-`;
-}
+        <div id="saveBanner" class="save-banner"></div>
+        <div id="errorBox" class="error-box"></div>
+      </div>
+    </main>
+    <!-- BOTTOM SCROLL SECTION END -->
+  </div>
 
-function assign(){
-playClick();
-const name = prompt("Assign to: Carina, James, or Linda");
-return name;
-}
+  <!-- DRAWER OVERLAY START -->
+  <div id="drawerOverlay" class="drawer-overlay" onclick="closeDrawer()"></div>
+  <!-- DRAWER OVERLAY END -->
 
-async function loadData(){
-const res = await fetch("https://aeonjnohadmbxfuoirqa.supabase.co/rest/v1/leads", {
-headers: {
-"apikey": "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf",
-"Authorization": "Bearer sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf"
-}
-});
+  <!-- SLIDE PANEL START -->
+  <aside id="leadDrawer" class="drawer">
+    <div class="drawer-head">
+      <div>
+        <h3 class="drawer-title" id="drawerCustomerName">Client Detail</h3>
+        <div class="drawer-sub">Lead intelligence, quote tracking, and routing context</div>
+      </div>
+      <button class="drawer-close" onclick="closeDrawer()">×</button>
+    </div>
 
-const data = await res.json();
+    <div class="drawer-grid">
+      <div class="drawer-card half">
+        <div class="drawer-label">Phone</div>
+        <div class="drawer-value" id="drawerPhone">—</div>
+      </div>
+      <div class="drawer-card half">
+        <div class="drawer-label">Email</div>
+        <div class="drawer-value" id="drawerEmail">—</div>
+      </div>
 
-document.getElementById("calls").innerText = data.length;
+      <div class="drawer-card half">
+        <div class="drawer-label">Event Date</div>
+        <div class="drawer-value" id="drawerEventDate">—</div>
+      </div>
+      <div class="drawer-card half">
+        <div class="drawer-label">Delivery Method</div>
+        <div class="drawer-value" id="drawerDeliveryMethod">—</div>
+      </div>
 
-let ready=0, incomplete=0;
+      <div class="drawer-card">
+        <div class="drawer-label">Address</div>
+        <div class="drawer-value" id="drawerAddress">—</div>
+      </div>
 
-const table = document.getElementById("tableBody");
-table.innerHTML="";
+      <div class="drawer-card">
+        <div class="drawer-label">Products Requested</div>
+        <div class="drawer-value" id="drawerProducts">—</div>
+      </div>
 
-data.forEach(d=>{
-if(d.status==="READY") ready++;
-if(d.status==="INCOMPLETE") incomplete++;
+      <div class="drawer-card half">
+        <div class="drawer-label">Workflow Route</div>
+        <div class="drawer-value" id="drawerRoute">—</div>
+      </div>
+      <div class="drawer-card half">
+        <div class="drawer-label">Status</div>
+        <div class="drawer-value" id="drawerStatus">—</div>
+      </div>
 
-table.innerHTML += `
-<tr onclick='openPanel(${JSON.stringify(d)})'>
-<td>${d.full_name}</td>
-<td>${d.phone}</td>
-<td><span class="status ${d.status.toLowerCase()}">${d.status}</span></td>
-<td>${d.assigned || "-"}</td>
-<td>
-<button onclick="assign()">Assign</button>
-<button onclick="playClick()">Done</button>
-</td>
-</tr>`;
-});
+      <div class="drawer-card half">
+        <div class="drawer-label">Requested Employee</div>
+        <div class="drawer-value" id="drawerRequestedEmployee">—</div>
+      </div>
+      <div class="drawer-card half">
+        <div class="drawer-label">Sentiment</div>
+        <div class="drawer-value" id="drawerSentiment">—</div>
+      </div>
 
-document.getElementById("ready").innerText = ready;
-document.getElementById("incomplete").innerText = incomplete;
-}
+      <div class="drawer-card">
+        <div class="drawer-label">Missing Information</div>
+        <div class="drawer-value" id="drawerMissingInformation">—</div>
+      </div>
 
-loadData();
+      <div class="drawer-card">
+        <div class="drawer-label">Notes</div>
+        <textarea id="drawerNotes" class="drawer-textarea" placeholder="Notes from the call..."></textarea>
+      </div>
 
-</script>
+      <div class="drawer-card">
+        <div class="drawer-label">Coordinator Notes</div>
+        <textarea id="drawerCoordinatorNotes" class="drawer-textarea" placeholder="Internal coordinator notes..."></textarea>
+      </div>
 
+      <div class="drawer-card half">
+        <div class="drawer-label">Quote Number</div>
+        <input id="drawerQuoteNumber" class="drawer-input" placeholder="Enter quote number" />
+      </div>
+      <div class="drawer-card half">
+        <div class="drawer-label">Order Number</div>
+        <input id="drawerOrderNumber" class="drawer-input" placeholder="Enter order number" />
+      </div>
+
+      <div class="drawer-card half">
+        <div class="drawer-label">Assigned To</div>
+        <select id="drawerAssignedTo" class="drawer-select">
+          <option value="">Unassigned</option>
+          <option value="Carina">Carina</option>
+          <option value="James">James</option>
+          <option value="Linda">Linda</option>
+        </select>
+      </div>
+      <div class="drawer-card half">
+        <div class="drawer-label">Follow Up Status</div>
+        <select id="drawerFollowUpStatus" class="drawer-select">
+          <option value="false">Pending</option>
+          <option value="true">Done</option>
+        </select>
+      </div>
+
+      <div class="drawer-card">
+        <div class="drawer-label">Routing Flags</div>
+        <div class="drawer-value" id="drawerFlags">—</div>
+      </div>
+    </div>
+
+    <div class="drawer-actions">
+      <button class="glass-btn" onclick="saveDrawerChanges()">Save Client Details</button>
+      <button class="glass-btn done-btn" onclick="markDrawerFollowed()">Mark Followed</button>
+    </div>
+    <div class="drawer-save-note">Quote and Order fields are intentionally in the slide-out to keep the dashboard table clean.</div>
+  </aside>
+  <!-- SLIDE PANEL END -->
+
+  <script>
+    const SUPABASE_URL = "https://aeonjnohadmbxfuoirqa.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let allRows = [];
+    let activeLeadId = null;
+
+    const SOUND_ENABLED = false;
+    function playSound(type) {
+      if (!SOUND_ENABLED) return;
+      const soundMap = {
+        click: '/sounds/click.mp3',
+        open: '/sounds/open.mp3',
+        alert: '/sounds/alert.mp3'
+      };
+      const src = soundMap[type];
+      if (!src) return;
+      const audio = new Audio(src);
+      audio.volume = 0.18;
+      audio.play().catch(() => {});
+    }
+
+    function safeText(value) {
+      if (value === null || value === undefined || value === "") return "—";
+      return String(value);
+    }
+
+    function lower(value) {
+      return String(value || "").toLowerCase().trim();
+    }
+
+    function asBool(value) {
+      if (value === true || value === false) return value;
+      const v = lower(value);
+      return v === 'true' || v === 'yes' || v === '1';
+    }
+
+    function isToday(dateString) {
+      if (!dateString) return false;
+      const rowDate = new Date(dateString);
+      const now = new Date();
+      return rowDate.getFullYear() === now.getFullYear() &&
+             rowDate.getMonth() === now.getMonth() &&
+             rowDate.getDate() === now.getDate();
+    }
+
+    function formatDateTime(dateString) {
+      if (!dateString) return '—';
+      const d = new Date(dateString);
+      if (Number.isNaN(d.getTime())) return safeText(dateString);
+      return d.toLocaleString([], {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+    }
+
+    function classifyLead(row) {
+      const quoteReady = lower(row.quote_readiness) === 'ready';
+      const existingOrder = asBool(row.existing_order_request);
+      const deliveryIssue = asBool(row.delivery_change_request) || asBool(row.delivery_alert_request) || !!lower(row.issue_type) || lower(row.workflow_route).includes('delivery');
+      const newQuote = asBool(row.new_quote_request) || lower(row.workflow_route).includes('quote');
+      const missingInfo = lower(row.missing_information);
+      const missingIsSignificant = missingInfo && missingInfo !== 'none' && missingInfo !== 'no';
+
+      if (quoteReady) return 'ready';
+      if (existingOrder) return 'existing';
+      if (deliveryIssue) return 'service';
+      if (newQuote && !quoteReady) return missingIsSignificant ? 'partial' : 'partial';
+      if (missingIsSignificant) return 'incomplete';
+      return 'partial';
+    }
+
+    function statusClass(value) {
+      const v = lower(value);
+      if (v === 'ready') return 'ready';
+      if (v === 'service' || v === 'delivery') return 'service';
+      if (v === 'existing' || v === 'order') return 'existing';
+      if (v === 'incomplete') return 'incomplete';
+      return 'partial';
+    }
+
+    function statusLabel(value) {
+      const v = lower(value);
+      if (v === 'service') return 'Delivery';
+      if (v === 'existing') return 'Order Update';
+      if (v === 'partial') return 'Partial';
+      if (v === 'incomplete') return 'Incomplete';
+      return 'Ready';
+    }
+
+    function showError(message) {
+      const box = document.getElementById('errorBox');
+      box.style.display = 'block';
+      box.textContent = message;
+      playSound('alert');
+    }
+
+    function clearError() {
+      const box = document.getElementById('errorBox');
+      box.style.display = 'none';
+      box.textContent = '';
+    }
+
+    function showSaveBanner(message) {
+      const banner = document.getElementById('saveBanner');
+      banner.style.display = 'block';
+      banner.textContent = message;
+      setTimeout(() => {
+        banner.style.display = 'none';
+        banner.textContent = '';
+      }, 2200);
+    }
+
+    function renderCards(rows) {
+      const ready = rows.filter(r => classifyLead(r) === 'ready').length;
+      const partial = rows.filter(r => classifyLead(r) === 'partial').length;
+      const delivery = rows.filter(r => classifyLead(r) === 'service').length;
+      const existing = rows.filter(r => classifyLead(r) === 'existing').length;
+      const incomplete = rows.filter(r => classifyLead(r) === 'incomplete').length;
+      const callsToday = rows.filter(r => isToday(r.created_at)).length;
+      const openAlerts = rows.filter(r => classifyLead(r) === 'incomplete' || asBool(r.follow_up_needed) || asBool(r.human_request)).length;
+
+      document.getElementById('readyQuotes').textContent = ready;
+      document.getElementById('partialCalls').textContent = partial;
+      document.getElementById('deliveryIssues').textContent = delivery;
+      document.getElementById('orderUpdates').textContent = existing;
+      document.getElementById('incompleteCalls').textContent = incomplete;
+      document.getElementById('callsToday').textContent = callsToday;
+      document.getElementById('openAlerts').textContent = openAlerts;
+    }
+
+    function renderTable(rows) {
+      const tbody = document.getElementById('tableBody');
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="11" class="muted">No rows found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(row => {
+        const classification = classifyLead(row);
+        const followed = asBool(row.follow_up_status);
+
+        return `
+          <tr onclick="openDrawer('${row.id}')">
+            <td class="name-cell">${safeText(row.full_name)}</td>
+            <td>${safeText(row.phone)}</td>
+            <td>${safeText(row.event_date)}</td>
+            <td class="products-cell">${safeText(row.products_requested)}</td>
+            <td>${safeText(row.workflow_route)}</td>
+            <td><span class="pill ${statusClass(classification)}">${statusLabel(classification)}</span></td>
+            <td><span class="pill">${safeText(row.assigned_to)}</span></td>
+            <td>
+              <span class="pill ${followed ? 'ready' : 'partial'}">${followed ? 'Done' : 'Pending'}</span>
+              ${followed && row.followed_up_by ? `<span class="follow-note">By ${safeText(row.followed_up_by)}</span>` : ''}
+            </td>
+            <td onclick="event.stopPropagation()">
+              <div class="employee-buttons">
+                <button class="glass-btn" onclick="assignLead('${row.id}', 'Carina')">Carina</button>
+                <button class="glass-btn" onclick="assignLead('${row.id}', 'James')">James</button>
+                <button class="glass-btn" onclick="assignLead('${row.id}', 'Linda')">Linda</button>
+              </div>
+            </td>
+            <td onclick="event.stopPropagation()">
+              <button class="glass-btn done-btn" onclick="markFollowed('${row.id}')">Mark Done</button>
+            </td>
+            <td>${formatDateTime(row.created_at)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function applySearch() {
+      const term = lower(document.getElementById('searchInput').value);
+      if (!term) {
+        renderTable(allRows);
+        return;
+      }
+
+      const filtered = allRows.filter(row => {
+        return [
+          row.full_name,
+          row.phone,
+          row.email,
+          row.event_date,
+          row.products_requested,
+          row.workflow_route,
+          row.notes,
+          row.coordinator_notes,
+          row.assigned_to,
+          row.followed_up_by,
+          row.quote_number,
+          row.order_number
+        ].some(field => lower(field).includes(term));
+      });
+
+      renderTable(filtered);
+    }
+
+    function getLeadById(id) {
+      return allRows.find(row => String(row.id) === String(id));
+    }
+
+    function buildAddress(row) {
+      return [row.address, row.city, row.zip_code].filter(Boolean).join(', ') || '—';
+    }
+
+    function buildFlags(row) {
+      const flags = [];
+      if (asBool(row.new_quote_request)) flags.push('New Quote');
+      if (asBool(row.existing_order_request)) flags.push('Existing Order');
+      if (asBool(row.delivery_change_request)) flags.push('Delivery Change');
+      if (asBool(row.delivery_alert_request)) flags.push('Delivery Alert');
+      if (asBool(row.follow_up_needed)) flags.push('Follow Up Needed');
+      if (asBool(row.human_request)) flags.push('Human Request');
+      if (row.requested_employee) flags.push(`Requested: ${row.requested_employee}`);
+      return flags.length ? flags.join(' • ') : '—';
+    }
+
+    function openDrawer(id) {
+      const row = getLeadById(id);
+      if (!row) return;
+      activeLeadId = id;
+
+      document.getElementById('drawerCustomerName').textContent = safeText(row.full_name);
+      document.getElementById('drawerPhone').textContent = safeText(row.phone);
+      document.getElementById('drawerEmail').textContent = safeText(row.email);
+      document.getElementById('drawerEventDate').textContent = safeText(row.event_date);
+      document.getElementById('drawerDeliveryMethod').textContent = safeText(row.delivery_method);
+      document.getElementById('drawerAddress').textContent = buildAddress(row);
+      document.getElementById('drawerProducts').textContent = safeText(row.products_requested);
+      document.getElementById('drawerRoute').innerHTML = `${safeText(row.workflow_route)}<span class="pill tiny-route ${statusClass(classifyLead(row))}">${statusLabel(classifyLead(row))}</span>`;
+      document.getElementById('drawerStatus').textContent = statusLabel(classifyLead(row));
+      document.getElementById('drawerRequestedEmployee').textContent = safeText(row.requested_employee);
+      document.getElementById('drawerSentiment').textContent = safeText(row.sentiment);
+      document.getElementById('drawerMissingInformation').textContent = safeText(row.missing_information);
+      document.getElementById('drawerNotes').value = row.notes || '';
+      document.getElementById('drawerCoordinatorNotes').value = row.coordinator_notes || '';
+      document.getElementById('drawerQuoteNumber').value = row.quote_number || '';
+      document.getElementById('drawerOrderNumber').value = row.order_number || '';
+      document.getElementById('drawerAssignedTo').value = row.assigned_to || '';
+      document.getElementById('drawerFollowUpStatus').value = String(asBool(row.follow_up_status));
+      document.getElementById('drawerFlags').textContent = buildFlags(row);
+
+      document.getElementById('drawerOverlay').classList.add('open');
+      document.getElementById('leadDrawer').classList.add('open');
+      playSound('open');
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawerOverlay').classList.remove('open');
+      document.getElementById('leadDrawer').classList.remove('open');
+      activeLeadId = null;
+    }
+
+    async function loadDashboard() {
+      clearError();
+      const { data, error } = await supabaseClient
+        .from('leads')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(150);
+
+      if (error) {
+        showError('Could not load dashboard data: ' + error.message);
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="muted">Failed to load data.</td></tr>';
+        return;
+      }
+
+      allRows = data || [];
+      renderCards(allRows);
+      renderTable(allRows);
+    }
+
+    async function assignLead(id, employee) {
+      playSound('click');
+      const { error } = await supabaseClient
+        .from('leads')
+        .update({ assigned_to: employee })
+        .eq('id', id);
+
+      if (error) {
+        showError('Could not assign lead: ' + error.message);
+        return;
+      }
+
+      showSaveBanner(`Assigned to ${employee}.`);
+      await loadDashboard();
+      if (activeLeadId === id) openDrawer(id);
+    }
+
+    async function markFollowed(id) {
+      playSound('click');
+      const assignee = getLeadById(id)?.assigned_to || 'Unassigned';
+      const { error } = await supabaseClient
+        .from('leads')
+        .update({
+          follow_up_status: true,
+          followed_up_by: assignee,
+          follow_up_time: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) {
+        showError('Could not mark follow-up: ' + error.message);
+        return;
+      }
+
+      showSaveBanner('Follow-up marked done.');
+      await loadDashboard();
+      if (activeLeadId === id) openDrawer(id);
+    }
+
+    async function markDrawerFollowed() {
+      if (!activeLeadId) return;
+      await markFollowed(activeLeadId);
+    }
+
+    async function saveDrawerChanges() {
+      if (!activeLeadId) return;
+      playSound('click');
+
+      const payload = {
+        notes: document.getElementById('drawerNotes').value.trim(),
+        coordinator_notes: document.getElementById('drawerCoordinatorNotes').value.trim(),
+        quote_number: document.getElementById('drawerQuoteNumber').value.trim(),
+        order_number: document.getElementById('drawerOrderNumber').value.trim(),
+        assigned_to: document.getElementById('drawerAssignedTo').value || null,
+        follow_up_status: document.getElementById('drawerFollowUpStatus').value === 'true'
+      };
+
+      if (payload.follow_up_status) {
+        payload.followed_up_by = payload.assigned_to || getLeadById(activeLeadId)?.assigned_to || 'Unassigned';
+        payload.follow_up_time = new Date().toISOString();
+      }
+
+      const { error } = await supabaseClient
+        .from('leads')
+        .update(payload)
+        .eq('id', activeLeadId);
+
+      if (error) {
+        showError('Could not save client details: ' + error.message);
+        return;
+      }
+
+      showSaveBanner('Client details saved.');
+      await loadDashboard();
+      openDrawer(activeLeadId);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', applySearch);
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeDrawer();
+    });
+
+    loadDashboard();
+  </script>
 </body>
 </html>
