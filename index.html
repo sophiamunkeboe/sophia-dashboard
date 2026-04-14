@@ -890,8 +890,8 @@ font-size: 14px;
     if (v === "service") return "Delivery";
     if (v === "existing") return "Order Update";
     if (v === "incomplete") return "Incomplete";
+    if (v === "lowdata") return "Low Data";
     if (v === "partial") return "Partial";
-    if (v === "lowdata") return "Low Data"
     return "Ready";
   }
 
@@ -918,41 +918,37 @@ font-size: 14px;
     }, 2200);
   }
 
-function getRowStatus(row) {
-  const status = lower(row.status);
-  const quoteReadiness = lower(row.quote_readiness);
-  const missingInfo = lower(row.missing_information);
+  function getRowStatus(row) {
+    const status = lower(row.status);
+    const quoteReadiness = lower(row.quote_readiness);
+    const missingInfo = lower(row.missing_information);
 
-  const hasName = !!lower(row.full_name);
-  const hasPhone = !!lower(row.phone);
-  const hasProducts = !!lower(row.products_requested);
-  const hasEventDate = !!lower(row.event_date);
+    const hasName = !!lower(row.full_name);
+    const hasPhone = !!lower(row.phone);
+    const hasProducts = !!lower(row.products_requested);
+    const hasEventDate = !!lower(row.event_date);
 
-  const hasCoreLeadData = (hasName || hasPhone) && hasProducts;
-  const hasStrongQuoteData = (hasName || hasPhone) && hasProducts && hasEventDate;
+    const hasCoreLeadData = (hasName || hasPhone) && hasProducts;
+    const hasStrongQuoteData = (hasName || hasPhone) && hasProducts && hasEventDate;
 
-  const missingIsSignificant =
-    missingInfo &&
-    missingInfo !== "none" &&
-    missingInfo !== "no" &&
-    missingInfo !== "false";
+    const missingIsSignificant =
+      missingInfo &&
+      missingInfo !== "none" &&
+      missingInfo !== "no" &&
+      missingInfo !== "false";
 
-  // 🔥 LOW DATA FIRST
-  if (!hasName && !hasProducts) {
-    return "lowdata";
+    if (!hasName && !hasProducts) return "lowdata";
+
+    if ((status === "ready" || quoteReadiness === "ready") && hasStrongQuoteData) {
+      return "ready";
+    }
+
+    if (status === "incomplete" || missingIsSignificant || !hasCoreLeadData) {
+      return "incomplete";
+    }
+
+    return "partial";
   }
-
-  if ((status === "ready" || quoteReadiness === "ready") && hasStrongQuoteData) {
-    return "ready";
-  }
-
-  if (status === "incomplete" || missingIsSignificant || !hasCoreLeadData) {
-    return "incomplete";
-  }
-
-  return "partial";
-}
-
 
   function getPipelineBucket(row) {
     const status = lower(row.status);
@@ -991,45 +987,43 @@ function getRowStatus(row) {
       missingInfo !== "no" &&
       missingInfo !== "false";
 
-    iif (!hasName && !hasProducts) return "lowdata";
-if (!hasCoreLeadData) return "incomplete";
-if (status === "incomplete" || missingIsSignificant) return "incomplete";
+    if (!hasName && !hasProducts) return "lowdata";
+    if (!hasCoreLeadData) return "incomplete";
+    if (status === "incomplete" || missingIsSignificant) return "incomplete";
 
-if (existingOrder) return "existing";
-if (deliveryIssue) return "service";
+    if (existingOrder) return "existing";
+    if (deliveryIssue) return "service";
 
-if ((status === "ready" || quoteReadiness === "ready") && hasStrongQuoteData) {
-  return "ready";
-}
+    if ((status === "ready" || quoteReadiness === "ready") && hasStrongQuoteData) {
+      return "ready";
+    }
 
-return "partial";
+    return "partial";
+  }
 
-}
+  function renderCards(rows) {
+    const ready = rows.filter(r => getPipelineBucket(r) === "ready").length;
+    const partial = rows.filter(r => getPipelineBucket(r) === "partial").length;
+    const delivery = rows.filter(r => getPipelineBucket(r) === "service").length;
+    const existing = rows.filter(r => getPipelineBucket(r) === "existing").length;
+    const incomplete = rows.filter(r => getPipelineBucket(r) === "incomplete").length;
+    const callsToday = rows.filter(r => isToday(r.created_at)).length;
+    const openAlerts = rows.filter(
+      r =>
+        getRowStatus(r) === "incomplete" ||
+        getRowStatus(r) === "lowdata" ||
+        asBool(r.follow_up_needed) ||
+        asBool(r.human_request)
+    ).length;
 
- function renderCards(rows) {
-  const ready = rows.filter(r => getPipelineBucket(r) === "ready").length;
-  const partial = rows.filter(r => getPipelineBucket(r) === "partial").length;
-  const delivery = rows.filter(r => getPipelineBucket(r) === "service").length;
-  const existing = rows.filter(r => getPipelineBucket(r) === "existing").length;
-  const incomplete = rows.filter(r => getPipelineBucket(r) === "incomplete").length;
-  const callsToday = rows.filter(r => isToday(r.created_at)).length;
-  const openAlerts = rows.filter(
-    r =>
-      getRowStatus(r) === "incomplete" ||
-      getRowStatus(r) === "lowdata" ||
-      asBool(r.follow_up_needed) ||
-      asBool(r.human_request)
-  ).length;
-
-  document.getElementById("readyQuotes").textContent = ready;
-  document.getElementById("partialCalls").textContent = partial;
-  document.getElementById("deliveryIssues").textContent = delivery;
-  document.getElementById("orderUpdates").textContent = existing;
-  document.getElementById("incompleteCalls").textContent = incomplete;
-  document.getElementById("callsToday").textContent = callsToday;
-  document.getElementById("openAlerts").textContent = openAlerts;
-}
-
+    document.getElementById("readyQuotes").textContent = ready;
+    document.getElementById("partialCalls").textContent = partial;
+    document.getElementById("deliveryIssues").textContent = delivery;
+    document.getElementById("orderUpdates").textContent = existing;
+    document.getElementById("incompleteCalls").textContent = incomplete;
+    document.getElementById("callsToday").textContent = callsToday;
+    document.getElementById("openAlerts").textContent = openAlerts;
+  }
 
   function getLeadById(id) {
     return allRows.find(row => String(row.id) === String(id));
@@ -1185,7 +1179,6 @@ return "partial";
     }
 
     allRows = data || [];
-    console.log("Dashboard rows:", allRows);
     renderCards(allRows);
     renderTable(allRows);
   }
@@ -1281,6 +1274,7 @@ return "partial";
 
   loadDashboard();
 </script>
+
 
 
 </body>
