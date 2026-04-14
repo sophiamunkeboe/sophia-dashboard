@@ -145,37 +145,21 @@ margin-bottom: 12px;
 display: flex;
 align-items: center;
 gap: 10px;
+padding-left: 8px;
+min-height: 72px;
 }
 
 .logo-main {
+width: clamp(180px, 18vw, 320px);
 height: auto;
-width: auto;
-max-height: 60px;
-max-width: 320px;
-object-fit: contain;
 display: block;
-filter: drop-shadow(0 0 12px rgba(0, 200, 255, 0.6))
-drop-shadow(0 0 24px rgba(0, 200, 255, 0.3));
-animation: logoPulse 3.2s ease-in-out infinite;
-transform-origin: center;
-}
+object-fit: contain;
 
-@keyframes logoPulse {
-0% {
-transform: scale(1);
-filter: drop-shadow(0 0 10px rgba(0, 200, 255, 0.45))
-drop-shadow(0 0 18px rgba(0, 200, 255, 0.22));
-}
-50% {
-transform: scale(1.035);
-filter: drop-shadow(0 0 16px rgba(0, 200, 255, 0.75))
-drop-shadow(0 0 34px rgba(0, 200, 255, 0.38));
-}
-100% {
-transform: scale(1);
-filter: drop-shadow(0 0 10px rgba(0, 200, 255, 0.45))
-drop-shadow(0 0 18px rgba(0, 200, 255, 0.22));
-}
+filter: drop-shadow(0 0 12px rgba(0, 200, 255, 0.55))
+drop-shadow(0 0 22px rgba(0, 200, 255, 0.28));
+
+animation: logoPulse 4.5s ease-in-out infinite;
+transform-origin: center;
 }
 
 .logo-shell {
@@ -588,26 +572,48 @@ font-size: 14px;
 .tiny-route { display: inline-flex; margin-top: 8px; }
 
 @media (max-width: 1220px) {
-.metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+  .logo-main {
+    width: clamp(170px, 20vw, 280px);
+  }
 }
 
 @media (max-width: 900px) {
-.metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.panel-title { font-size: 28px; }
-.drawer-grid { grid-template-columns: 1fr; }
-.drawer-card, .drawer-card.half { grid-column: span 1; }
+  .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .panel-title { font-size: 28px; }
+  .drawer-grid { grid-template-columns: 1fr; }
+  .drawer-card, .drawer-card.half { grid-column: span 1; }
+
+  .logo-main {
+    width: clamp(150px, 26vw, 240px);
+  }
+
+  .brand-wrap {
+    min-height: 64px;
+  }
 }
 
 @media (max-width: 720px) {
-.metric-grid { grid-template-columns: 1fr; }
-.brand-title { font-size: 24px; }
-.header-right { width: 100%; }
-.panel-title { font-size: 24px; }
-.logo-shell { width: 60px; height: 60px; }
-.logo-shell img { width: 44px; height: 44px; }
-.app { padding: 14px; }
-.mini-stat { min-width: 0; flex: 1 1 auto; }
+  .metric-grid { grid-template-columns: 1fr; }
+  .brand-title { font-size: 24px; }
+  .header-right { width: 100%; }
+  .panel-title { font-size: 24px; }
+  .logo-shell { width: 60px; height: 60px; }
+  .logo-shell img { width: 44px; height: 44px; }
+  .app { padding: 14px; }
+  .mini-stat { min-width: 0; flex: 1 1 auto; }
+
+  .logo-main {
+    width: clamp(130px, 34vw, 190px);
+  }
+
+  .brand-wrap {
+    min-height: 56px;
+    padding-left: 4px;
+  }
 }
+
 </style>
 </head>
 <body>
