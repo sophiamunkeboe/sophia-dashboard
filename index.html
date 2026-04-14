@@ -1,289 +1,147 @@
-export default function SophiaSystemsDashboard() {
-  const metrics = [
-    {
-      title: "Calls Today",
-      value: "25",
-      glow: "from-cyan-400/30 via-sky-500/20 to-blue-600/20",
-      border: "border-cyan-400/40",
-      icon: "📞",
-    },
-    {
-      title: "Ready Quotes",
-      value: "9",
-      glow: "from-sky-300/30 via-cyan-400/20 to-blue-500/20",
-      border: "border-sky-300/40",
-      icon: "🧾",
-    },
-    {
-      title: "Service Calls",
-      value: "7",
-      glow: "from-emerald-300/25 via-cyan-300/10 to-slate-500/10",
-      border: "border-emerald-300/30",
-      icon: "🛠️",
-    },
-    {
-      title: "Incomplete Calls",
-      value: "3",
-      glow: "from-rose-400/30 via-pink-400/15 to-red-500/20",
-      border: "border-rose-400/35",
-      icon: "⚠️",
-    },
-  ];
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sophia Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: radial-gradient(circle at top, #0a0f2c, #020617);
+      color: white;
+    }
 
-  const leads = [
-    {
-      name: "Corinne Harmon",
-      phone: "(406) 836-2832",
-      eventDate: "May 16",
-      products: "2 banquet tables, 2 round tables, 32 white Samsonite chairs",
-      route: "Quote",
-      status: "Ready",
-      statusClass: "bg-lime-400/20 text-lime-200 border-lime-300/30",
-      rowGlow: "shadow-[0_0_30px_rgba(34,211,238,0.14)] border-cyan-300/30",
-    },
-    {
-      name: "Laura Connolly",
-      phone: "(480) 241-3350",
-      eventDate: "May 18",
-      products: "Linens + tables",
-      route: "Quote",
-      status: "Partial",
-      statusClass: "bg-amber-400/20 text-amber-100 border-amber-300/30",
-      rowGlow: "border-white/10",
-    },
-    {
-      name: "Unknown Caller",
-      phone: "(602) 585-5859",
-      eventDate: "May 20",
-      products: "Unknown",
-      route: "Service",
-      status: "Service",
-      statusClass: "bg-blue-500/20 text-blue-100 border-blue-300/30",
-      rowGlow: "border-white/10",
-    },
-    {
-      name: "Incomplete Call",
-      phone: "—",
-      eventDate: "—",
-      products: "Missing information",
-      route: "Quote",
-      status: "Incomp",
-      statusClass: "bg-rose-500/20 text-rose-100 border-rose-300/30",
-      rowGlow: "border-white/10",
-    },
-  ];
+    .container {
+      padding: 20px;
+    }
 
-  const selectedLead = {
-    name: "Corinne Harmon",
-    phone: "(406) 836-2832",
-    email: "korrinh12@gmail.com",
-    eventDate: "May 16",
-    products: [
-      "2 8ft banquet tables",
-      "2 48-inch round tables",
-      "32 white Samsonite chairs",
-      "White lap-length linens",
-    ],
-    route: "quote",
-    readiness: "ready",
-    followUp: "no",
-    missingInfo: "none",
-    notes: [
-      "Delivery to 36801 North Tom Darlington Drive, Carefree, AZ 85377 on May 16.",
-      "2 eight-foot rectangular tables.",
-      "2 forty-eight inch round tables with white lap-length linens.",
-      "32 white Samsonite chairs confirmed.",
-    ],
-  };
+    h1 {
+      font-size: 32px;
+    }
 
-  const lowerNav = ["Leads", "Call Log", "Routing Log", "Settings"];
-  const sideNav = ["Overview", "Leads", "Call Log", "Routing Log", "Settings"];
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-top: 20px;
+    }
 
-  return (
-    <div className="min-h-screen overflow-hidden bg-[#030816] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.16),transparent_20%),radial-gradient(circle_at_80%_15%,rgba(59,130,246,0.12),transparent_18%),radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_35%),linear-gradient(180deg,#020817_0%,#061126_45%,#020816_100%)]" />
-      <div className="absolute inset-0 opacity-60" style={{ backgroundImage: "radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.7), transparent), radial-gradient(1.5px 1.5px at 40px 70px, rgba(125,211,252,0.6), transparent), radial-gradient(1px 1px at 130px 40px, rgba(255,255,255,0.6), transparent), radial-gradient(1px 1px at 80px 140px, rgba(186,230,253,0.5), transparent)", backgroundSize: "180px 180px" }} />
+    .card {
+      padding: 20px;
+      border-radius: 15px;
+      background: rgba(0, 150, 255, 0.1);
+      border: 1px solid rgba(0,255,255,0.2);
+      box-shadow: 0 0 20px rgba(0,255,255,0.2);
+    }
 
-      <div className="relative z-10 flex min-h-screen">
-        <aside className="hidden lg:flex w-64 flex-col border-r border-cyan-400/10 bg-slate-950/40 backdrop-blur-xl">
-          <div className="px-8 pt-8 pb-6">
-            <div className="flex items-center gap-4">
-              <div className="flex h-20 w-20 items-center justify-center rounded-[28px] border border-cyan-300/40 bg-cyan-400/10 shadow-[0_0_40px_rgba(34,211,238,0.35)]">
-                <div className="text-center text-cyan-200">
-                  <div className="text-3xl">🛡️</div>
-                </div>
-              </div>
-              <div>
-                <div className="text-4xl font-semibold tracking-[0.12em]">SOPHIA</div>
-                <div className="text-xl tracking-[0.42em] text-sky-100/90">DASHBOARD</div>
-              </div>
-            </div>
-          </div>
+    .card h2 {
+      margin: 0;
+      font-size: 14px;
+      color: #aaa;
+    }
 
-          <div className="px-4 pb-8">
-            {sideNav.map((item, index) => (
-              <div
-                key={item}
-                className={`mb-3 flex items-center gap-4 rounded-2xl border px-5 py-5 text-2xl ${
-                  index === 0
-                    ? "border-cyan-300/30 bg-cyan-400/10 text-white shadow-[0_0_30px_rgba(34,211,238,0.18)]"
-                    : "border-white/5 bg-white/[0.02] text-slate-300"
-                }`}
-              >
-                <span className="text-2xl">{index === 0 ? "📂" : index === 1 ? "👤" : index === 2 ? "📞" : index === 3 ? "🧭" : "⚙️"}</span>
-                <span>{item}</span>
-              </div>
-            ))}
-          </div>
-        </aside>
+    .card p {
+      font-size: 28px;
+      margin: 10px 0 0;
+    }
 
-        <main className="flex-1 px-6 py-6 md:px-10 lg:px-12">
-          <header className="border-b border-cyan-400/10 pb-5">
-            <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-              <div>
-                <div className="flex items-center gap-4 lg:hidden">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-300/40 bg-cyan-400/10 shadow-[0_0_30px_rgba(34,211,238,0.25)]">🛡️</div>
-                  <div>
-                    <div className="text-2xl font-semibold tracking-[0.12em]">SOPHIA</div>
-                    <div className="text-sm tracking-[0.35em] text-sky-100/80">DASHBOARD</div>
-                  </div>
-                </div>
-                <nav className="mt-2 flex flex-wrap items-center gap-8 text-xl text-slate-300 lg:mt-0">
-                  <span className="border-b-2 border-cyan-300 pb-2 text-white shadow-[0_8px_20px_rgba(34,211,238,0.25)]">Overview</span>
-                  {lowerNav.map((item) => (
-                    <span key={item} className="hover:text-white">{item}</span>
-                  ))}
-                </nav>
-              </div>
+    table {
+      width: 100%;
+      margin-top: 30px;
+      border-collapse: collapse;
+    }
 
-              <div className="flex items-center gap-3 self-start xl:self-auto">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-slate-900/60 text-xl shadow-[0_0_25px_rgba(14,165,233,0.12)]">🔔</div>
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-slate-900/60 text-xl shadow-[0_0_25px_rgba(14,165,233,0.12)]">✉️</div>
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-slate-900/60 text-xl shadow-[0_0_25px_rgba(14,165,233,0.12)]">🕘</div>
-                <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900/60 px-3 py-2 shadow-[0_0_25px_rgba(14,165,233,0.12)]">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-300/20 text-lg">👨🏻</div>
-                </div>
-              </div>
-            </div>
-          </header>
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
 
-          <section className="mt-8 grid grid-cols-1 gap-5 xl:grid-cols-4">
-            {metrics.map((metric) => (
-              <div
-                key={metric.title}
-                className={`relative overflow-hidden rounded-[28px] border ${metric.border} bg-slate-950/35 p-7 backdrop-blur-xl shadow-[0_0_40px_rgba(34,211,238,0.10)]`}
-              >
-                <div className={`absolute inset-0 bg-gradient-to-br ${metric.glow}`} />
-                <div className="relative z-10 flex items-center gap-5">
-                  <div className="text-5xl opacity-90">{metric.icon}</div>
-                  <div>
-                    <div className="text-[2rem] font-semibold uppercase tracking-wide leading-tight">{metric.title}</div>
-                    <div className="mt-1 text-6xl font-semibold tracking-tight">{metric.value}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </section>
+    th {
+      text-align: left;
+      color: #aaa;
+    }
 
-          <section className="mt-10 grid grid-cols-1 gap-6 2xl:grid-cols-[1.65fr_1fr]">
-            <div>
-              <div className="mb-4 flex items-center justify-between gap-4">
-                <h2 className="text-5xl font-semibold tracking-tight">Leads</h2>
-              </div>
+    .status {
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
 
-              <div className="mb-5 flex items-center gap-3 rounded-[22px] border border-cyan-300/20 bg-slate-950/40 px-5 py-4 backdrop-blur-xl shadow-[0_0_35px_rgba(34,211,238,0.08)]">
-                <span className="text-3xl text-cyan-200">🔎</span>
-                <input
-                  className="w-full bg-transparent text-2xl text-white outline-none placeholder:text-slate-400"
-                  placeholder="Search leads..."
-                />
-                <button className="rounded-xl px-3 py-1 text-3xl text-cyan-200">＋</button>
-                <button className="rounded-xl px-3 py-1 text-3xl text-cyan-200">⋮</button>
-              </div>
+    .ready { background: #00ffcc33; }
+    .partial { background: #ffaa0033; }
+    .incomplete { background: #ff444433; }
 
-              <div className="mb-4 flex flex-wrap gap-6 text-2xl uppercase tracking-wide text-slate-300">
-                <span className="border-b-2 border-cyan-300 pb-2 text-white">All</span>
-                <span>New</span>
-                <span>Quote</span>
-                <span>Service</span>
-                <span>Incomplete</span>
-              </div>
+  </style>
+</head>
 
-              <div className="overflow-hidden rounded-[28px] border border-cyan-300/20 bg-slate-950/35 backdrop-blur-xl shadow-[0_0_40px_rgba(34,211,238,0.09)]">
-                <div className="grid grid-cols-[1.4fr_1fr_0.9fr_1.6fr_0.8fr_0.8fr] gap-4 border-b border-white/10 px-6 py-5 text-xl text-slate-300">
-                  <div>Name</div>
-                  <div>Phone</div>
-                  <div>Event Date</div>
-                  <div>Products</div>
-                  <div>Route</div>
-                  <div>Status</div>
-                </div>
+<body>
 
-                {leads.map((lead, index) => (
-                  <div
-                    key={`${lead.name}-${index}`}
-                    className={`grid grid-cols-[1.4fr_1fr_0.9fr_1.6fr_0.8fr_0.8fr] gap-4 border-b border-white/5 px-6 py-5 text-xl last:border-b-0 ${lead.rowGlow}`}
-                  >
-                    <div className="font-medium text-white">{lead.name}</div>
-                    <div className="text-slate-200">{lead.phone}</div>
-                    <div className="text-slate-200">{lead.eventDate}</div>
-                    <div className="text-slate-200">{lead.products}</div>
-                    <div className="font-semibold text-sky-100">{lead.route}</div>
-                    <div>
-                      <span className={`rounded-xl border px-4 py-2 text-lg font-semibold uppercase tracking-wide ${lead.statusClass}`}>
-                        {lead.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+<div class="container">
 
-            <div className="rounded-[30px] border border-cyan-300/25 bg-slate-950/40 p-6 backdrop-blur-xl shadow-[0_0_45px_rgba(34,211,238,0.12)]">
-              <div className="mb-6 flex items-start gap-4 border-b border-white/10 pb-5">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full border border-cyan-300/30 bg-cyan-400/10 text-4xl shadow-[0_0_30px_rgba(34,211,238,0.20)]">👨🏻</div>
-                <div>
-                  <div className="text-4xl font-semibold">{selectedLead.name}</div>
-                  <div className="mt-2 text-2xl text-slate-200">{selectedLead.phone}</div>
-                </div>
-              </div>
+  <h1>🧠 Sophia Dashboard</h1>
 
-              <div className="space-y-4 border-b border-white/10 pb-6 text-2xl text-slate-200">
-                <div>📞 {selectedLead.phone}</div>
-                <div>✉️ {selectedLead.email}</div>
-                <div>👤 {selectedLead.eventDate}</div>
-              </div>
-
-              <div className="mt-6 rounded-[24px] border border-white/10 bg-slate-900/35 p-5">
-                <div className="mb-4 text-3xl font-semibold uppercase tracking-wide">Products</div>
-                <ul className="space-y-3 text-xl text-slate-200">
-                  {selectedLead.products.map((product) => (
-                    <li key={product}>• {product}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="mt-5 rounded-[24px] border border-white/10 bg-slate-900/35 p-5">
-                <div className="mb-4 text-3xl font-semibold uppercase tracking-wide">System Status</div>
-                <div className="space-y-3 text-xl text-slate-200">
-                  <div>Route: <span className="text-cyan-200">{selectedLead.route}</span></div>
-                  <div>Readiness: <span className="rounded-lg bg-lime-400/20 px-3 py-1 text-lime-200">{selectedLead.readiness}</span></div>
-                  <div>Follow-up: {selectedLead.followUp}</div>
-                  <div>Missing Info: <span className="text-cyan-100">{selectedLead.missingInfo}</span></div>
-                </div>
-              </div>
-
-              <div className="mt-5 rounded-[24px] border border-white/10 bg-slate-900/35 p-5">
-                <div className="space-y-3 text-xl text-slate-200">
-                  {selectedLead.notes.map((note) => (
-                    <div key={note}>• {note}</div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-        </main>
-      </div>
+  <div class="cards">
+    <div class="card">
+      <h2>Calls Today</h2>
+      <p>25</p>
     </div>
-  );
-}
+
+    <div class="card">
+      <h2>Ready Quotes</h2>
+      <p>9</p>
+    </div>
+
+    <div class="card">
+      <h2>Service Calls</h2>
+      <p>7</p>
+    </div>
+
+    <div class="card">
+      <h2>Incomplete</h2>
+      <p>3</p>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Event Date</th>
+        <th>Products</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>Corinne Harmon</td>
+        <td>4068362832</td>
+        <td>May 16</td>
+        <td>Tables + Chairs</td>
+        <td><span class="status ready">READY</span></td>
+      </tr>
+
+      <tr>
+        <td>Laura Connolly</td>
+        <td>4802413350</td>
+        <td>May 18</td>
+        <td>Linens</td>
+        <td><span class="status partial">PARTIAL</span></td>
+      </tr>
+
+      <tr>
+        <td>Unknown</td>
+        <td>6025855859</td>
+        <td>May 20</td>
+        <td>Unknown</td>
+        <td><span class="status incomplete">INCOMPLETE</span></td>
+      </tr>
+    </tbody>
+
+  </table>
+
+</div>
+
+</body>
+</html>
