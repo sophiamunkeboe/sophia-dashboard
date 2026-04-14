@@ -814,386 +814,459 @@ font-size: 14px;
 <!-- SLIDE PANEL END -->
 
 <script>
-const SUPABASE_URL = "https://aeonjnohadmbxfuoirqa.supabase.co";
-const SUPABASE_KEY = "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const SUPABASE_URL = "https://aeonjnohadmbxfuoirqa.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf";
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let allRows = [];
-let activeLeadId = null;
+  let allRows = [];
+  let activeLeadId = null;
 
-const SOUND_ENABLED = false;
-function playSound(type) {
-if (!SOUND_ENABLED) return;
-const soundMap = {
-click: '/sounds/click.mp3',
-open: '/sounds/open.mp3',
-alert: '/sounds/alert.mp3'
-};
-const src = soundMap[type];
-if (!src) return;
-const audio = new Audio(src);
-audio.volume = 0.18;
-audio.play().catch(() => {});
-}
+  const SOUND_ENABLED = false;
 
-function safeText(value) {
-if (value === null || value === undefined || value === "") return "—";
-return String(value);
-}
-
-function lower(value) {
-return String(value || "").toLowerCase().trim();
-}
-
-function asBool(value) {
-if (value === true || value === false) return value;
-const v = lower(value);
-return v === 'true' || v === 'yes' || v === '1';
-}
-
-function isToday(dateString) {
-if (!dateString) return false;
-const rowDate = new Date(dateString);
-const now = new Date();
-return rowDate.getFullYear() === now.getFullYear() &&
-rowDate.getMonth() === now.getMonth() &&
-rowDate.getDate() === now.getDate();
-}
-
-function formatDateTime(dateString) {
-if (!dateString) return '—';
-const d = new Date(dateString);
-if (Number.isNaN(d.getTime())) return safeText(dateString);
-return d.toLocaleString([], {
-month: 'short',
-day: 'numeric',
-hour: 'numeric',
-minute: '2-digit'
-});
-}
-
-function getRowStatus(row) {
-  const status = lower(row.status);
-  const quoteReadiness = lower(row.quote_readiness);
-  const missingInfo = lower(row.missing_information);
-
-  const hasName = !!lower(row.full_name);
-  const hasPhone = !!lower(row.phone);
-  const hasProducts = !!lower(row.products_requested);
-  const hasEventDate = !!lower(row.event_date);
-
-  const hasCoreLeadData =
-    (hasName || hasPhone) && hasProducts;
-
-  const hasStrongQuoteData =
-    (hasName || hasPhone) && hasProducts && hasEventDate;
-
-  const missingIsSignificant =
-    missingInfo &&
-    missingInfo !== 'none' &&
-    missingInfo !== 'no' &&
-    missingInfo !== 'false';
-
-  if ((status === 'ready' || quoteReadiness === 'ready') && hasStrongQuoteData) {
-    return 'ready';
+  function playSound(type) {
+    if (!SOUND_ENABLED) return;
+    const soundMap = {
+      click: "/sounds/click.mp3",
+      open: "/sounds/open.mp3",
+      alert: "/sounds/alert.mp3"
+    };
+    const src = soundMap[type];
+    if (!src) return;
+    const audio = new Audio(src);
+    audio.volume = 0.18;
+    audio.play().catch(() => {});
   }
 
-  if (status === 'incomplete' || missingIsSignificant || !hasCoreLeadData) {
-    return 'incomplete';
+  function safeText(value) {
+    if (value === null || value === undefined || value === "") return "—";
+    return String(value);
   }
 
-  return 'partial';
-}
+  function lower(value) {
+    return String(value || "").toLowerCase().trim();
+  }
 
+  function asBool(value) {
+    if (value === true || value === false) return value;
+    const v = lower(value);
+    return v === "true" || v === "yes" || v === "1";
+  }
 
-function statusClass(value) {
-const v = lower(value);
-if (v === 'ready') return 'ready';
-if (v === 'service' || v === 'delivery') return 'service';
-if (v === 'existing' || v === 'order') return 'existing';
-if (v === 'incomplete') return 'incomplete';
-return 'partial';
-}
+  function isToday(dateString) {
+    if (!dateString) return false;
+    const rowDate = new Date(dateString);
+    const now = new Date();
+    return (
+      rowDate.getFullYear() === now.getFullYear() &&
+      rowDate.getMonth() === now.getMonth() &&
+      rowDate.getDate() === now.getDate()
+    );
+  }
 
-function statusLabel(value) {
-const v = lower(value);
-if (v === 'service') return 'Delivery';
-if (v === 'existing') return 'Order Update';
-if (v === 'partial') return 'Partial';
-if (v === 'incomplete') return 'Incomplete';
-return 'Ready';
-}
+  function formatDateTime(dateString) {
+    if (!dateString) return "—";
+    const d = new Date(dateString);
+    if (Number.isNaN(d.getTime())) return safeText(dateString);
+    return d.toLocaleString([], {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    });
+  }
 
-function showError(message) {
-const box = document.getElementById('errorBox');
-box.style.display = 'block';
-box.textContent = message;
-playSound('alert');
-}
+  function statusClass(value) {
+    const v = lower(value);
+    if (v === "ready") return "ready";
+    if (v === "service" || v === "delivery") return "service";
+    if (v === "existing" || v === "order") return "existing";
+    if (v === "incomplete") return "incomplete";
+    return "partial";
+  }
 
-function clearError() {
-const box = document.getElementById('errorBox');
-box.style.display = 'none';
-box.textContent = '';
-}
+  function statusLabel(value) {
+    const v = lower(value);
+    if (v === "service") return "Delivery";
+    if (v === "existing") return "Order Update";
+    if (v === "incomplete") return "Incomplete";
+    if (v === "partial") return "Partial";
+    return "Ready";
+  }
 
-function showSaveBanner(message) {
-const banner = document.getElementById('saveBanner');
-banner.style.display = 'block';
-banner.textContent = message;
-setTimeout(() => {
-banner.style.display = 'none';
-banner.textContent = '';
-}, 2200);
-}
+  function showError(message) {
+    const box = document.getElementById("errorBox");
+    box.style.display = "block";
+    box.textContent = message;
+    playSound("alert");
+  }
 
-function renderCards(rows) {
-  const ready = rows.filter(r => getPipelineBucket(r) === 'ready').length;
-  const partial = rows.filter(r => getPipelineBucket(r) === 'partial').length;
-  const delivery = rows.filter(r => getPipelineBucket(r) === 'service').length;
-  const existing = rows.filter(r => getPipelineBucket(r) === 'existing').length;
-  const incomplete = rows.filter(r => getPipelineBucket(r) === 'incomplete').length;
-  const callsToday = rows.filter(r => isToday(r.created_at)).length;
-  const openAlerts = rows.filter(r => getRowStatus(r) === 'incomplete' || asBool(r.follow_up_needed) || asBool(r.human_request)).length;
+  function clearError() {
+    const box = document.getElementById("errorBox");
+    box.style.display = "none";
+    box.textContent = "";
+  }
 
-  document.getElementById('readyQuotes').textContent = ready;
-  document.getElementById('partialCalls').textContent = partial;
-  document.getElementById('deliveryIssues').textContent = delivery;
-  document.getElementById('orderUpdates').textContent = existing;
-  document.getElementById('incompleteCalls').textContent = incomplete;
-  document.getElementById('callsToday').textContent = callsToday;
-  document.getElementById('openAlerts').textContent = openAlerts;
-}
+  function showSaveBanner(message) {
+    const banner = document.getElementById("saveBanner");
+    banner.style.display = "block";
+    banner.textContent = message;
+    setTimeout(() => {
+      banner.style.display = "none";
+      banner.textContent = "";
+    }, 2200);
+  }
 
-function renderTable(rows) {
-const tbody = document.getElementById('tableBody');
-if (!rows.length) {
-tbody.innerHTML = '<tr><td colspan="11" class="muted">No rows found.</td></tr>';
-return;
-}
+  function getRowStatus(row) {
+    const status = lower(row.status);
+    const quoteReadiness = lower(row.quote_readiness);
+    const missingInfo = lower(row.missing_information);
 
-tbody.innerHTML = rows.map(row => {
-const rowStatus = getRowStatus(row);
-const followed = asBool(row.follow_up_status);
+    const hasName = !!lower(row.full_name);
+    const hasPhone = !!lower(row.phone);
+    const hasProducts = !!lower(row.products_requested);
+    const hasEventDate = !!lower(row.event_date);
 
-return `
-<tr onclick="openDrawer('${row.id}')">
-<td class="name-cell">${safeText(row.full_name)}</td>
-<td>${safeText(row.phone)}</td>
-<td>${safeText(row.event_date)}</td>
-<td class="products-cell">${safeText(row.products_requested)}</td>
-<td>${safeText(row.workflow_route)}</td>
-<td><span class="pill ${statusClass(rowStatus)}">${statusLabel(rowStatus)}</span></td>
-<td><span class="pill">${safeText(row.assigned_to)}</span></td>
-<td>
-<span class="pill ${followed ? 'ready' : 'partial'}">${followed ? 'Done' : 'Pending'}</span>
-${followed && row.followed_up_by ? `<span class="follow-note">By ${safeText(row.followed_up_by)}</span>` : ''}
-</td>
-<td onclick="event.stopPropagation()">
-<div class="employee-buttons">
-<button class="glass-btn" onclick="assignLead('${row.id}', 'Carina')">Carina</button>
-<button class="glass-btn" onclick="assignLead('${row.id}', 'James')">James</button>
-<button class="glass-btn" onclick="assignLead('${row.id}', 'Linda')">Linda</button>
-</div>
-</td>
-<td onclick="event.stopPropagation()">
-<button class="glass-btn done-btn" onclick="markFollowed('${row.id}')">Mark Done</button>
-</td>
-<td>${formatDateTime(row.created_at)}</td>
-</tr>
-`;
-}).join('');
-}
+    const hasCoreLeadData = (hasName || hasPhone) && hasProducts;
+    const hasStrongQuoteData = (hasName || hasPhone) && hasProducts && hasEventDate;
 
-function applySearch() {
-const term = lower(document.getElementById('searchInput').value);
-if (!term) {
-renderTable(allRows);
-return;
-}
+    const missingIsSignificant =
+      missingInfo &&
+      missingInfo !== "none" &&
+      missingInfo !== "no" &&
+      missingInfo !== "false";
 
-const filtered = allRows.filter(row => {
-return [
-row.full_name,
-row.phone,
-row.email,
-row.event_date,
-row.products_requested,
-row.workflow_route,
-row.notes,
-row.coordinator_notes,
-row.assigned_to,
-row.followed_up_by,
-row.quote_number,
-row.order_number
-].some(field => lower(field).includes(term));
-});
+    if ((status === "ready" || quoteReadiness === "ready") && hasStrongQuoteData) {
+      return "ready";
+    }
 
-renderTable(filtered);
-}
+    if (status === "incomplete" || missingIsSignificant || !hasCoreLeadData) {
+      return "incomplete";
+    }
 
-function getLeadById(id) {
-return allRows.find(row => String(row.id) === String(id));
-}
+    return "partial";
+  }
 
-function buildAddress(row) {
-return [row.address, row.city, row.zip_code].filter(Boolean).join(', ') || '—';
-}
+  function getPipelineBucket(row) {
+    const status = lower(row.status);
+    const quoteReadiness = lower(row.quote_readiness);
+    const workflowRoute = lower(row.workflow_route);
+    const issueType = lower(row.issue_type);
+    const products = lower(row.products_requested);
+    const notes = lower(row.notes);
+    const missingInfo = lower(row.missing_information);
 
-function buildFlags(row) {
-const flags = [];
-if (asBool(row.new_quote_request)) flags.push('New Quote');
-if (asBool(row.existing_order_request)) flags.push('Existing Order');
-if (asBool(row.delivery_change_request)) flags.push('Delivery Change');
-if (asBool(row.delivery_alert_request)) flags.push('Delivery Alert');
-if (asBool(row.follow_up_needed)) flags.push('Follow Up Needed');
-if (asBool(row.human_request)) flags.push('Human Request');
-if (row.requested_employee) flags.push(`Requested: ${row.requested_employee}`);
-return flags.length ? flags.join(' • ') : '—';
-}
+    const hasName = !!lower(row.full_name);
+    const hasPhone = !!lower(row.phone);
+    const hasProducts = !!products;
+    const hasEventDate = !!lower(row.event_date);
 
-function openDrawer(id) {
-const row = getLeadById(id);
-if (!row) return;
-activeLeadId = id;
+    const hasCoreLeadData = (hasName || hasPhone) && hasProducts;
+    const hasStrongQuoteData = (hasName || hasPhone) && hasProducts && hasEventDate;
 
-document.getElementById('drawerCustomerName').textContent = safeText(row.full_name);
-document.getElementById('drawerPhone').textContent = safeText(row.phone);
-document.getElementById('drawerEmail').textContent = safeText(row.email);
-document.getElementById('drawerEventDate').textContent = safeText(row.event_date);
-document.getElementById('drawerDeliveryMethod').textContent = safeText(row.delivery_method);
-document.getElementById('drawerAddress').textContent = buildAddress(row);
-document.getElementById('drawerProducts').textContent = safeText(row.products_requested);
-const rowStatus = getRowStatus(row);
-const pipelineBucket = getPipelineBucket(row);
-document.getElementById('drawerRoute').innerHTML = `${safeText(row.workflow_route || pipelineBucket)}<span class="pill tiny-route ${statusClass(rowStatus)}">${statusLabel(rowStatus)}</span>`;
-document.getElementById('drawerStatus').textContent = statusLabel(rowStatus);
-document.getElementById('drawerRequestedEmployee').textContent = safeText(row.requested_employee);
-document.getElementById('drawerSentiment').textContent = safeText(row.sentiment);
-document.getElementById('drawerMissingInformation').textContent = safeText(row.missing_information);
-document.getElementById('drawerNotes').value = row.notes || '';
-document.getElementById('drawerCoordinatorNotes').value = row.coordinator_notes || '';
-document.getElementById('drawerQuoteNumber').value = row.quote_number || '';
-document.getElementById('drawerOrderNumber').value = row.order_number || '';
-document.getElementById('drawerAssignedTo').value = row.assigned_to || '';
-document.getElementById('drawerFollowUpStatus').value = String(asBool(row.follow_up_status));
-document.getElementById('drawerFlags').textContent = buildFlags(row);
+    const existingOrder =
+      asBool(row.existing_order_request) ||
+      workflowRoute.includes("existing") ||
+      products.includes("return update") ||
+      notes.includes("return update") ||
+      notes.includes("change order") ||
+      notes.includes("change quote");
 
-document.getElementById('drawerOverlay').classList.add('open');
-document.getElementById('leadDrawer').classList.add('open');
-playSound('open');
-}
+    const deliveryIssue =
+      asBool(row.delivery_change_request) ||
+      asBool(row.delivery_alert_request) ||
+      !!issueType ||
+      workflowRoute.includes("delivery");
 
-function closeDrawer() {
-document.getElementById('drawerOverlay').classList.remove('open');
-document.getElementById('leadDrawer').classList.remove('open');
-activeLeadId = null;
-}
+    const missingIsSignificant =
+      missingInfo &&
+      missingInfo !== "none" &&
+      missingInfo !== "no" &&
+      missingInfo !== "false";
 
-async function loadDashboard() {
-clearError();
-const { data, error } = await supabaseClient
-.from('leads')
-.select('*')
-.order('created_at', { ascending: false })
-.limit(150);
+    if (existingOrder) return "existing";
+    if (deliveryIssue) return "service";
 
-if (error) {
-showError('Could not load dashboard data: ' + error.message);
-document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="muted">Failed to load data.</td></tr>';
-return;
-}
+    if ((status === "ready" || quoteReadiness === "ready") && hasStrongQuoteData) {
+      return "ready";
+    }
 
-allRows = data || [];
-renderCards(allRows);
-renderTable(allRows);
-}
+    if (!hasCoreLeadData) return "incomplete";
+    if (status === "incomplete" || missingIsSignificant) return "incomplete";
 
-async function assignLead(id, employee) {
-playSound('click');
-const { error } = await supabaseClient
-.from('leads')
-.update({ assigned_to: employee })
-.eq('id', id);
+    return "partial";
+  }
 
-if (error) {
-showError('Could not assign lead: ' + error.message);
-return;
-}
+  function renderCards(rows) {
+    const ready = rows.filter(r => getPipelineBucket(r) === "ready").length;
+    const partial = rows.filter(r => getPipelineBucket(r) === "partial").length;
+    const delivery = rows.filter(r => getPipelineBucket(r) === "service").length;
+    const existing = rows.filter(r => getPipelineBucket(r) === "existing").length;
+    const incomplete = rows.filter(r => getPipelineBucket(r) === "incomplete").length;
+    const callsToday = rows.filter(r => isToday(r.created_at)).length;
+    const openAlerts = rows.filter(
+      r => getRowStatus(r) === "incomplete" || asBool(r.follow_up_needed) || asBool(r.human_request)
+    ).length;
 
-showSaveBanner(`Assigned to ${employee}.`);
-await loadDashboard();
-if (activeLeadId === id) openDrawer(id);
-}
+    document.getElementById("readyQuotes").textContent = ready;
+    document.getElementById("partialCalls").textContent = partial;
+    document.getElementById("deliveryIssues").textContent = delivery;
+    document.getElementById("orderUpdates").textContent = existing;
+    document.getElementById("incompleteCalls").textContent = incomplete;
+    document.getElementById("callsToday").textContent = callsToday;
+    document.getElementById("openAlerts").textContent = openAlerts;
+  }
 
-async function markFollowed(id) {
-playSound('click');
-const assignee = getLeadById(id)?.assigned_to || 'Unassigned';
-const { error } = await supabaseClient
-.from('leads')
-.update({
-follow_up_status: true,
-followed_up_by: assignee,
-follow_up_time: new Date().toISOString()
-})
-.eq('id', id);
+  function getLeadById(id) {
+    return allRows.find(row => String(row.id) === String(id));
+  }
 
-if (error) {
-showError('Could not mark follow-up: ' + error.message);
-return;
-}
+  function buildAddress(row) {
+    return [row.address, row.city, row.zip_code].filter(Boolean).join(", ") || "—";
+  }
 
-showSaveBanner('Follow-up marked done.');
-await loadDashboard();
-if (activeLeadId === id) openDrawer(id);
-}
+  function buildFlags(row) {
+    const flags = [];
+    if (asBool(row.new_quote_request)) flags.push("New Quote");
+    if (asBool(row.existing_order_request)) flags.push("Existing Order");
+    if (asBool(row.delivery_change_request)) flags.push("Delivery Change");
+    if (asBool(row.delivery_alert_request)) flags.push("Delivery Alert");
+    if (asBool(row.follow_up_needed)) flags.push("Follow Up Needed");
+    if (asBool(row.human_request)) flags.push("Human Request");
+    if (row.requested_employee) flags.push(`Requested: ${row.requested_employee}`);
+    return flags.length ? flags.join(" • ") : "—";
+  }
 
-async function markDrawerFollowed() {
-if (!activeLeadId) return;
-await markFollowed(activeLeadId);
-}
+  function renderTable(rows) {
+    const tbody = document.getElementById("tableBody");
 
-async function saveDrawerChanges() {
-if (!activeLeadId) return;
-playSound('click');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="11" class="muted">No rows found.</td></tr>';
+      return;
+    }
 
-const payload = {
-notes: document.getElementById('drawerNotes').value.trim(),
-coordinator_notes: document.getElementById('drawerCoordinatorNotes').value.trim(),
-quote_number: document.getElementById('drawerQuoteNumber').value.trim(),
-order_number: document.getElementById('drawerOrderNumber').value.trim(),
-assigned_to: document.getElementById('drawerAssignedTo').value || null,
-follow_up_status: document.getElementById('drawerFollowUpStatus').value === 'true'
-};
+    try {
+      tbody.innerHTML = rows.map(row => {
+        const rowStatus = getRowStatus(row);
+        const followed = asBool(row.follow_up_status);
+        const rowId = String(row.id ?? "");
 
-if (payload.follow_up_status) {
-payload.followed_up_by = payload.assigned_to || getLeadById(activeLeadId)?.assigned_to || 'Unassigned';
-payload.follow_up_time = new Date().toISOString();
-}
+        return `
+          <tr onclick="openDrawer('${rowId}')">
+            <td class="name-cell">${safeText(row.full_name)}</td>
+            <td>${safeText(row.phone)}</td>
+            <td>${safeText(row.event_date)}</td>
+            <td class="products-cell">${safeText(row.products_requested)}</td>
+            <td>${safeText(row.workflow_route)}</td>
+            <td><span class="pill ${statusClass(rowStatus)}">${statusLabel(rowStatus)}</span></td>
+            <td><span class="pill">${safeText(row.assigned_to)}</span></td>
+            <td>
+              <span class="pill ${followed ? "ready" : "partial"}">${followed ? "Done" : "Pending"}</span>
+              ${followed && row.followed_up_by ? `<span class="follow-note">By ${safeText(row.followed_up_by)}</span>` : ""}
+            </td>
+            <td onclick="event.stopPropagation()">
+              <div class="employee-buttons">
+                <button class="glass-btn" onclick="assignLead('${rowId}', 'Carina')">Carina</button>
+                <button class="glass-btn" onclick="assignLead('${rowId}', 'James')">James</button>
+                <button class="glass-btn" onclick="assignLead('${rowId}', 'Linda')">Linda</button>
+              </div>
+            </td>
+            <td onclick="event.stopPropagation()">
+              <button class="glass-btn done-btn" onclick="markFollowed('${rowId}')">Mark Done</button>
+            </td>
+            <td>${formatDateTime(row.created_at)}</td>
+          </tr>
+        `;
+      }).join("");
+    } catch (err) {
+      console.error("renderTable failed:", err);
+      tbody.innerHTML = '<tr><td colspan="11" class="muted">Table render failed. Check console.</td></tr>';
+      showError("Table render failed: " + err.message);
+    }
+  }
 
-const { error } = await supabaseClient
-.from('leads')
-.update(payload)
-.eq('id', activeLeadId);
+  function applySearch() {
+    const term = lower(document.getElementById("searchInput").value);
+    if (!term) {
+      renderTable(allRows);
+      return;
+    }
 
-if (error) {
-showError('Could not save client details: ' + error.message);
-return;
-}
+    const filtered = allRows.filter(row => {
+      return [
+        row.full_name,
+        row.phone,
+        row.email,
+        row.event_date,
+        row.products_requested,
+        row.workflow_route,
+        row.notes,
+        row.coordinator_notes,
+        row.assigned_to,
+        row.followed_up_by,
+        row.quote_number,
+        row.order_number
+      ].some(field => lower(field).includes(term));
+    });
 
-showSaveBanner('Client details saved.');
-await loadDashboard();
-openDrawer(activeLeadId);
-}
+    renderTable(filtered);
+  }
 
-document.getElementById('searchInput').addEventListener('input', applySearch);
+  function openDrawer(id) {
+    const row = getLeadById(id);
+    if (!row) return;
+    activeLeadId = id;
 
-document.addEventListener('keydown', (event) => {
-if (event.key === 'Escape') closeDrawer();
-});
+    document.getElementById("drawerCustomerName").textContent = safeText(row.full_name);
+    document.getElementById("drawerPhone").textContent = safeText(row.phone);
+    document.getElementById("drawerEmail").textContent = safeText(row.email);
+    document.getElementById("drawerEventDate").textContent = safeText(row.event_date);
+    document.getElementById("drawerDeliveryMethod").textContent = safeText(row.delivery_method);
+    document.getElementById("drawerAddress").textContent = buildAddress(row);
+    document.getElementById("drawerProducts").textContent = safeText(row.products_requested);
 
-loadDashboard();
+    const rowStatus = getRowStatus(row);
+    const pipelineBucket = getPipelineBucket(row);
+
+    document.getElementById("drawerRoute").innerHTML =
+      `${safeText(row.workflow_route || pipelineBucket)}<span class="pill tiny-route ${statusClass(rowStatus)}">${statusLabel(rowStatus)}</span>`;
+    document.getElementById("drawerStatus").textContent = statusLabel(rowStatus);
+
+    document.getElementById("drawerRequestedEmployee").textContent = safeText(row.requested_employee);
+    document.getElementById("drawerSentiment").textContent = safeText(row.sentiment);
+    document.getElementById("drawerMissingInformation").textContent = safeText(row.missing_information);
+    document.getElementById("drawerNotes").value = row.notes || "";
+    document.getElementById("drawerCoordinatorNotes").value = row.coordinator_notes || "";
+    document.getElementById("drawerQuoteNumber").value = row.quote_number || "";
+    document.getElementById("drawerOrderNumber").value = row.order_number || "";
+    document.getElementById("drawerAssignedTo").value = row.assigned_to || "";
+    document.getElementById("drawerFollowUpStatus").value = String(asBool(row.follow_up_status));
+    document.getElementById("drawerFlags").textContent = buildFlags(row);
+
+    document.getElementById("drawerOverlay").classList.add("open");
+    document.getElementById("leadDrawer").classList.add("open");
+    playSound("open");
+  }
+
+  function closeDrawer() {
+    document.getElementById("drawerOverlay").classList.remove("open");
+    document.getElementById("leadDrawer").classList.remove("open");
+    activeLeadId = null;
+  }
+
+  async function loadDashboard() {
+    clearError();
+
+    const { data, error } = await supabaseClient
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(150);
+
+    if (error) {
+      showError("Could not load dashboard data: " + error.message);
+      document.getElementById("tableBody").innerHTML =
+        '<tr><td colspan="11" class="muted">Failed to load data.</td></tr>';
+      return;
+    }
+
+    allRows = data || [];
+    console.log("Dashboard rows:", allRows);
+    renderCards(allRows);
+    renderTable(allRows);
+  }
+
+  async function assignLead(id, employee) {
+    playSound("click");
+
+    const { error } = await supabaseClient
+      .from("leads")
+      .update({ assigned_to: employee })
+      .eq("id", id);
+
+    if (error) {
+      showError("Could not assign lead: " + error.message);
+      return;
+    }
+
+    showSaveBanner(`Assigned to ${employee}.`);
+    await loadDashboard();
+    if (activeLeadId === id) openDrawer(id);
+  }
+
+  async function markFollowed(id) {
+    playSound("click");
+
+    const assignee = getLeadById(id)?.assigned_to || "Unassigned";
+
+    const { error } = await supabaseClient
+      .from("leads")
+      .update({
+        follow_up_status: true,
+        followed_up_by: assignee,
+        follow_up_time: new Date().toISOString()
+      })
+      .eq("id", id);
+
+    if (error) {
+      showError("Could not mark follow-up: " + error.message);
+      return;
+    }
+
+    showSaveBanner("Follow-up marked done.");
+    await loadDashboard();
+    if (activeLeadId === id) openDrawer(id);
+  }
+
+  async function markDrawerFollowed() {
+    if (!activeLeadId) return;
+    await markFollowed(activeLeadId);
+  }
+
+  async function saveDrawerChanges() {
+    if (!activeLeadId) return;
+    playSound("click");
+
+    const payload = {
+      notes: document.getElementById("drawerNotes").value.trim(),
+      coordinator_notes: document.getElementById("drawerCoordinatorNotes").value.trim(),
+      quote_number: document.getElementById("drawerQuoteNumber").value.trim(),
+      order_number: document.getElementById("drawerOrderNumber").value.trim(),
+      assigned_to: document.getElementById("drawerAssignedTo").value || null,
+      follow_up_status: document.getElementById("drawerFollowUpStatus").value === "true"
+    };
+
+    if (payload.follow_up_status) {
+      payload.followed_up_by =
+        payload.assigned_to ||
+        getLeadById(activeLeadId)?.assigned_to ||
+        "Unassigned";
+      payload.follow_up_time = new Date().toISOString();
+    }
+
+    const { error } = await supabaseClient
+      .from("leads")
+      .update(payload)
+      .eq("id", activeLeadId);
+
+    if (error) {
+      showError("Could not save client details: " + error.message);
+      return;
+    }
+
+    showSaveBanner("Client details saved.");
+    await loadDashboard();
+    openDrawer(activeLeadId);
+  }
+
+  document.getElementById("searchInput").addEventListener("input", applySearch);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeDrawer();
+  });
+
+  loadDashboard();
 </script>
+
 </body>
 </html>
 
