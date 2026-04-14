@@ -873,20 +873,46 @@ minute: '2-digit'
 }
 
 function classifyLead(row) {
-const quoteReady = lower(row.quote_readiness) === 'ready';
-const existingOrder = asBool(row.existing_order_request);
-const deliveryIssue = asBool(row.delivery_change_request) || asBool(row.delivery_alert_request) || !!lower(row.issue_type) || lower(row.workflow_route).includes('delivery');
-const newQuote = asBool(row.new_quote_request) || lower(row.workflow_route).includes('quote');
-const missingInfo = lower(row.missing_information);
-const missingIsSignificant = missingInfo && missingInfo !== 'none' && missingInfo !== 'no';
+  const status = lower(row.status);
+  const quoteReadiness = lower(row.quote_readiness);
+  const workflowRoute = lower(row.workflow_route);
+  const issueType = lower(row.issue_type);
+  const missingInfo = lower(row.missing_information);
 
-if (quoteReady) return 'ready';
-if (existingOrder) return 'existing';
-if (deliveryIssue) return 'service';
-if (newQuote && !quoteReady) return missingIsSignificant ? 'partial' : 'partial';
-if (missingIsSignificant) return 'incomplete';
-return 'partial';
+  const existingOrder =
+    asBool(row.existing_order_request) ||
+    workflowRoute.includes('existing');
+
+  const deliveryIssue =
+    asBool(row.delivery_change_request) ||
+    asBool(row.delivery_alert_request) ||
+    !!issueType ||
+    workflowRoute.includes('delivery');
+
+  const newQuote =
+    asBool(row.new_quote_request) ||
+    workflowRoute.includes('quote');
+
+  const missingIsSignificant =
+    missingInfo &&
+    missingInfo !== 'none' &&
+    missingInfo !== 'no' &&
+    missingInfo !== 'false';
+
+  // 🔥 TRUST FINAL STATUS FIRST
+  if (status === 'ready') return 'ready';
+  if (status === 'incomplete') return 'incomplete';
+
+  // THEN FALL BACK
+  if (quoteReadiness === 'ready') return 'ready';
+  if (existingOrder) return 'existing';
+  if (deliveryIssue) return 'service';
+  if (missingIsSignificant) return 'incomplete';
+  if (newQuote) return 'partial';
+
+  return 'partial';
 }
+
 
 function statusClass(value) {
 const v = lower(value);
@@ -1176,3 +1202,5 @@ loadDashboard();
 </script>
 </body>
 </html>
+
+
