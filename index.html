@@ -356,21 +356,26 @@ z-index: 2;
 }
 
 tbody td {
-padding: 15px 18px;
-font-size: 14px;
-color: white;
-border-bottom: 1px solid rgba(255,255,255,.05);
-vertical-align: top;
+  padding: 15px 18px;
+  font-size: 14px;
+  color: white;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  vertical-align: top;
 }
 
 tbody tr {
-transition: 0.18s ease;
-cursor: pointer;
+  transition: 0.18s ease;
+  cursor: pointer;
 }
 
 tbody tr:hover {
-background: linear-gradient(90deg, rgba(124,236,255,.08), rgba(255,255,255,.015));
-box-shadow: inset 0 0 0 1px rgba(124,236,255,.08);
+  background: linear-gradient(90deg, rgba(124,236,255,.08), rgba(255,255,255,.015));
+  box-shadow: inset 0 0 0 1px rgba(124,236,255,.08);
+}
+
+tbody tr.active-row {
+  background: linear-gradient(90deg, rgba(124,236,255,.25), rgba(255,255,255,.05)) !important;
+  box-shadow: inset 0 0 0 2px rgba(124,236,255,.35);
 }
 
 .name-cell { font-weight: 700; font-size: 15px; }
@@ -1025,6 +1030,19 @@ font-size: 14px;
     document.getElementById("openAlerts").textContent = openAlerts;
   }
 
+function setActiveRow(id) {
+document.querySelectorAll("#tableBody tr").forEach(row => {
+row.classList.remove("active-row");
+});
+
+if (!id) return;
+
+const target = document.querySelector(`#tableBody tr[data-row-id="${id}"]`);
+if (target) {
+target.classList.add("active-row");
+    }
+}
+
   function getLeadById(id) {
     return allRows.find(row => String(row.id) === String(id));
   }
@@ -1060,7 +1078,7 @@ font-size: 14px;
         const rowId = String(row.id ?? "");
 
         return `
-          <tr onclick="openDrawer('${rowId}')">
+          <tr data-row-id="${rowId}" onclick="openDrawer('${rowId}')">
             <td class="name-cell">${safeText(row.full_name)}</td>
             <td>${safeText(row.phone)}</td>
             <td>${safeText(row.event_date)}</td>
@@ -1124,6 +1142,7 @@ font-size: 14px;
     const row = getLeadById(id);
     if (!row) return;
     activeLeadId = id;
+    setActiveRow(id);
 
     document.getElementById("drawerCustomerName").textContent = safeText(row.full_name);
     document.getElementById("drawerPhone").textContent = safeText(row.phone);
