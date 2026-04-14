@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sophia Systems Dashboard</title>
+  <style>
+    :root{
+      --bg:#07111f;
+      --bg2:#0b1830;
+      --card:rgba(12,24,46,.72);
+      --line:rgba(126,231,255,.18);
+      --text:#e8f3ff;
+      --muted:#91a8c7;
+      --cyan:#6ee7ff;
+      --blue:#4f8cff;
+      --violet:#8a7dff;
+      --green:#3ddc97;
+      --red:#ff6b81;
+      --yellow:#ffd166;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:
+      radial-gradient(circle at top left, rgba(79,140,255,.18), transparent 28%),
+      radial-gradient(circle at top right, rgba(110,231,255,.16), transparent 22%),
+      linear-gradient(180deg,var(--bg),var(--bg2));
+      color:var(--text);
+      min-height:100%;
+    }
+
+    .wrap{max-width:1400px;margin:0 auto;padding:28px}
+    .topbar{
+      display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:24px;
+    }
+
+    .brand small{
+      display:block;
+      color:var(--cyan);
+      letter-spacing:.22em;
+      text-transform:uppercase;
+      margin-bottom:8px;
+      font-size:12px;
+    }
+
+    .brand h1{
+      margin:0;
+      font-size:40px;
+      line-height:1;
+      letter-spacing:-.03em;
+    }
+
+    .brand p{
+      margin:10px 0 0;color:var(--muted);max-width:760px;
+    }
+
+    .pill{
+      padding:12px 16px;
+      border:1px solid var(--line);
+      background:rgba(9,18,36,.7);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      color:var(--text);
+      min-width:260px;
+    }
+
+    .grid-4{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:16px;
+      margin-bottom:16px;
+    }
+
+    .grid-main{
+      display:grid;
+      grid-template-columns:1.5fr 1fr;
+      gap:16px;
+      margin-bottom:16px;
+    }
+
+    .grid-bottom{
+      display:grid;
+      grid-template-columns:1.3fr .9fr;
+      gap:16px;
+      margin-bottom:16px;
+    }
+
+    .grid-3{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:16px;
+    }
+
+    .card{
+      background:var(--card);
+      backdrop-filter:blur(14px);
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:20px;
+      box-shadow:var(--shadow);
+    }
+
+    .card h2,.card h3{margin:0 0 8px}
+    .sub{color:var(--muted);font-size:14px;margin-bottom:18px}
+
+    .kpi .label{color:var(--muted);font-size:14px}
+    .kpi .value{font-size:34px;font-weight:700;margin-top:8px}
+    .kpi .note{color:var(--cyan);margin-top:8px;font-size:13px}
+
+    .funnel-row{margin-bottom:14px}
+    .funnel-head{display:flex;justify-content:space-between;margin-bottom:6px;font-size:14px}
+    .bar{
+      width:100%;height:12px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;border:1px solid rgba(255,255,255,.04)
+    }
+    .fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg,var(--cyan),var(--blue),var(--violet));
+      box-shadow:0 0 18px rgba(110,231,255,.35);
+    }
+
+    .alert{
+      padding:14px 16px;
+      border-radius:16px;
+      background:rgba(8,16,31,.74);
+      border:1px solid var(--line);
+      margin-bottom:10px;
+      color:#dce8ff;
+      font-size:14px;
+    }
+
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:14px 10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left}
+    th{color:var(--muted);font-weight:600}
+    tr:last-child td{border-bottom:none}
+
+    .badge{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.1);
+      background:rgba(255,255,255,.05);
+      font-size:12px;
+    }
+
+    .status-active{color:var(--green)}
+    .status-pending{color:var(--yellow)}
+    .status-demo{color:var(--cyan)}
+    .status-proposal{color:#b7a8ff}
+
+    .mini{
+      padding:14px 16px;border-radius:18px;background:rgba(8,16,31,.65);border:1px solid var(--line);margin-bottom:12px
+    }
+    .mini strong{display:block;font-size:16px}
+    .mini span{display:block;color:var(--muted);margin-top:4px;font-size:13px}
+
+    .month{
+      display:grid;
+      grid-template-columns:80px 1fr 1fr;
+      gap:14px;
+      padding:14px 16px;
+      border-radius:18px;
+      background:rgba(8,16,31,.65);
+      border:1px solid var(--line);
+      margin-bottom:10px;
+      font-size:14px;
+      align-items:center;
+    }
+
+    .section-dark{
+      background:linear-gradient(180deg, rgba(13,24,48,.92), rgba(8,14,30,.94));
+    }
+
+    .core-title{
+      color:var(--cyan);
+      font-size:12px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      margin-bottom:10px;
+    }
+
+    @media (max-width: 1100px){
+      .grid-4,.grid-main,.grid-bottom,.grid-3{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <small>Sophia Systems</small>
+        <h1>Founder Dashboard</h1>
+        <p>AI intake and automation control center for sales, clients, recurring revenue, installs, and live Sophia activity.</p>
+      </div>
+      <div class="pill">
+        <div style="color:var(--muted);font-size:13px;">Offer Structure</div>
+        <div style="font-size:22px;font-weight:700;margin-top:6px;">$26,000 setup + $895/mo</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:6px;">Sophia Core first, custom workflow layer second</div>
+      </div>
+    </div>
+
+    <div class="grid-4">
+      <div class="card kpi">
+        <div class="label">Active Clients</div>
+        <div class="value">12</div>
+        <div class="note">+3 this month</div>
+      </div>
+      <div class="card kpi">
+        <div class="label">Monthly Recurring Revenue</div>
+        <div class="value">$10,740</div>
+        <div class="note">12 × $895</div>
+      </div>
+      <div class="card kpi">
+        <div class="label">Implementation Revenue YTD</div>
+        <div class="value">$312,000</div>
+        <div class="note">12 × $26,000</div>
+      </div>
+      <div class="card kpi">
+        <div class="label">Projected Year 1 Revenue</div>
+        <div class="value">$440,880</div>
+        <div class="note">Implementation + recurring</div>
+      </div>
+    </div>
+
+    <div class="grid-main">
+      <div class="card">
+        <h2>Sales Pipeline</h2>
+        <div class="sub">Track Erica’s outreach through demo to close.</div>
+
+        <div class="funnel-row">
+          <div class="funnel-head"><span>Lead List</span><span>124</span></div>
+          <div class="bar"><div class="fill" style="width:100%"></div></div>
+        </div>
+        <div class="funnel-row">
+          <div class="funnel-head"><span>Contacted</span><span>58</span></div>
+          <div class="bar"><div class="fill" style="width:75%"></div></div>
+        </div>
+        <div class="funnel-row">
+          <div class="funnel-head"><span>Demo Booked</span><span>21</span></div>
+          <div class="bar"><div class="fill" style="width:52%"></div></div>
+        </div>
+        <div class="funnel-row">
+          <div class="funnel-head"><span>Demo Completed</span><span>14</span></div>
+          <div class="bar"><div class="fill" style="width:36%"></div></div>
+        </div>
+        <div class="funnel-row" style="margin-bottom:0">
+          <div class="funnel-head"><span>Closed Won</span><span>12</span></div>
+          <div class="bar"><div class="fill" style="width:30%"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Priority Alerts</h2>
+        <div class="sub">High-visibility operational items.</div>
+        <div class="alert">2 clients need custom workflow mapping completed this week</div>
+        <div class="alert">1 subscription renewal failed — system marked for hold review</div>
+        <div class="alert">4 demos booked for Erica this week</div>
+        <div class="alert">Average close rate from completed demo: 85.7%</div>
+      </div>
+    </div>
+
+    <div class="grid-bottom">
+      <div class="card">
+        <h2>Client Delivery Board</h2>
+        <div class="sub">See where each company sits from pre-sale to live automation.</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Status</th>
+              <th>Phase</th>
+              <th>Setup</th>
+              <th>Monthly</th>
+              <th>Owner</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Desert Peak Rentals</td>
+              <td><span class="badge status-active">Active</span></td>
+              <td>Sophia Core Live</td>
+              <td>$26,000</td>
+              <td>$895</td>
+              <td>Erica</td>
+            </tr>
+            <tr>
+              <td>Copper Tent Co.</td>
+              <td><span class="badge status-active">Active</span></td>
+              <td>Custom Workflow Build</td>
+              <td>$26,000</td>
+              <td>$895</td>
+              <td>Erica</td>
+            </tr>
+            <tr>
+              <td>White Oak Event Rentals</td>
+              <td><span class="badge status-pending">Pending Go-Live</span></td>
+              <td>Implementation</td>
+              <td>$26,000</td>
+              <td>$895</td>
+              <td>James</td>
+            </tr>
+            <tr>
+              <td>Sonoran Linen House</td>
+              <td><span class="badge status-demo">Demo Scheduled</span></td>
+              <td>Pre-Sale</td>
+              <td>—</td>
+              <td>—</td>
+              <td>Erica</td>
+            </tr>
+            <tr>
+              <td>Canyon View Party Rentals</td>
+              <td><span class="badge status-proposal">Proposal Out</span></td>
+              <td>Negotiation</td>
+              <td>$26,000</td>
+              <td>$895</td>
+              <td>James</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <h2>Commission Snapshot</h2>
+          <div class="sub">Current sales-side payout view.</div>
+
+          <div class="mini">
+            <strong>Erica</strong>
+            <span>8 closed · $31,200 upfront · $358.00/mo residual · $32,990 year 1</span>
+          </div>
+
+          <div class="mini">
+            <strong>James</strong>
+            <span>4 founder-closed deals · internal sales source</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Monthly Growth</h2>
+          <div class="sub">Install revenue and recurring growth.</div>
+
+          <div class="month"><strong>Jan</strong><span>Installs: $52K</span><span>MRR: $1,790</span></div>
+          <div class="month"><strong>Feb</strong><span>Installs: $26K</span><span>MRR: $3,580</span></div>
+          <div class="month"><strong>Mar</strong><span>Installs: $78K</span><span>MRR: $5,370</span></div>
+          <div class="month"><strong>Apr</strong><span>Installs: $52K</span><span>MRR: $7,160</span></div>
+          <div class="month"><strong>May</strong><span>Installs: $104K</span><span>MRR: $10,740</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card section-dark">
+        <div class="core-title">Sophia Core</div>
+        <h3>Fast Launch</h3>
+        <div class="sub">Base AI answering, lead capture, form submit, email routing, and text alerts so clients can go live fast.</div>
+      </div>
+      <div class="card">
+        <div class="core-title">Sophia Custom</div>
+        <h3>Workflow Layer</h3>
+        <div class="sub">Add API integrations, custom routing, departments, reporting, and advanced business logic after launch.</div>
+      </div>
+      <div class="card">
+        <div class="core-title">Focus</div>
+        <h3>Captured Revenue</h3>
+        <div class="sub">Position Sophia as a missed-call recovery and booking system, not just another AI tool.</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
