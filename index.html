@@ -877,50 +877,16 @@ function getRowStatus(row) {
   const quoteReadiness = lower(row.quote_readiness);
   const missingInfo = lower(row.missing_information);
 
-  const missingIsSignificant =
-    missingInfo &&
-    missingInfo !== 'none' &&
-    missingInfo !== 'no' &&
-    missingInfo !== 'false';
+  const hasName = !!lower(row.full_name);
+  const hasPhone = !!lower(row.phone);
+  const hasProducts = !!lower(row.products_requested);
+  const hasEventDate = !!lower(row.event_date);
 
-  if (status === 'ready') return 'ready';
-  if (status === 'incomplete') return 'incomplete';
-  if (status === 'partial') return 'partial';
+  const hasCoreLeadData =
+    (hasName || hasPhone) && hasProducts;
 
-  if (quoteReadiness === 'ready') return 'ready';
-  if (missingIsSignificant) return 'incomplete';
-
-  return 'partial';
-}
-
-function getPipelineBucket(row) {
-  const status = lower(row.status);
-  const quoteReadiness = lower(row.quote_readiness);
-  const workflowRoute = lower(row.workflow_route);
-  const issueType = lower(row.issue_type);
-  const products = lower(row.products_requested);
-  const notes = lower(row.notes);
-  const missingInfo = lower(row.missing_information);
-
-  const existingOrder =
-    asBool(row.existing_order_request) ||
-    workflowRoute.includes('existing') ||
-    products.includes('return update') ||
-    notes.includes('return update') ||
-    notes.includes('update') ||
-    notes.includes('change order') ||
-    notes.includes('change quote');
-
-  const deliveryIssue =
-    asBool(row.delivery_change_request) ||
-    asBool(row.delivery_alert_request) ||
-    !!issueType ||
-    workflowRoute.includes('delivery');
-
-  const newQuote =
-    asBool(row.new_quote_request) ||
-    workflowRoute.includes('quote') ||
-    quoteReadiness === 'ready';
+  const hasStrongQuoteData =
+    (hasName || hasPhone) && hasProducts && hasEventDate;
 
   const missingIsSignificant =
     missingInfo &&
@@ -928,15 +894,17 @@ function getPipelineBucket(row) {
     missingInfo !== 'no' &&
     missingInfo !== 'false';
 
-  if (existingOrder) return 'existing';
-  if (deliveryIssue) return 'service';
-  if (status === 'ready' || quoteReadiness === 'ready') return 'ready';
-  if (status === 'incomplete' && !existingOrder && !deliveryIssue) return 'incomplete';
-  if (missingIsSignificant && !existingOrder && !deliveryIssue) return 'incomplete';
-  if (newQuote) return 'partial';
+  if ((status === 'ready' || quoteReadiness === 'ready') && hasStrongQuoteData) {
+    return 'ready';
+  }
+
+  if (status === 'incomplete' || missingIsSignificant || !hasCoreLeadData) {
+    return 'incomplete';
+  }
 
   return 'partial';
 }
+
 
 function statusClass(value) {
 const v = lower(value);
