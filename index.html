@@ -148,14 +148,34 @@ gap: 10px;
 }
 
 .logo-main {
-height: 48px; /* smaller height */
+height: auto;
 width: auto;
-max-width: 220px; /* controls overall width */
+max-height: 60px;
+max-width: 320px;
 object-fit: contain;
 display: block;
+filter: drop-shadow(0 0 12px rgba(0, 200, 255, 0.6))
+drop-shadow(0 0 24px rgba(0, 200, 255, 0.3));
+animation: logoPulse 3.2s ease-in-out infinite;
+transform-origin: center;
+}
 
-filter: drop-shadow(0 0 10px rgba(0, 200, 255, 0.6))
-drop-shadow(0 0 20px rgba(0, 200, 255, 0.3));
+@keyframes logoPulse {
+0% {
+transform: scale(1);
+filter: drop-shadow(0 0 10px rgba(0, 200, 255, 0.45))
+drop-shadow(0 0 18px rgba(0, 200, 255, 0.22));
+}
+50% {
+transform: scale(1.035);
+filter: drop-shadow(0 0 16px rgba(0, 200, 255, 0.75))
+drop-shadow(0 0 34px rgba(0, 200, 255, 0.38));
+}
+100% {
+transform: scale(1);
+filter: drop-shadow(0 0 10px rgba(0, 200, 255, 0.45))
+drop-shadow(0 0 18px rgba(0, 200, 255, 0.22));
+}
 }
 
 .logo-shell {
