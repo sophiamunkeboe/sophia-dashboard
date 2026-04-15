@@ -908,6 +908,10 @@ font-size: 14px;
               <div class="mini-label">Calls Today</div>
               <div class="mini-value" id="callsToday">0</div>
             </div>
+<div class="mini-stat">
+<div class="mini-label">Top Performer</div>
+<div class="mini-value" id="topPerformer">—</div>
+</div>
             <div class="mini-stat">
               <div class="mini-label">Open Alerts</div>
               <div class="mini-value" id="openAlerts">0</div>
@@ -1408,44 +1412,78 @@ closeDrawer();
     }
 
     return "partial";
-  }
+  }function calculateEmployeeScores(rows) {
+const scores = {};
 
-  function renderCards(rows) {
-    const ready = rows.filter(r => getPipelineBucket(r) === "ready").length;
-    const partial = rows.filter(r => getPipelineBucket(r) === "partial").length;
-    const delivery = rows.filter(r => getPipelineBucket(r) === "service").length;
-    const existing = rows.filter(r => getPipelineBucket(r) === "existing").length;
-    const incomplete = rows.filter(r => getPipelineBucket(r) === "incomplete").length;
-    const callsToday = rows.filter(r => isToday(r.created_at)).length;
-    const openAlerts = rows.filter(
-      r =>
-        getRowStatus(r) === "incomplete" ||
-        getRowStatus(r) === "lowdata" ||
-        asBool(r.follow_up_needed) ||
-        asBool(r.human_request)
-    ).length;
+rows.forEach(row => {
+const employee = row.assigned_to;
+if (!employee) return;
 
-    document.getElementById("readyQuotes").textContent = ready;
-    document.getElementById("partialCalls").textContent = partial;
-    document.getElementById("deliveryIssues").textContent = delivery;
-    document.getElementById("orderUpdates").textContent = existing;
-    document.getElementById("incompleteCalls").textContent = incomplete;
-    document.getElementById("callsToday").textContent = callsToday;
-    document.getElementById("openAlerts").textContent = openAlerts;
-  }
+if (!scores[employee]) {
+scores[employee] = 0;
+}
 
-function setActiveRow(id) {
-document.querySelectorAll("#tableBody tr").forEach(row => {
-row.classList.remove("active-row");
+// Assigned
+scores[employee] += 1;
+
+// Follow-up done
+if (asBool(row.follow_up_status)) {
+scores[employee] += 3;
+}
+
+// Full completion
+const hasQuote = row.quote_number;
+const hasOrder = row.order_number;
+const hasNotes = row.notes || row.coordinator_notes;
+
+if (hasQuote && hasOrder && hasNotes) {
+scores[employee] += 5;
+}
 });
 
-if (!id) return;
-
-const target = document.querySelector(`#tableBody tr[data-row-id="${id}"]`);
-if (target) {
-target.classList.add("active-row");
-    }
+return scores;
 }
+
+
+function renderCards(rows) {
+  const ready = rows.filter(r => getPipelineBucket(r) === "ready").length;
+  const partial = rows.filter(r => getPipelineBucket(r) === "partial").length;
+  const delivery = rows.filter(r => getPipelineBucket(r) === "service").length;
+  const existing = rows.filter(r => getPipelineBucket(r) === "existing").length;
+  const incomplete = rows.filter(r => getPipelineBucket(r) === "incomplete").length;
+  const callsToday = rows.filter(r => isToday(r.created_at)).length;
+  const openAlerts = rows.filter(
+    r =>
+      getRowStatus(r) === "incomplete" ||
+      getRowStatus(r) === "lowdata" ||
+      asBool(r.follow_up_needed) ||
+      asBool(r.human_request)
+  ).length;
+
+  document.getElementById("readyQuotes").textContent = ready;
+  document.getElementById("partialCalls").textContent = partial;
+  document.getElementById("deliveryIssues").textContent = delivery;
+  document.getElementById("orderUpdates").textContent = existing;
+  document.getElementById("incompleteCalls").textContent = incomplete;
+  document.getElementById("callsToday").textContent = callsToday;
+  document.getElementById("openAlerts").textContent = openAlerts;
+
+  const scores = calculateEmployeeScores(rows);
+
+  let topName = "—";
+  let topScore = 0;
+
+  Object.entries(scores).forEach(([name, score]) => {
+    if (score > topScore) {
+      topScore = score;
+      topName = name;
+    }
+  });
+
+  document.getElementById("topPerformer").textContent =
+    topName === "—" ? "—" : `${topName} (${topScore})`;
+}
+
 
   function getLeadById(id) {
     return allRows.find(row => String(row.id) === String(id));
@@ -1545,6 +1583,18 @@ row.order_number
 renderTable(filtered);
 }
 
+function setActiveRow(id) {
+document.querySelectorAll("#tableBody tr").forEach(row => {
+row.classList.remove("active-row");
+});
+
+if (!id) return;
+
+const target = document.querySelector(`#tableBody tr[data-row-id="${id}"]`);
+if (target) {
+target.classList.add("active-row");
+}
+}
 
   function openDrawer(id) {
     const row = getLeadById(id);
