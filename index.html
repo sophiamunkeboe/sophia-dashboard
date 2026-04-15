@@ -685,16 +685,17 @@ font-size: 14px;
         <!-- HEADER SECTION END -->
 
 
-
 <!-- NAV SECTION START -->
-<div class="hero-bar">
-<div class="hero-tab active">Overview</div>
-<div class="hero-tab">Leads</div>
-<div class="hero-tab">Call Log</div>
-<div class="hero-tab">Routing Log</div>
-<div class="hero-tab">Settings</div>
+<div class="hero-bar" id="companyTabs">
+  <div class="hero-tab active" data-company="master" onclick="setActiveCompany('master', this)">Master</div>
+  <div class="hero-tab" data-company="taylor" onclick="setActiveCompany('taylor', this)">Taylor</div>
+  <div class="hero-tab" data-company="aer" onclick="setActiveCompany('aer', this)">AER</div>
+  <div class="hero-tab" data-company="thankq" onclick="setActiveCompany('thankq', this)">Thank Q</div>
+  <div class="hero-tab" data-company="munkeboe" onclick="setActiveCompany('munkeboe', this)">Munkeboe</div>
+  <div class="hero-tab" data-company="sel" onclick="setActiveCompany('sel', this)">SEL</div>
 </div>
 <!-- NAV SECTION END -->
+
 
 <!-- KPI SECTION START -->
 <div class="metric-grid">
@@ -743,6 +744,7 @@ font-size: 14px;
 <table>
 <thead>
 <tr>
+<th>Company</th>
 <th>Name</th>
 <th>Phone</th>
 <th>Event Date</th>
@@ -758,7 +760,7 @@ font-size: 14px;
 </thead>
 <tbody id="tableBody">
 <tr>
-<td colspan="11" class="muted">Loading data...</td>
+<td colspan="12" class="muted">Loading data...</td>
 </tr>
 </tbody>
 </table>
@@ -817,6 +819,10 @@ font-size: 14px;
 </div>
 
 <div class="drawer-card half">
+<div class="drawer-label">Company</div>
+<div class="drawer-value" id="drawerCompany">—</div>
+</div>
+<div class="drawer-card half">
 <div class="drawer-label">Workflow Route</div>
 <div class="drawer-value" id="drawerRoute">—</div>
 </div>
@@ -824,6 +830,11 @@ font-size: 14px;
 <div class="drawer-label">Status</div>
 <div class="drawer-value" id="drawerStatus">—</div>
 </div>
+<div class="drawer-card half">
+<div class="drawer-label">Pipeline Bucket</div>
+<div class="drawer-value" id="drawerPipelineBucket">—</div>
+</div>
+
 
 <div class="drawer-card half">
 <div class="drawer-label">Requested Employee</div>
@@ -894,8 +905,10 @@ font-size: 14px;
   const SUPABASE_KEY = "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf";
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  let allRows = [];
-  let activeLeadId = null;
+
+let allRows = [];
+let activeLeadId = null;
+let activeCompany = "master";
 
   const SOUND_ENABLED = false;
 
@@ -950,6 +963,73 @@ font-size: 14px;
       minute: "2-digit"
     });
   }
+function getCompanyName(row) {
+  return (
+    row.company_name ||
+    row.company ||
+    row.location ||
+    row.store_location ||
+    ""
+  );
+}
+
+function normalizeCompany(value) {
+  const v = lower(value);
+
+  if (!v) return "";
+
+  if (v.includes("munk")) return "munkeboe";
+  if (v.includes("thank")) return "thankq";
+  if (v === "aer" || v.includes("arizona event")) return "aer";
+  if (v.includes("sel") || v.includes("special events linens")) return "sel";
+  if (v.includes("taylor")) return "taylor";
+
+  return v.replace(/\s+/g, "");
+}
+
+function getCompanyLabel(companyKey) {
+  switch (companyKey) {
+    case "taylor": return "Taylor";
+    case "aer": return "AER";
+    case "thankq": return "Thank Q";
+    case "munkeboe": return "Munkeboe";
+    case "sel": return "SEL";
+    default: return "—";
+  }
+}
+
+function rowMatchesActiveCompany(row) {
+  if (activeCompany === "master") return true;
+  return normalizeCompany(getCompanyName(row)) === activeCompany;
+}
+
+function getVisibleRows() {
+  return allRows.filter(rowMatchesActiveCompany);
+}
+
+function setActiveCompany(companyKey, el) {
+  activeCompany = companyKey;
+
+  document.querySelectorAll("#companyTabs .hero-tab").forEach(tab => {
+    tab.classList.remove("active");
+  });
+
+  if (el) {
+    el.classList.add("active");
+  } else {
+    const target = document.querySelector(`#companyTabs .hero-tab[data-company="${companyKey}"]`);
+    if (target) target.classList.add("active");
+  }
+
+  const visibleRows = getVisibleRows();
+  renderCards(visibleRows);
+  renderTable(visibleRows);
+
+  const currentSearch = document.getElementById("searchInput").value.trim();
+  if (currentSearch) applySearch();
+
+  closeDrawer();
+}
 
   function statusClass(value) {
     const v = lower(value);
@@ -1138,9 +1218,9 @@ target.classList.add("active-row");
     const tbody = document.getElementById("tableBody");
 
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="11" class="muted">No rows found.</td></tr>';
-      return;
-    }
+tbody.innerHTML = '<tr><td colspan="12" class="muted">No rows found.</td></tr>';
+return;
+}
 
     try {
       tbody.innerHTML = rows.map(row => {
@@ -1149,15 +1229,16 @@ target.classList.add("active-row");
         const rowId = String(row.id ?? "");
 
         return `
-          <tr data-row-id="${rowId}" onclick="openDrawer('${rowId}')">
-            <td class="name-cell">${safeText(row.full_name)}</td>
-            <td>${safeText(row.phone)}</td>
-            <td>${safeText(row.event_date)}</td>
-            <td class="products-cell">${safeText(row.products_requested)}</td>
-            <td>${safeText(row.workflow_route)}</td>
-            <td><span class="pill ${statusClass(rowStatus)}">${statusLabel(rowStatus)}</span></td>
-            <td><span class="pill">${safeText(row.assigned_to)}</span></td>
-            <td>
+      <tr data-row-id="${rowId}" onclick="openDrawer('${rowId}')">
+  <td><span class="pill">${safeText(getCompanyName(row) || getCompanyLabel(normalizeCompany(getCompanyName(row))))}</span></td>
+  <td class="name-cell">${safeText(row.full_name)}</td>
+  <td>${safeText(row.phone)}</td>
+  <td>${safeText(row.event_date)}</td>
+  <td class="products-cell">${safeText(row.products_requested)}</td>
+  <td>${safeText(row.workflow_route)}</td>
+  <td><span class="pill ${statusClass(rowStatus)}">${statusLabel(rowStatus)}</span></td>
+  <td><span class="pill">${safeText(row.assigned_to)}</span></td>
+        <td>
               <span class="pill ${followed ? "ready" : "partial"}">${followed ? "Done" : "Pending"}</span>
               ${followed && row.followed_up_by ? `<span class="follow-note">By ${safeText(row.followed_up_by)}</span>` : ""}
             </td>
@@ -1177,37 +1258,36 @@ target.classList.add("active-row");
       }).join("");
     } catch (err) {
       console.error("renderTable failed:", err);
-      tbody.innerHTML = '<tr><td colspan="11" class="muted">Table render failed. Check console.</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="12" class="muted">Table render failed. Check console.</td></tr>';
       showError("Table render failed: " + err.message);
     }
   }
-
-  function applySearch() {
-    const term = lower(document.getElementById("searchInput").value);
-    if (!term) {
-      renderTable(allRows);
-      return;
-    }
-
-    const filtered = allRows.filter(row => {
-      return [
-        row.full_name,
-        row.phone,
-        row.email,
-        row.event_date,
-        row.products_requested,
-        row.workflow_route,
-        row.notes,
-        row.coordinator_notes,
-        row.assigned_to,
-        row.followed_up_by,
-        row.quote_number,
-        row.order_number
-      ].some(field => lower(field).includes(term));
-    });
-
-    renderTable(filtered);
+function applySearch() {
+  const term = lower(document.getElementById("searchInput").value);
+  if (!term) {
+    renderTable(allRows);
+    return;
   }
+
+  const filtered = allRows.filter(row => {
+    return [
+      row.full_name,
+      row.phone,
+      row.email,
+      row.event_date,
+      row.products_requested,
+      row.workflow_route,
+      row.notes,
+      row.coordinator_notes,
+      row.assigned_to,
+      row.followed_up_by,
+      row.quote_number,
+      row.order_number
+    ].some(field => lower(field).includes(term));
+  });
+
+  renderTable(filtered);
+}
 
   function openDrawer(id) {
     const row = getLeadById(id);
@@ -1223,8 +1303,16 @@ target.classList.add("active-row");
     document.getElementById("drawerAddress").textContent = buildAddress(row);
     document.getElementById("drawerProducts").textContent = safeText(row.products_requested);
 
-    const rowStatus = getRowStatus(row);
-    const pipelineBucket = getPipelineBucket(row);
+const rowStatus = getRowStatus(row);
+const pipelineBucket = getPipelineBucket(row);
+const companyLabel = getCompanyName(row) || getCompanyLabel(normalizeCompany(getCompanyName(row)));
+
+document.getElementById("drawerCompany").textContent = safeText(companyLabel);
+document.getElementById("drawerRoute").innerHTML =
+`${safeText(row.workflow_route || pipelineBucket)} <span class="pill tiny-route ${statusClass(rowStatus)}">${statusLabel(rowStatus)}</span>`;
+document.getElementById("drawerStatus").textContent = statusLabel(rowStatus);
+document.getElementById("drawerPipelineBucket").textContent = statusLabel(pipelineBucket);
+
 
     document.getElementById("drawerRoute").innerHTML =
   `${safeText(row.workflow_route)} <span class="pill tiny-route ${statusClass(rowStatus)}">${statusLabel(rowStatus)}</span>`;
@@ -1274,9 +1362,10 @@ setActiveRow(null);
       return;
     }
 
-    allRows = data || [];
-    renderCards(allRows);
-    renderTable(allRows);
+  allRows = data || [];
+const visibleRows = getVisibleRows();
+renderCards(visibleRows);
+renderTable(visibleRows);
   }
 
   async function assignLead(id, employee) {
@@ -1293,8 +1382,8 @@ setActiveRow(null);
     }
 
     showSaveBanner(`Assigned to ${employee}.`);
-    await loadDashboard();
-    if (activeLeadId === id) openDrawer(id);
+await loadDashboard();
+if (String(activeLeadId) === String(id)) openDrawer(id);
   }
 
   async function markFollowed(id) {
@@ -1316,9 +1405,9 @@ setActiveRow(null);
       return;
     }
 
-    showSaveBanner("Follow-up marked done.");
-    await loadDashboard();
-    if (activeLeadId === id) openDrawer(id);
+  showSaveBanner("Follow-up marked done.");
+await loadDashboard();
+if (String(activeLeadId) === String(id)) openDrawer(id);
   }
 
   async function markDrawerFollowed() {
@@ -1357,9 +1446,10 @@ setActiveRow(null);
       return;
     }
 
-    showSaveBanner("Client details saved.");
-    await loadDashboard();
-    openDrawer(activeLeadId);
+   showSaveBanner("Client details saved.");
+const reopenId = activeLeadId;
+await loadDashboard();
+if (reopenId) openDrawer(reopenId);
   }
 
   document.getElementById("searchInput").addEventListener("input", applySearch);
