@@ -145,7 +145,7 @@ margin-bottom: 12px;
 display: flex;
 align-items: flex-start;
 justify-content: space-between;
-margin-bottom: -52px;
+margin-bottom: -40px;
 gap: 12px;
 }
 
@@ -159,18 +159,20 @@ margin-top: -10px;
 }
 
 .logo-main {
-  width: clamp(180px, 18vw, 320px);
-  height: auto;
-  display: block;
-  object-fit: contain;
-  filter: drop-shadow(0 0 12px rgba(0, 200, 255, 0.55))
-          drop-shadow(0 0 22px rgba(0, 200, 255, 0.28));
-  animation: logoPulse 4.8s cubic-bezier(.4, 0, .2, 1) infinite;
-  animation-delay: 0.15s;
-  transform-origin: center;
-  margin-top: -14px;
+width: clamp(180px, 18vw, 320px);
+height: auto;
+display: block;
+object-fit: contain;
+filter: drop-shadow(0 0 12px rgba(0, 200, 255, 0.55))
+drop-shadow(0 0 22px rgba(0, 200, 255, 0.28));
+animation: logoPulse 4.8s cubic-bezier(.4, 0, .2, 1) infinite;
+animation-delay: 0.15s;
+transform-origin: center;
+margin-top: -14px;
+pointer-events: none;
+position: relative;
+z-index: 1;
 }
-
 
 .logo-shell {
 width: 64px;
@@ -253,10 +255,12 @@ border-radius: 18px;
 background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
 border: 1px solid rgba(124,236,255,.14);
 box-shadow: var(--glow);
-margin-top: -68px;
+margin-top: -52px;
 margin-bottom: 2px;
 overflow-x: auto;
 white-space: nowrap;
+position: relative;
+z-index: 5;
 }
 
 
