@@ -1747,33 +1747,6 @@ tbody.innerHTML = '<tr><td colspan="12" class="muted">No rows found.</td></tr>';
 return;
 }
 
-
-container.innerHTML = ranked.map((entry, index) => {
-const rank = index + 1;
-
-let rankClass = "";
-if (rank === 1) rankClass = "gold";
-else if (rank === 2) rankClass = "silver";
-else if (rank === 3) rankClass = "bronze";
-
-return `
-<div class="leaderboard-row">
-  <div class="leaderboard-rank ${rankClass}">#${rank}</div>
-
-  <div>
-    <div class="leaderboard-name">${entry.name}</div>
-    <div class="leaderboard-meta">Employee Score Ranking</div>
-  </div>
-
-  <div class="leaderboard-score">
-    ${entry.score}
-    <span class="leaderboard-score-label">Points</span>
-  </div>
-</div>
-`;
-}).join("");
-}
-
     try {
       tbody.innerHTML = rows.map(row => {
         const rowStatus = getRowStatus(row);
