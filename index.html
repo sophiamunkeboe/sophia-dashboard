@@ -1613,38 +1613,6 @@ function calculateEmployeeScores(rows) {
   return scores;
 }
 
-function calculateEmployeeScores(rows) {
-  const scores = {};
-
-  rows.forEach(row => {
-    const employee = row.assigned_to;
-    if (!employee) return;
-
-    if (!scores[employee]) {
-      scores[employee] = 0;
-    }
-
-    // Assigned
-    scores[employee] += 1;
-
-    // Follow-up done
-    if (asBool(row.follow_up_status)) {
-      scores[employee] += 3;
-    }
-
-    // Full completion
-    const hasQuote = row.quote_number;
-    const hasOrder = row.order_number;
-    const hasNotes = row.notes || row.coordinator_notes;
-
-    if (hasQuote && hasOrder && hasNotes) {
-      scores[employee] += 5;
-    }
-  });
-
-  return scores;
-}
-
 function renderLeaderboard(rows) {
   const container = document.getElementById("leaderboardList");
   if (!container) return;
