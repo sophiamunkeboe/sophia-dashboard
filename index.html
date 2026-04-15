@@ -244,7 +244,7 @@ font-weight: 700;
 .hero-bar {
 display: flex;
 align-items: center;
-gap: 22px;
+gap: 10px;
 padding: 10px 16px;
 border-radius: 18px;
 background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
@@ -257,18 +257,125 @@ white-space: nowrap;
 }
 
 .hero-tab {
-font-size: 15px;
-color: #d7e7ff;
-opacity: .9;
-letter-spacing: .04em;
-cursor: default;
+  font-size: 13px;
+  color: #cfe6ff;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+
+  padding: 10px 16px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(124,236,255,.18);
+
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,.06),
+    rgba(255,255,255,.02)
+  );
+
+  box-shadow:
+    inset 0 0 8px rgba(255,255,255,.02),
+    0 0 12px rgba(124,236,255,.06);
+
+  cursor: pointer;
+  transition: all 0.18s ease;
 }
 
+/* 🔥 HOVER */
+.hero-tab:hover {
+  transform: translateY(-1px);
+
+  border-color: rgba(124,236,255,.45);
+
+  box-shadow:
+    inset 0 0 10px rgba(255,255,255,.03),
+    0 0 18px rgba(124,236,255,.18);
+}
+
+/* 🔥 ACTIVE (SELECTED TAB) */
 .hero-tab.active {
-color: white;
-text-shadow: 0 0 12px rgba(124,236,255,.35);
-border-bottom: 2px solid rgba(124,236,255,.8);
-padding-bottom: 5px;
+  color: white;
+
+  border-color: rgba(124,236,255,.75);
+
+  background: linear-gradient(
+    180deg,
+    rgba(124,236,255,.22),
+    rgba(20,70,110,.35)
+  );
+
+  box-shadow:
+    0 0 22px rgba(124,236,255,.45),
+    0 0 45px rgba(124,236,255,.25),
+    inset 0 0 14px rgba(255,255,255,.08);
+
+  text-shadow: 0 0 12px rgba(124,236,255,.55);
+}
+/* 🔥 COMPANY-SPECIFIC ACTIVE OVERRIDES */
+
+/* Taylor = Blue */
+.hero-tab[data-company="taylor"].active {
+  border-color: rgba(100,168,255,.95);
+  background: linear-gradient(
+    180deg,
+    rgba(100,168,255,.28),
+    rgba(30,60,120,.45)
+  );
+  box-shadow:
+    0 0 26px rgba(100,168,255,.65),
+    0 0 55px rgba(100,168,255,.35),
+    inset 0 0 14px rgba(255,255,255,.08);
+}
+
+/* AER = Green */
+.hero-tab[data-company="aer"].active {
+  border-color: rgba(110,255,168,.95);
+  background: linear-gradient(
+    180deg,
+    rgba(110,255,168,.28),
+    rgba(30,90,60,.45)
+  );
+  box-shadow:
+    0 0 26px rgba(110,255,168,.65),
+    0 0 55px rgba(110,255,168,.35),
+    inset 0 0 14px rgba(255,255,255,.08);
+}
+
+/* Thank Q = Gold */
+.hero-tab[data-company="thankq"].active {
+  border-color: rgba(255,212,106,.95);
+  background: linear-gradient(
+    180deg,
+    rgba(255,212,106,.30),
+    rgba(120,80,20,.45)
+  );
+  box-shadow:
+    0 0 26px rgba(255,212,106,.65),
+    0 0 55px rgba(255,212,106,.35),
+    inset 0 0 14px rgba(255,255,255,.08);
+}
+
+/* Munkeboe = Cyan (stronger than default) */
+.hero-tab[data-company="munkeboe"].active {
+  border-color: rgba(124,236,255,.95);
+  box-shadow:
+    0 0 30px rgba(124,236,255,.7),
+    0 0 65px rgba(124,236,255,.4),
+    inset 0 0 16px rgba(255,255,255,.1);
+}
+
+/* SEL = Violet */
+.hero-tab[data-company="sel"].active {
+  border-color: rgba(184,156,255,.95);
+  background: linear-gradient(
+    180deg,
+    rgba(184,156,255,.30),
+    rgba(80,60,140,.45)
+  );
+  box-shadow:
+    0 0 26px rgba(184,156,255,.65),
+    0 0 55px rgba(184,156,255,.35),
+    inset 0 0 14px rgba(255,255,255,.08);
 }
 
 .metric-grid {
@@ -1263,31 +1370,35 @@ return;
     }
   }
 function applySearch() {
-  const term = lower(document.getElementById("searchInput").value);
-  if (!term) {
-    renderTable(allRows);
-    return;
-  }
+const term = lower(document.getElementById("searchInput").value);
+const visibleRows = getVisibleRows();
 
-  const filtered = allRows.filter(row => {
-    return [
-      row.full_name,
-      row.phone,
-      row.email,
-      row.event_date,
-      row.products_requested,
-      row.workflow_route,
-      row.notes,
-      row.coordinator_notes,
-      row.assigned_to,
-      row.followed_up_by,
-      row.quote_number,
-      row.order_number
-    ].some(field => lower(field).includes(term));
-  });
-
-  renderTable(filtered);
+if (!term) {
+renderTable(visibleRows);
+return;
 }
+
+const filtered = visibleRows.filter(row => {
+return [
+getCompanyName(row),
+row.full_name,
+row.phone,
+row.email,
+row.event_date,
+row.products_requested,
+row.workflow_route,
+row.notes,
+row.coordinator_notes,
+row.assigned_to,
+row.followed_up_by,
+row.quote_number,
+row.order_number
+].some(field => lower(field).includes(term));
+});
+
+renderTable(filtered);
+}
+
 
   function openDrawer(id) {
     const row = getLeadById(id);
@@ -1313,10 +1424,6 @@ document.getElementById("drawerRoute").innerHTML =
 document.getElementById("drawerStatus").textContent = statusLabel(rowStatus);
 document.getElementById("drawerPipelineBucket").textContent = statusLabel(pipelineBucket);
 
-
-    document.getElementById("drawerRoute").innerHTML =
-  `${safeText(row.workflow_route)} <span class="pill tiny-route ${statusClass(rowStatus)}">${statusLabel(rowStatus)}</span>`;
-    document.getElementById("drawerStatus").textContent = statusLabel(rowStatus);
 
     document.getElementById("drawerRequestedEmployee").textContent = safeText(row.requested_employee);
     document.getElementById("drawerSentiment").textContent = safeText(row.sentiment);
@@ -1357,9 +1464,8 @@ setActiveRow(null);
 
     if (error) {
       showError("Could not load dashboard data: " + error.message);
-      document.getElementById("tableBody").innerHTML =
-        '<tr><td colspan="11" class="muted">Failed to load data.</td></tr>';
-      return;
+     document.getElementById("tableBody").innerHTML =
+'<tr><td colspan="12" class="muted">Failed to load data.</td></tr>';
     }
 
   allRows = data || [];
