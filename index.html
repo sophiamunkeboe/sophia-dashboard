@@ -409,6 +409,41 @@ background: radial-gradient(circle at 20% 0%, rgba(124,236,255,.12), transparent
 .metric.order-metric { border-color: rgba(184,156,255,.22); box-shadow: inset 0 0 16px rgba(255,255,255,.02), 0 0 20px rgba(184,156,255,.08); }
 .metric.incomplete-metric { border-color: rgba(255,138,163,.22); box-shadow: inset 0 0 16px rgba(255,255,255,.02), 0 0 20px rgba(255,138,163,.08); }
 
+.metric-grid[data-company="taylor"] .metric {
+border-color: rgba(100,168,255,.35);
+box-shadow:
+0 0 22px rgba(100,168,255,.18),
+inset 0 0 16px rgba(255,255,255,.02);
+}
+
+.metric-grid[data-company="aer"] .metric {
+border-color: rgba(110,255,168,.35);
+box-shadow:
+0 0 22px rgba(110,255,168,.18),
+inset 0 0 16px rgba(255,255,255,.02);
+}
+
+.metric-grid[data-company="thankq"] .metric {
+border-color: rgba(255,212,106,.35);
+box-shadow:
+0 0 22px rgba(255,212,106,.18),
+inset 0 0 16px rgba(255,255,255,.02);
+}
+
+.metric-grid[data-company="munkeboe"] .metric {
+border-color: rgba(124,236,255,.35);
+box-shadow:
+0 0 26px rgba(124,236,255,.22),
+inset 0 0 16px rgba(255,255,255,.02);
+}
+
+.metric-grid[data-company="sel"] .metric {
+border-color: rgba(184,156,255,.35);
+box-shadow:
+0 0 22px rgba(184,156,255,.18),
+inset 0 0 16px rgba(255,255,255,.02);
+}
+
 .metric .label {
 position: relative;
 z-index: 1;
@@ -805,7 +840,7 @@ font-size: 14px;
 
 
 <!-- KPI SECTION START -->
-<div class="metric-grid">
+<div class="metric-grid" id="metricGrid">
 <div class="metric ready-metric">
 <div class="label">Ready Quotes</div>
 <div class="value" id="readyQuotes">0</div>
@@ -1106,8 +1141,14 @@ function getCompanyLabel(companyKey) {
 }
 
 function rowMatchesActiveCompany(row) {
-  if (activeCompany === "master") return true;
-  return normalizeCompany(getCompanyName(row)) === activeCompany;
+if (activeCompany === "master") return true;
+
+const normalized = normalizeCompany(getCompanyName(row));
+
+// Current live feed is Munkeboe until other company inbounds are wired
+if (activeCompany === "munkeboe" && !normalized) return true;
+
+return normalized === activeCompany;
 }
 
 function getVisibleRows() {
@@ -1117,6 +1158,10 @@ function getVisibleRows() {
 function setActiveCompany(companyKey, el) {
   activeCompany = companyKey;
 
+const grid = document.getElementById("metricGrid");
+if (grid) {
+grid.setAttribute("data-company", companyKey);
+}
   document.querySelectorAll("#companyTabs .hero-tab").forEach(tab => {
     tab.classList.remove("active");
   });
@@ -1127,6 +1172,11 @@ function setActiveCompany(companyKey, el) {
     const target = document.querySelector(`#companyTabs .hero-tab[data-company="${companyKey}"]`);
     if (target) target.classList.add("active");
   }
+
+const grid = document.getElementById("metricGrid");
+if (grid) {
+  grid.setAttribute("data-company", activeCompany);
+}
 
   const visibleRows = getVisibleRows();
   renderCards(visibleRows);
