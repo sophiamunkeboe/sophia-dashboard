@@ -1156,36 +1156,33 @@ function getVisibleRows() {
 }
 
 function setActiveCompany(companyKey, el) {
-  activeCompany = companyKey;
+activeCompany = companyKey;
 
+// 🔥 KPI COLOR SYNC (ONLY ONCE)
 const grid = document.getElementById("metricGrid");
 if (grid) {
 grid.setAttribute("data-company", companyKey);
 }
-  document.querySelectorAll("#companyTabs .hero-tab").forEach(tab => {
-    tab.classList.remove("active");
-  });
 
-  if (el) {
-    el.classList.add("active");
-  } else {
-    const target = document.querySelector(`#companyTabs .hero-tab[data-company="${companyKey}"]`);
-    if (target) target.classList.add("active");
-  }
+document.querySelectorAll("#companyTabs .hero-tab").forEach(tab => {
+tab.classList.remove("active");
+});
 
-const grid = document.getElementById("metricGrid");
-if (grid) {
-  grid.setAttribute("data-company", activeCompany);
+if (el) {
+el.classList.add("active");
+} else {
+const target = document.querySelector(`#companyTabs .hero-tab[data-company="${companyKey}"]`);
+if (target) target.classList.add("active");
 }
 
-  const visibleRows = getVisibleRows();
-  renderCards(visibleRows);
-  renderTable(visibleRows);
+const visibleRows = getVisibleRows();
+renderCards(visibleRows);
+renderTable(visibleRows);
 
-  const currentSearch = document.getElementById("searchInput").value.trim();
-  if (currentSearch) applySearch();
+const currentSearch = document.getElementById("searchInput").value.trim();
+if (currentSearch) applySearch();
 
-  closeDrawer();
+closeDrawer();
 }
 
   function statusClass(value) {
