@@ -542,6 +542,57 @@ tbody tr.active-row {
   background: linear-gradient(90deg, rgba(124,236,255,.25), rgba(255,255,255,.05)) !important;
   box-shadow: inset 0 0 0 2px rgba(124,236,255,.35);
 }
+/* 🔥 TABLE COLOR SYNC BY COMPANY */
+
+.table-wrap[data-company="taylor"] tbody tr:hover {
+  background: linear-gradient(90deg, rgba(100,168,255,.10), rgba(255,255,255,.015));
+  box-shadow: inset 0 0 0 1px rgba(100,168,255,.16);
+}
+
+.table-wrap[data-company="taylor"] tbody tr.active-row {
+  background: linear-gradient(90deg, rgba(100,168,255,.24), rgba(255,255,255,.05)) !important;
+  box-shadow: inset 0 0 0 2px rgba(100,168,255,.38);
+}
+
+.table-wrap[data-company="aer"] tbody tr:hover {
+  background: linear-gradient(90deg, rgba(110,255,168,.10), rgba(255,255,255,.015));
+  box-shadow: inset 0 0 0 1px rgba(110,255,168,.16);
+}
+
+.table-wrap[data-company="aer"] tbody tr.active-row {
+  background: linear-gradient(90deg, rgba(110,255,168,.22), rgba(255,255,255,.05)) !important;
+  box-shadow: inset 0 0 0 2px rgba(110,255,168,.36);
+}
+
+.table-wrap[data-company="thankq"] tbody tr:hover {
+  background: linear-gradient(90deg, rgba(255,212,106,.10), rgba(255,255,255,.015));
+  box-shadow: inset 0 0 0 1px rgba(255,212,106,.16);
+}
+
+.table-wrap[data-company="thankq"] tbody tr.active-row {
+  background: linear-gradient(90deg, rgba(255,212,106,.22), rgba(255,255,255,.05)) !important;
+  box-shadow: inset 0 0 0 2px rgba(255,212,106,.36);
+}
+
+.table-wrap[data-company="munkeboe"] tbody tr:hover {
+  background: linear-gradient(90deg, rgba(124,236,255,.10), rgba(255,255,255,.015));
+  box-shadow: inset 0 0 0 1px rgba(124,236,255,.16);
+}
+
+.table-wrap[data-company="munkeboe"] tbody tr.active-row {
+  background: linear-gradient(90deg, rgba(124,236,255,.25), rgba(255,255,255,.05)) !important;
+  box-shadow: inset 0 0 0 2px rgba(124,236,255,.38);
+}
+
+.table-wrap[data-company="sel"] tbody tr:hover {
+  background: linear-gradient(90deg, rgba(184,156,255,.10), rgba(255,255,255,.015));
+  box-shadow: inset 0 0 0 1px rgba(184,156,255,.16);
+}
+
+.table-wrap[data-company="sel"] tbody tr.active-row {
+  background: linear-gradient(90deg, rgba(184,156,255,.22), rgba(255,255,255,.05)) !important;
+  box-shadow: inset 0 0 0 2px rgba(184,156,255,.36);
+}
 
 .name-cell { font-weight: 700; font-size: 15px; }
 .products-cell { max-width: 360px; line-height: 1.35; color: #deebff; }
@@ -882,7 +933,7 @@ font-size: 14px;
 <!-- LEADS PANEL HEAD END -->
 
 <!-- LEADS TABLE SECTION START -->
-<div class="table-wrap">
+<div class="table-wrap" id="tableWrap">
 <table>
 <thead>
 <tr>
@@ -1158,10 +1209,14 @@ function getVisibleRows() {
 function setActiveCompany(companyKey, el) {
 activeCompany = companyKey;
 
-// 🔥 KPI COLOR SYNC (ONLY ONCE)
 const grid = document.getElementById("metricGrid");
 if (grid) {
 grid.setAttribute("data-company", companyKey);
+}
+
+const tableWrap = document.getElementById("tableWrap");
+if (tableWrap) {
+tableWrap.setAttribute("data-company", companyKey);
 }
 
 document.querySelectorAll("#companyTabs .hero-tab").forEach(tab => {
