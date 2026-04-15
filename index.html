@@ -952,6 +952,314 @@ padding: 12px 12px;
 outline: none;
 font-size: 14px;
 }
+/* SOPHIA UTILITY RAIL */
+
+.utility-rail {
+  position: fixed;
+  top: 128px;
+  right: 0;
+  z-index: 36;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 8px;
+}
+
+.rail-tab {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  padding: 16px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(124,236,255,.18);
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  color: #dff5ff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: inset 0 0 10px rgba(255,255,255,.02), 0 0 18px rgba(124,236,255,.08);
+  transition: all 0.22s ease;
+}
+
+.rail-tab:hover {
+  transform: rotate(180deg) translateX(-3px);
+  border-color: rgba(124,236,255,.45);
+  box-shadow: 0 0 22px rgba(124,236,255,.22), 0 0 40px rgba(124,236,255,.12);
+}
+
+.rail-tab-alerts {
+  border-color: rgba(255,138,163,.35);
+  color: #ffe1e8;
+}
+
+.blinking {
+  animation: railBlink 1.25s infinite;
+}
+
+@keyframes railBlink {
+  0%, 100% { box-shadow: 0 0 0 rgba(255,80,100,0); }
+  50% { box-shadow: 0 0 18px rgba(255,80,100,.30); }
+}
+
+.rail-panel {
+  position: fixed;
+  top: 86px;
+  right: -440px;
+  width: 400px;
+  height: calc(100vh - 104px);
+  border-radius: 28px 0 0 28px;
+  background: linear-gradient(180deg, rgba(10,20,40,.92), rgba(8,16,30,.96));
+  border-left: 1px solid rgba(124,236,255,.22);
+  box-shadow: -18px 0 40px rgba(0,0,0,.35), -6px 0 22px rgba(124,236,255,.10);
+  backdrop-filter: blur(16px);
+  z-index: 37;
+  display: flex;
+  flex-direction: column;
+  transition: right .28s cubic-bezier(.4,0,.2,1);
+}
+
+.rail-panel.open {
+  right: 62px;
+}
+
+.rail-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(124,236,255,.08);
+}
+
+.rail-panel-title {
+  margin: 0;
+  font-size: 18px;
+  color: #eef7ff;
+}
+
+.rail-panel-sub {
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #8fb4c9;
+}
+
+.rail-close {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(124,236,255,.16);
+  background: rgba(255,255,255,.03);
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.rail-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rail-soft-note,
+.rail-shell-card {
+  border-radius: 16px;
+  padding: 12px 13px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(124,236,255,.10);
+  color: #a9c3d8;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.rail-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.rail-input,
+.rail-select {
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(124,236,255,.16);
+  background: rgba(10,18,30,.96);
+  color: #eef7ff;
+  padding: 0 14px;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.18s ease;
+}
+
+.rail-input::placeholder {
+  color: #7fa6bd;
+}
+
+.rail-input:focus,
+.rail-select:focus {
+  border-color: rgba(124,236,255,.45);
+  box-shadow: 0 0 16px rgba(124,236,255,.18);
+}
+
+.rail-input-full {
+  grid-column: span 2;
+}
+
+.rail-primary-btn {
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(124,236,255,.18);
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rail-list {
+  display: grid;
+  gap: 10px;
+}
+
+.rail-alert-card {
+  border-radius: 20px;
+  padding: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
+  border: 1px solid rgba(124,236,255,.14);
+  box-shadow: inset 0 0 10px rgba(255,255,255,.02), 0 0 18px rgba(50,214,255,.06);
+  transition: all 0.18s ease;
+}
+
+.rail-alert-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(124,236,255,.28);
+  box-shadow: 0 0 22px rgba(124,236,255,.14), 0 0 40px rgba(124,236,255,.08);
+}
+
+.rail-alert-card.high {
+  border-color: rgba(255,138,163,.22);
+  box-shadow: inset 0 0 10px rgba(255,255,255,.02), 0 0 18px rgba(255,138,163,.10);
+}
+
+.rail-alert-card.medium {
+  border-color: rgba(255,212,106,.22);
+}
+
+.rail-alert-card.low {
+  border-color: rgba(124,236,255,.18);
+}
+
+.rail-alert-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.rail-alert-company,
+.rail-alert-priority {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #d7e8ff;
+}
+
+.rail-alert-text {
+  margin-top: 8px;
+  color: white;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.rail-alert-meta {
+  margin-top: 8px;
+  color: #9fb3c8;
+  font-size: 11px;
+}
+
+.rail-alert-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.rail-action-btn {
+  border-radius: 999px;
+  padding: 8px 14px;
+  border: 1px solid rgba(124,236,255,.18);
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  color: #eef7ff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.rail-action-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(124,236,255,.45);
+  box-shadow: 0 0 18px rgba(124,236,255,.22);
+}
+
+.team-chat-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.team-chat-message {
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(124,236,255,.10);
+  transition: all 0.18s ease;
+}
+
+.team-chat-message:hover {
+  border-color: rgba(124,236,255,.25);
+  box-shadow: 0 0 16px rgba(124,236,255,.10);
+}
+
+.team-chat-message.system {
+  background: linear-gradient(180deg, rgba(124,236,255,.08), rgba(255,255,255,.02));
+  border-color: rgba(124,236,255,.16);
+}
+
+.team-chat-line-1 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f3fbff;
+}
+
+.team-chat-line-2 {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #a9c3d8;
+}
+
+.team-chat-time {
+  margin-top: 7px;
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #7fa1b8;
+}
+
+.team-chat-empty {
+  font-size: 13px;
+  color: #93aac0;
+}
+
+@media (max-width: 980px) {
+  .rail-panel {
+    width: min(390px, calc(100vw - 64px));
+  }
+}
 
 .drawer-textarea { min-height: 90px; resize: vertical; }
 .drawer-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
@@ -1052,107 +1360,7 @@ font-size: 14px;
 .sticky-note.blue { background: #7ecbff; color: #002944; }
 .sticky-note.green { background: #7dffb0; color: #003a1a; }
 
-/* OPERATIONS ALERTS */
 
-.alerts-wrap {
-  padding: 0 22px 22px;
-}
-
-.alerts-toolbar {
-  display: grid;
-  grid-template-columns: 140px 140px 1fr 120px 130px;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.alerts-toolbar select,
-.alerts-toolbar input {
-  height: 42px;
-  border-radius: 14px;
-  border: 1px solid rgba(124,236,255,.14);
-  background: rgba(255,255,255,.045);
-  color: #f4f8ff;
-  padding: 0 12px;
-}
-
-.alert-add-btn {
-  border-radius: 14px;
-  border: 1px solid rgba(124,236,255,.18);
-  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.alerts-list {
-  display: grid;
-  gap: 12px;
-}
-
-.alert-row {
-  display: grid;
-  grid-template-columns: 110px 110px 1fr 110px 120px;
-  gap: 12px;
-  align-items: center;
-  padding: 14px 16px;
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018));
-  border: 1px solid rgba(124,236,255,.14);
-  box-shadow: inset 0 0 12px rgba(255,255,255,.02), 0 0 18px rgba(50,214,255,.05);
-}
-
-.alert-company,
-.alert-priority,
-.alert-due {
-  font-size: 11px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: #dfeaff;
-}
-
-.alert-text {
-  font-size: 14px;
-  color: white;
-  line-height: 1.4;
-}
-
-.alert-assignee {
-  font-size: 13px;
-  font-weight: 700;
-  color: #f4f8ff;
-}
-
-.alert-priority.high { color: #ff9baa; }
-.alert-priority.medium { color: #ffd46a; }
-.alert-priority.low { color: #9fe7ff; }
-
-.alert-done-btn {
-  border-radius: 12px;
-  border: 1px solid rgba(110,255,168,.18);
-  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
-  color: white;
-  padding: 10px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.alert-empty {
-  padding: 10px 4px 0;
-  color: #9fb3c8;
-  font-size: 13px;
-}
-
-@media (max-width: 1100px) {
-  .alerts-toolbar {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .alert-row {
-    grid-template-columns: 1fr;
-    align-items: start;
-  }
-}
 
 
 @keyframes logoPulse {
@@ -1183,8 +1391,6 @@ font-size: 14px;
  }
 }
 
-
-
 </style>
 </head>
 <body>
@@ -1198,29 +1404,35 @@ font-size: 14px;
       <div class="app">
         <div class="top-glow-line"></div>
 
-        <!-- HEADER SECTION START -->
-        <div class="header">
-          <div class="brand-wrap">
-            <img src="/logo-header.png" alt="Sophia Systems" class="logo-main" />
-          </div>
+      <!-- HEADER SECTION START -->
+<div class="header">
+<div class="brand-wrap">
+<img src="/logo-header.png" alt="Sophia Systems" class="logo-main" />
+</div>
 
-          <div class="header-right">
-            <div class="mini-stat">
-              <div class="mini-label">Calls Today</div>
-              <div class="mini-value" id="callsToday">0</div>
-            </div>
+<div class="header-right">
+<div class="mini-stat">
+<div class="mini-label">Calls Today</div>
+<div class="mini-value" id="callsToday">0</div>
+</div>
+
 <div class="mini-stat">
 <div class="mini-label">Top Performer</div>
 <div class="mini-value" id="topPerformer">—</div>
 </div>
-            <div class="mini-stat">
-              <div class="mini-label">Open Alerts</div>
-              <div class="mini-value" id="openAlerts">0</div>
-            </div>
-          </div>
-        </div>
-        <!-- HEADER SECTION END -->
 
+<div class="mini-stat">
+<div class="mini-label">Open Alerts</div>
+<div class="mini-value" id="openAlerts">0</div>
+</div>
+
+<div class="mini-stat" id="launchStatusPill">
+<div class="mini-label">System Status</div>
+<div class="mini-value">Soft Launch</div>
+</div>
+</div>
+</div>
+<!-- HEADER SECTION END -->
 
 <!-- NAV SECTION START -->
 <div class="hero-bar" id="companyTabs">
@@ -1232,7 +1444,6 @@ font-size: 14px;
   <div class="hero-tab" data-company="sel" onclick="setActiveCompany('sel', this)">SEL</div>
 </div>
 <!-- NAV SECTION END -->
-
 
 <!-- KPI SECTION START -->
 <div class="metric-grid" id="metricGrid">
@@ -1258,27 +1469,6 @@ font-size: 14px;
 </div>
 </div>
 <!-- KPI SECTION END -->
-
-<!-- LEADERBOARD SECTION START -->
-<div class="content-panel leaderboard-panel collapsed" id="leaderboardPanel">
-  <div class="panel-head leaderboard-head" onclick="toggleLeaderboard()">
-    <div>
-      <h2 class="panel-title leaderboard-title">Leaderboard</h2>
-      <div class="panel-sub">Live employee scoring by active company view</div>
-    </div>
-
-    <button class="leaderboard-toggle" id="leaderboardToggleBtn" type="button">
-      Expand
-    </button>
-  </div>
-
-  <div class="leaderboard-body" id="leaderboardBody">
-    <div class="leaderboard-list" id="leaderboardList">
-      <div class="leaderboard-empty">No employee scores yet.</div>
-    </div>
-  </div>
-</div>
-<!-- LEADERBOARD SECTION END -->
 
 <!-- ✅ STICKY BOARD START -->
 <div class="content-panel" id="stickyBoardPanel" style="margin-top: 14px; display:none;">
@@ -1319,67 +1509,6 @@ font-size: 14px;
 </div>
 <!-- ✅ STICKY BOARD END -->
 
-<!-- OPERATIONS ALERTS START -->
-<div class="content-panel" id="alertsPanel" style="margin-top: 14px;">
-  <div class="panel-head">
-    <div>
-      <h2 class="panel-title" style="font-size:22px;">Operations Alerts</h2>
-      <div class="panel-sub">Internal reminders, rush checks, and company-specific action items</div>
-    </div>
-  </div>
-
-  <div class="alerts-wrap">
-    <div class="alerts-toolbar">
-      <select id="alertCompany">
-        <option value="master">Master</option>
-        <option value="taylor">Taylor</option>
-        <option value="aer">AER</option>
-        <option value="thankq">Thank Q</option>
-        <option value="munkeboe">Munkeboe</option>
-        <option value="sel">SEL</option>
-      </select>
-
-<select id="alertFilterEmployee">
-  <option value="all">All Employees</option>
-  <option value="Carina">Carina</option>
-  <option value="James">James</option>
-  <option value="Linda">Linda</option>
-  <option value="Stefani">Stefani</option>
-  <option value="Chris">Chris</option>
-  <option value="Josh">Josh</option>
-</select>
-
-     <select id="alertAssignedTo">
-  <option value="Carina">Carina</option>
-  <option value="James">James</option>
-  <option value="Linda">Linda</option>
-  <option value="Stefani">Stefani</option>
-  <option value="Chris">Chris</option>
-  <option value="Josh">Josh</option>
-</select>
-
-      <input
-        id="alertText"
-        type="text"
-        maxlength="140"
-        placeholder="Enter internal reminder or alert..."
-      />
-
-      <select id="alertPriority">
-        <option value="low">Low</option>
-        <option value="medium" selected>Medium</option>
-        <option value="high">High</option>
-      </select>
-
-      <button class="alert-add-btn" onclick="addAlert()">Add Alert</button>
-    </div>
-
-    <div class="alerts-list" id="alertsList">
-      <div class="alert-empty">No open alerts yet.</div>
-    </div>
-  </div>
-</div>
-<!-- OPERATIONS ALERTS END -->
 
 </div>
 </section>
@@ -1561,36 +1690,216 @@ font-size: 14px;
 <div class="drawer-save-note">Quote and Order fields are intentionally in the slide-out to keep the dashboard table clean.</div>
 </aside>
 <!-- SLIDE PANEL END -->
+<!-- SOPHIA UTILITY RAIL START -->
+<div class="utility-rail">
+  <button class="rail-tab rail-tab-alerts blinking" onclick="openRailPanel('alertsRailPanel')">Ops Queue</button>
+  <button class="rail-tab" onclick="openRailPanel('tasksRailPanel')">Tasks</button>
+  <button class="rail-tab" onclick="openRailPanel('chatRailPanel')">Chat</button>
+  <button class="rail-tab" onclick="openRailPanel('notesRailPanel')">Notes</button>
+  <button class="rail-tab" onclick="openRailPanel('leaderboardRailPanel')">Board</button>
+  <button class="rail-tab" onclick="openRailPanel('inventoryRailPanel')">Inventory</button>
+</div>
+
+<aside id="alertsRailPanel" class="rail-panel">
+  <div class="rail-panel-head">
+    <div>
+      <h3 class="rail-panel-title">Ops Queue</h3>
+      <div class="rail-panel-sub">Internal reminders, rush checks, and company action items</div>
+    </div>
+    <button class="rail-close" onclick="closeRailPanels()">×</button>
+  </div>
+
+  <div class="rail-panel-body">
+    <div class="rail-soft-note">
+      Soft launch: alerts are live now. Lead linking, claim tracking, and smarter routing are coming next.
+    </div>
+
+    <div class="rail-form-grid">
+      <select id="railAlertCompany" class="rail-select">
+        <option value="master">Master</option>
+        <option value="taylor">Taylor</option>
+        <option value="aer">AER</option>
+        <option value="thankq">Thank Q</option>
+        <option value="munkeboe">Munkeboe</option>
+        <option value="sel">SEL</option>
+      </select>
+
+      <select id="railAlertAssignedTo" class="rail-select">
+        <option value="">All Employees</option>
+        <option value="Carina">Carina</option>
+        <option value="James">James</option>
+        <option value="Linda">Linda</option>
+        <option value="Stefani">Stefani</option>
+      </select>
+
+      <select id="railAlertPriority" class="rail-select">
+        <option value="low">Low</option>
+        <option value="medium" selected>Medium</option>
+        <option value="high">High</option>
+      </select>
+
+      <input id="railAlertText" class="rail-input rail-input-full" placeholder="Enter internal reminder or alert..." />
+
+      <button class="rail-primary-btn rail-input-full" onclick="addRailAlert()">+ Add Alert</button>
+    </div>
+
+    <div id="railAlertsList" class="rail-list"></div>
+  </div>
+</aside>
+
+<aside id="tasksRailPanel" class="rail-panel">
+  <div class="rail-panel-head">
+    <div>
+      <h3 class="rail-panel-title">Delivery Tasks</h3>
+      <div class="rail-panel-sub">Soft launch shell</div>
+    </div>
+    <button class="rail-close" onclick="closeRailPanels()">×</button>
+  </div>
+  <div class="rail-panel-body">
+    <div class="rail-soft-note">
+      This module is scaffolded now so it can go live next without restructuring the dashboard.
+    </div>
+    <div class="rail-shell-card">
+      Future: task assignment, pickup flow, route support, delivery issue tracking.
+    </div>
+  </div>
+</aside>
+
+<aside id="chatRailPanel" class="rail-panel">
+  <div class="rail-panel-head">
+    <div>
+      <h3 class="rail-panel-title">Live Team Chat</h3>
+      <div class="rail-panel-sub">System posts, kudos drops, and internal wins</div>
+    </div>
+    <button class="rail-close" onclick="closeRailPanels()">×</button>
+  </div>
+  <div class="rail-panel-body">
+    <div class="rail-soft-note">
+      Soft launch: system kudos drops are live. Full team chat posting is still coming online.
+    </div>
+    <div id="teamChatFeed" class="team-chat-feed">
+      <div class="team-chat-empty">No live chat updates yet.</div>
+    </div>
+  </div>
+</aside>
+
+<aside id="notesRailPanel" class="rail-panel">
+  <div class="rail-panel-head">
+    <div>
+      <h3 class="rail-panel-title">Notes</h3>
+      <div class="rail-panel-sub">Reserved module</div>
+    </div>
+    <button class="rail-close" onclick="closeRailPanels()">×</button>
+  </div>
+  <div class="rail-panel-body">
+    <div class="rail-shell-card">Coming soon: personal notes and shared team notes.</div>
+  </div>
+</aside>
+
+<aside id="leaderboardRailPanel" class="rail-panel">
+  <div class="rail-panel-head">
+    <div>
+      <h3 class="rail-panel-title">Leaderboard</h3>
+      <div class="rail-panel-sub">Reserved module</div>
+    </div>
+    <button class="rail-close" onclick="closeRailPanels()">×</button>
+  </div>
+  <div class="rail-panel-body">
+    <div class="rail-shell-card">Coming soon: team culture board and soft recognition metrics.</div>
+  </div>
+</aside>
+
+<aside id="inventoryRailPanel" class="rail-panel">
+  <div class="rail-panel-head">
+    <div>
+      <h3 class="rail-panel-title">Inventory Tight</h3>
+      <div class="rail-panel-sub">Reserved module</div>
+    </div>
+    <button class="rail-close" onclick="closeRailPanels()">×</button>
+  </div>
+  <div class="rail-panel-body">
+    <div class="rail-shell-card">Coming soon: push list, substitutions, and inventory pressure notes.</div>
+  </div>
+</aside>
+<!-- SOPHIA UTILITY RAIL END -->
 
 <script>
   const SUPABASE_URL = "https://aeonjnohadmbxfuoirqa.supabase.co";
   const SUPABASE_KEY = "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf";
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-
 let allRows = [];
 let activeLeadId = null;
 let activeCompany = "master";
 let alerts = [];
+let teamChatMessages = [];
 
-    id: 1,
-    company: "munkeboe",
-    assigned_to: "Chris",
-    text: "Check 16 white 90x132 for Friday pickup.",
-    priority: "high",
-    due: "Today",
-    done: false
-  },
-  {
-    id: 2,
-    company: "taylor",
-    assigned_to: "James",
-    text: "Push grey chairs if white inventory gets tight.",
-    priority: "medium",
-    due: "Today",
-    done: false
-  }
+const KUDOS_MESSAGES = [
+  "Clutch Save 🔥",
+  "Handled It 💪",
+  "Delivery Hero 🚚",
+  "Problem Solved 🧠",
+  "Quick Response ⚡",
+  "Team Assist 🙌",
+  "Boss Move 👑",
+  "Nice Save 🎯"
 ];
+
+// SOPHIA FUTURE:
+// These rail panels are scaffolded now so the dashboard can soft-launch cleanly.
+// Some modules are shells tonight to avoid patching layout again later.
+
+function openRailPanel(panelId) {
+  const target = document.getElementById(panelId);
+  if (!target) return;
+
+  const alreadyOpen = target.classList.contains("open");
+  closeRailPanels();
+
+  if (!alreadyOpen) {
+    target.classList.add("open");
+  }
+}
+
+function closeRailPanels() {
+  document.querySelectorAll(".rail-panel").forEach(panel => {
+    panel.classList.remove("open");
+  });
+}
+
+function getRandomKudos() {
+  return KUDOS_MESSAGES[Math.floor(Math.random() * KUDOS_MESSAGES.length)];
+}
+
+function pushSystemChatMessage(line1, line2) {
+  teamChatMessages.unshift({
+    type: "system",
+    line1,
+    line2,
+    created_at: new Date().toISOString()
+  });
+
+  teamChatMessages = teamChatMessages.slice(0, 40);
+  renderTeamChat();
+}
+
+function renderTeamChat() {
+  const feed = document.getElementById("teamChatFeed");
+  if (!feed) return;
+
+  if (!teamChatMessages.length) {
+    feed.innerHTML = '<div class="team-chat-empty">No live chat updates yet.</div>';
+    return;
+  }
+
+  feed.innerHTML = teamChatMessages.map(msg => `
+    <div class="team-chat-message ${msg.type || "system"}">
+      <div class="team-chat-line-1">${safeText(msg.line1)}</div>
+      <div class="team-chat-line-2">${safeText(msg.line2)}</div>
+      <div class="team-chat-time">${formatDateTime(msg.created_at)}</div>
+    </div>
+  `).join("");
+}
 
   const SOUND_ENABLED = false;
 
@@ -1698,6 +2007,10 @@ function getVisibleRows() {
 function setActiveCompany(companyKey, el) {
   activeCompany = companyKey;
 
+const railCompany = document.getElementById("railAlertCompany");
+if (railCompany) {
+railCompany.value = companyKey;
+}
   const alertCompany = document.getElementById("alertCompany");
   if (alertCompany) {
     alertCompany.value = companyKey;
@@ -1951,18 +2264,18 @@ function renderLeaderboard(rows) {
 }
 
 async function loadAlerts() {
-  const { data, error } = await supabaseClient
-    .from("operations_alerts")
-    .select("*")
-    .order("created_at", { ascending: false });
+const { data, error } = await supabaseClient
+.from("operations_alerts")
+.select("*")
+.order("created_at", { ascending: false });
 
-  if (error) {
-    showError("Could not load alerts: " + error.message);
-    return;
-  }
+if (error) {
+showError("Could not load alerts: " + error.message);
+return;
+}
 
-  alerts = data || [];
-  renderAlerts();
+alerts = data || [];
+renderAlerts();
 }
 
 function getAlertCompanyLabel(companyKey) {
@@ -1987,29 +2300,39 @@ function getVisibleAlerts() {
 }
 
 function renderAlerts() {
-  const list = document.getElementById("alertsList");
+  const list = document.getElementById("railAlertsList");
   if (!list) return;
 
   const visibleAlerts = getVisibleAlerts();
 
   if (!visibleAlerts.length) {
-    list.innerHTML = '<div class="alert-empty">No open alerts yet.</div>';
+    list.innerHTML = '<div class="rail-shell-card">No open alerts yet.</div>';
     return;
   }
 
   list.innerHTML = visibleAlerts.map(alert => `
-    <div class="alert-row">
-      <div class="alert-company">${getAlertCompanyLabel(alert.company)}</div>
-      <div class="alert-assignee">${safeText(alert.assigned_to)}</div>
-      <div class="alert-text">${safeText(alert.text)}</div>
-      <div class="alert-priority ${alert.priority}">${safeText(alert.priority)}</div>
-      <div style="display:flex; gap:10px; align-items:center; justify-content:flex-end;">
-        <span class="alert-due">${safeText(alert.due)}</span>
-        <button class="alert-done-btn" onclick="markAlertDone(${alert.id})">Done</button>
+    <div class="rail-alert-card ${safeText(alert.priority).toLowerCase()}">
+
+      <div class="rail-alert-top">
+        <div class="rail-alert-company">${getAlertCompanyLabel(alert.company)}</div>
+        <div class="rail-alert-priority">${safeText(alert.priority)}</div>
       </div>
+
+      <div class="rail-alert-text">${safeText(alert.text)}</div>
+
+      <div class="rail-alert-meta">
+        Assigned: ${safeText(alert.assigned_to || "Unassigned")}
+        · Due: ${safeText(alert.due || "—")}
+      </div>
+
+      <div class="rail-alert-actions">
+        <button class="rail-action-btn" onclick="markAlertDone(${alert.id})">Done</button>
+      </div>
+
     </div>
   `).join("");
 }
+
 
 async function addAlert() {
   const company = document.getElementById("alertCompany").value;
@@ -2044,8 +2367,49 @@ async function addAlert() {
   renderCards(getVisibleRows());
   showSaveBanner("Alert added.");
 }
+async function addRailAlert() {
+  const company = document.getElementById("railAlertCompany")?.value || activeCompany || "master";
+  const assignedTo = document.getElementById("railAlertAssignedTo")?.value || "";
+  const text = document.getElementById("railAlertText")?.value.trim() || "";
+  const priority = document.getElementById("railAlertPriority")?.value || "medium";
+
+  if (!text) return;
+
+  const { error } = await supabaseClient
+    .from("operations_alerts")
+    .insert([
+      {
+        company,
+        assigned_to: assignedTo,
+        text,
+        priority,
+        due: "Today",
+        done: false
+      }
+    ]);
+
+  if (error) {
+    showError("Could not add alert: " + error.message);
+    return;
+  }
+
+  document.getElementById("railAlertText").value = "";
+  document.getElementById("railAlertPriority").value = "medium";
+
+  await loadAlerts();
+  renderCards(getVisibleRows());
+
+  showSaveBanner("Alert added.");
+}
 
 async function markAlertDone(id) {
+  const alert = alerts.find(a => String(a.id) === String(id));
+
+  const handledBy = alert?.assigned_to || "Team Member";
+  const kudos = getRandomKudos();
+  const companyLabel = getAlertCompanyLabel(alert?.company || "master");
+  const alertText = safeText(alert?.text || "Internal alert handled");
+
   const { error } = await supabaseClient
     .from("operations_alerts")
     .update({ done: true })
@@ -2056,10 +2420,18 @@ async function markAlertDone(id) {
     return;
   }
 
+  // 🔥 THIS IS THE MAGIC
+  pushSystemChatMessage(
+    `${handledBy} — ${kudos}`,
+    `Closed alert for ${companyLabel}: ${alertText}`
+  );
+
   await loadAlerts();
   renderCards(getVisibleRows());
+
   showSaveBanner("Alert marked done.");
 }
+
 
 function renderCards(rows) {
   const ready = rows.filter(r => getPipelineBucket(r) === "ready").length;
@@ -2283,21 +2655,23 @@ setActiveRow(null);
 }, 50);
 }
 
-  async function loadDashboard() {
-    clearError();
+ async function loadDashboard() {
+  clearError();
+  renderTeamChat();
 
-    const { data, error } = await supabaseClient
-      .from("leads")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(150);
+  const { data, error } = await supabaseClient
+    .from("leads")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(150);
 
-   if (error) {
-showError("Could not load dashboard data: " + error.message);
-document.getElementById("tableBody").innerHTML =
-'<tr><td colspan="12" class="muted">Failed to load data.</td></tr>';
-return;
-}
+  if (error) {
+    showError("Could not load dashboard data: " + error.message);
+    document.getElementById("tableBody").innerHTML =
+      '<tr><td colspan="12" class="muted">Failed to load data.</td></tr>';
+    return;
+  }
+
 
 allRows = data || [];
 
@@ -2422,5 +2796,6 @@ toggleLeaderboard(false);
 
 </body>
 </html>
+
 
 
