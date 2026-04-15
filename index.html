@@ -60,17 +60,26 @@ z-index: 0;
 }
 
 .background-logo {
-position: fixed;
-top: 50%;
-left: 50%;
-transform: translate(-50%, -50%);
-width: min(720px, 68vw);
-opacity: 0.045;
-filter: blur(1.6px) drop-shadow(0 0 28px rgba(124,236,255,.16));
-pointer-events: none;
-z-index: 0;
-user-select: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(720px, 68vw);
+
+  opacity: 0.075; /* 👈 brighter but still subtle */
+
+  filter:
+    blur(1.4px)
+    brightness(1.18)   /* 👈 key boost */
+    contrast(1.08)
+    drop-shadow(0 0 38px rgba(124,236,255,.22))
+    drop-shadow(0 0 70px rgba(124,236,255,.14));
+
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
 }
+
 
 .app-shell {
 position: relative;
