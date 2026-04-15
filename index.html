@@ -311,10 +311,24 @@ white-space: nowrap;
 
   text-shadow: 0 0 12px rgba(124,236,255,.55);
 }
-/* 🔥 COMPANY-SPECIFIC ACTIVE OVERRIDES */
+/* 🔥 COMPANY-SPECIFIC ACTIVE OVERRIDES (FINAL BRAND COLORS) */
 
-/* Taylor = Blue */
+/* Taylor = Yellow */
 .hero-tab[data-company="taylor"].active {
+  border-color: rgba(255,212,106,.95);
+  background: linear-gradient(
+    180deg,
+    rgba(255,212,106,.30),
+    rgba(120,90,20,.45)
+  );
+  box-shadow:
+    0 0 26px rgba(255,212,106,.65),
+    0 0 55px rgba(255,212,106,.35),
+    inset 0 0 14px rgba(255,255,255,.08);
+}
+
+/* AER = Electric Blue */
+.hero-tab[data-company="aer"].active {
   border-color: rgba(100,168,255,.95);
   background: linear-gradient(
     180deg,
@@ -327,45 +341,22 @@ white-space: nowrap;
     inset 0 0 14px rgba(255,255,255,.08);
 }
 
-/* AER = Green */
-.hero-tab[data-company="aer"].active {
-  border-color: rgba(110,255,168,.95);
-  background: linear-gradient(
-    180deg,
-    rgba(110,255,168,.28),
-    rgba(30,90,60,.45)
-  );
-  box-shadow:
-    0 0 26px rgba(110,255,168,.65),
-    0 0 55px rgba(110,255,168,.35),
-    inset 0 0 14px rgba(255,255,255,.08);
-}
-
-/* Thank Q = Gold */
+/* Thank Q = Orange */
 .hero-tab[data-company="thankq"].active {
-  border-color: rgba(255,212,106,.95);
+  border-color: rgba(255,150,60,.95);
   background: linear-gradient(
     180deg,
-    rgba(255,212,106,.30),
-    rgba(120,80,20,.45)
+    rgba(255,150,60,.30),
+    rgba(130,70,20,.45)
   );
   box-shadow:
-    0 0 26px rgba(255,212,106,.65),
-    0 0 55px rgba(255,212,106,.35),
+    0 0 26px rgba(255,150,60,.65),
+    0 0 55px rgba(255,150,60,.35),
     inset 0 0 14px rgba(255,255,255,.08);
 }
 
-/* Munkeboe = Cyan (stronger than default) */
+/* Munkeboe = Violet */
 .hero-tab[data-company="munkeboe"].active {
-  border-color: rgba(124,236,255,.95);
-  box-shadow:
-    0 0 30px rgba(124,236,255,.7),
-    0 0 65px rgba(124,236,255,.4),
-    inset 0 0 16px rgba(255,255,255,.1);
-}
-
-/* SEL = Violet */
-.hero-tab[data-company="sel"].active {
   border-color: rgba(184,156,255,.95);
   background: linear-gradient(
     180deg,
@@ -375,6 +366,20 @@ white-space: nowrap;
   box-shadow:
     0 0 26px rgba(184,156,255,.65),
     0 0 55px rgba(184,156,255,.35),
+    inset 0 0 14px rgba(255,255,255,.08);
+}
+
+/* SEL = Red */
+.hero-tab[data-company="sel"].active {
+  border-color: rgba(255,90,110,.95);
+  background: linear-gradient(
+    180deg,
+    rgba(255,90,110,.30),
+    rgba(120,30,50,.45)
+  );
+  box-shadow:
+    0 0 26px rgba(255,90,110,.65),
+    0 0 55px rgba(255,90,110,.35),
     inset 0 0 14px rgba(255,255,255,.08);
 }
 
@@ -410,37 +415,37 @@ background: radial-gradient(circle at 20% 0%, rgba(124,236,255,.12), transparent
 .metric.incomplete-metric { border-color: rgba(255,138,163,.22); box-shadow: inset 0 0 16px rgba(255,255,255,.02), 0 0 20px rgba(255,138,163,.08); }
 
 .metric-grid[data-company="taylor"] .metric {
-border-color: rgba(100,168,255,.35);
+border-color: rgba(255,212,106,.45);
 box-shadow:
-0 0 22px rgba(100,168,255,.18),
-inset 0 0 16px rgba(255,255,255,.02);
-}
-
-.metric-grid[data-company="aer"] .metric {
-border-color: rgba(110,255,168,.35);
-box-shadow:
-0 0 22px rgba(110,255,168,.18),
+0 0 24px rgba(255,212,106,.25),
 inset 0 0 16px rgba(255,255,255,.02);
 }
 
 .metric-grid[data-company="thankq"] .metric {
-border-color: rgba(255,212,106,.35);
+border-color: rgba(255,150,60,.45);
 box-shadow:
-0 0 22px rgba(255,212,106,.18),
+0 0 24px rgba(255,150,60,.25),
+inset 0 0 16px rgba(255,255,255,.02);
+}
+
+.metric-grid[data-company="aer"] .metric {
+border-color: rgba(100,168,255,.45);
+box-shadow:
+0 0 24px rgba(100,168,255,.25),
 inset 0 0 16px rgba(255,255,255,.02);
 }
 
 .metric-grid[data-company="munkeboe"] .metric {
-border-color: rgba(124,236,255,.35);
+border-color: rgba(184,156,255,.45);
 box-shadow:
-0 0 26px rgba(124,236,255,.22),
+0 0 26px rgba(184,156,255,.25),
 inset 0 0 16px rgba(255,255,255,.02);
 }
 
 .metric-grid[data-company="sel"] .metric {
-border-color: rgba(184,156,255,.35);
+border-color: rgba(255,90,110,.45);
 box-shadow:
-0 0 22px rgba(184,156,255,.18),
+0 0 26px rgba(255,90,110,.25),
 inset 0 0 16px rgba(255,255,255,.02);
 }
 
@@ -545,53 +550,53 @@ tbody tr.active-row {
 /* 🔥 TABLE COLOR SYNC BY COMPANY */
 
 .table-wrap[data-company="taylor"] tbody tr:hover {
-  background: linear-gradient(90deg, rgba(100,168,255,.10), rgba(255,255,255,.015));
-  box-shadow: inset 0 0 0 1px rgba(100,168,255,.16);
+background: linear-gradient(90deg, rgba(255,212,106,.12), rgba(255,255,255,.015));
+box-shadow: inset 0 0 0 1px rgba(255,212,106,.18);
 }
 
 .table-wrap[data-company="taylor"] tbody tr.active-row {
-  background: linear-gradient(90deg, rgba(100,168,255,.24), rgba(255,255,255,.05)) !important;
-  box-shadow: inset 0 0 0 2px rgba(100,168,255,.38);
-}
-
-.table-wrap[data-company="aer"] tbody tr:hover {
-  background: linear-gradient(90deg, rgba(110,255,168,.10), rgba(255,255,255,.015));
-  box-shadow: inset 0 0 0 1px rgba(110,255,168,.16);
-}
-
-.table-wrap[data-company="aer"] tbody tr.active-row {
-  background: linear-gradient(90deg, rgba(110,255,168,.22), rgba(255,255,255,.05)) !important;
-  box-shadow: inset 0 0 0 2px rgba(110,255,168,.36);
+background: linear-gradient(90deg, rgba(255,212,106,.28), rgba(255,255,255,.05)) !important;
+box-shadow: inset 0 0 0 2px rgba(255,212,106,.45);
 }
 
 .table-wrap[data-company="thankq"] tbody tr:hover {
-  background: linear-gradient(90deg, rgba(255,212,106,.10), rgba(255,255,255,.015));
-  box-shadow: inset 0 0 0 1px rgba(255,212,106,.16);
+background: linear-gradient(90deg, rgba(255,150,60,.12), rgba(255,255,255,.015));
+box-shadow: inset 0 0 0 1px rgba(255,150,60,.18);
 }
 
 .table-wrap[data-company="thankq"] tbody tr.active-row {
-  background: linear-gradient(90deg, rgba(255,212,106,.22), rgba(255,255,255,.05)) !important;
-  box-shadow: inset 0 0 0 2px rgba(255,212,106,.36);
+background: linear-gradient(90deg, rgba(255,150,60,.26), rgba(255,255,255,.05)) !important;
+box-shadow: inset 0 0 0 2px rgba(255,150,60,.42);
+}
+
+.table-wrap[data-company="aer"] tbody tr:hover {
+background: linear-gradient(90deg, rgba(100,168,255,.12), rgba(255,255,255,.015));
+box-shadow: inset 0 0 0 1px rgba(100,168,255,.18);
+}
+
+.table-wrap[data-company="aer"] tbody tr.active-row {
+background: linear-gradient(90deg, rgba(100,168,255,.26), rgba(255,255,255,.05)) !important;
+box-shadow: inset 0 0 0 2px rgba(100,168,255,.42);
 }
 
 .table-wrap[data-company="munkeboe"] tbody tr:hover {
-  background: linear-gradient(90deg, rgba(124,236,255,.10), rgba(255,255,255,.015));
-  box-shadow: inset 0 0 0 1px rgba(124,236,255,.16);
+background: linear-gradient(90deg, rgba(184,156,255,.12), rgba(255,255,255,.015));
+box-shadow: inset 0 0 0 1px rgba(184,156,255,.18);
 }
 
 .table-wrap[data-company="munkeboe"] tbody tr.active-row {
-  background: linear-gradient(90deg, rgba(124,236,255,.25), rgba(255,255,255,.05)) !important;
-  box-shadow: inset 0 0 0 2px rgba(124,236,255,.38);
+background: linear-gradient(90deg, rgba(184,156,255,.26), rgba(255,255,255,.05)) !important;
+box-shadow: inset 0 0 0 2px rgba(184,156,255,.42);
 }
 
 .table-wrap[data-company="sel"] tbody tr:hover {
-  background: linear-gradient(90deg, rgba(184,156,255,.10), rgba(255,255,255,.015));
-  box-shadow: inset 0 0 0 1px rgba(184,156,255,.16);
+background: linear-gradient(90deg, rgba(255,90,110,.12), rgba(255,255,255,.015));
+box-shadow: inset 0 0 0 1px rgba(255,90,110,.18);
 }
 
 .table-wrap[data-company="sel"] tbody tr.active-row {
-  background: linear-gradient(90deg, rgba(184,156,255,.22), rgba(255,255,255,.05)) !important;
-  box-shadow: inset 0 0 0 2px rgba(184,156,255,.36);
+background: linear-gradient(90deg, rgba(255,90,110,.26), rgba(255,255,255,.05)) !important;
+box-shadow: inset 0 0 0 2px rgba(255,90,110,.42);
 }
 
 .name-cell { font-weight: 700; font-size: 15px; }
@@ -701,7 +706,41 @@ padding: 22px;
 }
 
 .drawer.open { transform: translateX(0); }
+.drawer[data-company="taylor"] 
+  {
+border-left-color: rgba(255,212,106,.42);
+box-shadow:
+-20px 0 40px rgba(0,0,0,.32),
+-8px 0 26px rgba(255,212,106,.16);
+}
 
+.drawer[data-company="aer"] {
+border-left-color: rgba(100,168,255,.42);
+box-shadow:
+-20px 0 40px rgba(0,0,0,.32),
+-8px 0 26px rgba(100,168,255,.16);
+}
+
+.drawer[data-company="thankq"] {
+border-left-color: rgba(255,150,60,.42);
+box-shadow:
+-20px 0 40px rgba(0,0,0,.32),
+-8px 0 26px rgba(255,150,60,.16);
+}
+
+.drawer[data-company="munkeboe"] {
+border-left-color: rgba(184,156,255,.42);
+box-shadow:
+-20px 0 40px rgba(0,0,0,.32),
+-8px 0 26px rgba(184,156,255,.16);
+}
+
+.drawer[data-company="sel"] {
+border-left-color: rgba(255,90,110,.42);
+box-shadow:
+-20px 0 40px rgba(0,0,0,.32),
+-8px 0 26px rgba(255,90,110,.16);
+}
 .drawer-head {
 display: flex;
 align-items: flex-start;
