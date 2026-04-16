@@ -2131,31 +2131,33 @@ function renderLogisticsShell() {
   }
 
 container.innerHTML = visibleTasks.map(task => {
-  const statusClass = getTaskStatusClass(task);
-  const statusLabel = getTaskStatusLabel(task);
+const statusClass = getTaskStatusClass(task);
+const statusLabel = getTaskStatusLabel(task);
 
-  return `
-    <div class="rail-alert-card ${statusClass}" onclick="openTaskDetail(${task.id})">
-      <div class="rail-alert-top">
-        <div class="rail-alert-company">${task.task_type.toUpperCase()}</div>
-        <div class="rail-alert-priority">${task.date_label}</div>
-      </div>
+return `
+<div class="rail-alert-card ${statusClass}" onclick="openTaskDetail(${task.id})">
 
-      <div class="rail-alert-text">
-        <strong>${task.customer_name}</strong><br>
-        Order #${task.order_number}
-      </div>
+<div class="rail-alert-top">
+<div class="rail-alert-company">${task.task_type.toUpperCase()}</div>
+<div class="rail-alert-priority">${task.date_label}</div>
+</div>
 
-      <div class="rail-alert-meta">
-        ${task.description}<br>
-        Assigned: ${task.assigned_to}
-      </div>
+<div class="rail-alert-text">
+<strong>${task.customer_name}</strong><br>
+Order #${task.order_number}
+</div>
 
-      <div class="rail-task-status ${statusClass}">
-        ${statusLabel}
-      </div>
-    </div>
-  `;
+<div class="rail-alert-meta">
+${task.description}<br>
+Assigned: ${task.assigned_to}
+</div>
+
+<div class="rail-task-status ${statusClass}">
+${statusLabel}
+</div>
+
+</div>
+`;
 }).join("");
 
 const KUDOS_MESSAGES = [
@@ -3231,22 +3233,6 @@ function completeTask(type) {
   renderLogisticsShell();
   closeTaskDetail();
 }
-
-function completeTask(type) {
-  const task = logisticsShellRows.find(t => t.id === activeTaskId);
-  if (!task) return;
-
-  showSaveBanner(
-    type === "delivered"
-      ? "Task marked delivered"
-      : "Task marked picked up"
-  );
-
-  closeTaskDetail();
-}
-
-loadDashboard();
-renderLogisticsShell();
 </script>
 
 <!-- TASK DETAIL DRAWER -->
