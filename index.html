@@ -2026,28 +2026,29 @@ align-items: center;
 </aside>
 
 <aside id="logisticsRailPanel" class="rail-panel">
-<div class="rail-panel-head">
-<div>
-<h3 class="rail-panel-title">Logistics</h3>
-<div class="rail-panel-sub">Driver tasks and routing</div>
-</div>
-<button class="rail-close" onclick="closeRailPanels()">×</button>
-</div>
+  <div class="rail-panel-head">
+    <div>
+      <h3 class="rail-panel-title">Logistics</h3>
+      <div class="rail-panel-sub">Driver tasks and routing</div>
+    </div>
+    <button class="rail-close" onclick="closeRailPanels()">×</button>
+  </div>
 
-<div class="rail-panel-body">
-<select id="logisticsDriverFilter" class="rail-select" onchange="renderLogisticsShell()">
-<option value="all">All Drivers</option>
-<option value="Luis">Luis</option>
-<option value="Cesar">Cesar</option>
-<option value="Nick">Nick</option>
-<option value="Marcus">Marcus</option>
-<option value="Mikie">Mikie</option>
-<option value="Dylan">Dylan</option>
-</select>
+  <div class="rail-panel-body">
+    <select id="logisticsDriverFilter" class="rail-select" onchange="renderLogisticsShell()">
+      <option value="all">All Drivers</option>
+      <option value="Luis">Luis</option>
+      <option value="Cesar">Cesar</option>
+      <option value="Nick">Nick</option>
+      <option value="Marcus">Marcus</option>
+      <option value="Mikie">Mikie</option>
+      <option value="Dylan">Dylan</option>
+    </select>
 
-<div id="logisticsList" class="rail-list"></div>
-</div>
+    <div id="logisticsList" class="rail-list"></div>
+  </div>
 </aside>
+
 
 <div id="logisticsList" class="rail-list"></div>
 </div>
