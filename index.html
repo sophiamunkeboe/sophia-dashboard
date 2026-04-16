@@ -1137,6 +1137,8 @@ font-size: 14px;
   transition: all 0.18s ease;
 }
 
+.clickable-alert { cursor: pointer; } .clickable-alert:hover { box-shadow: 0 0 24px rgba(124,236,255,.18), 0 0 42px rgba(124,236,255,.10); }
+
 .rail-alert-card:hover {
   transform: translateY(-2px);
   border-color: rgba(124,236,255,.28);
@@ -2293,6 +2295,20 @@ function pushSystemChatMessage(line1, line2) {
   renderTeamChat();
 }
 
+function safeText(val) {
+if (!val) return "";
+return String(val)
+.replace(/&/g, "&amp;")
+.replace(/</g, "&lt;")
+.replace(/>/g, "&gt;");
+}
+
+function formatDateTime(dateStr) {
+if (!dateStr) return "";
+const d = new Date(dateStr);
+return d.toLocaleString();
+}
+
 function renderTeamChat() {
   const feed = document.getElementById("teamChatFeed");
   if (!feed) return;
@@ -2729,7 +2745,10 @@ function renderAlerts() {
   }
 
   list.innerHTML = visibleAlerts.map(alert => `
-    <div class="rail-alert-card ${safeText(alert.priority).toLowerCase()}">
+    <div
+      class="rail-alert-card ${safeText(alert.priority).toLowerCase()} ${alert.lead_id ? 'clickable-alert' : ''}"
+      ${alert.lead_id ? `onclick="openAlertLead(${alert.lead_id})"` : ""}
+    >
 
       <div class="rail-alert-top">
         <div class="rail-alert-company">${getAlertCompanyLabel(alert.company)}</div>
@@ -2744,12 +2763,13 @@ function renderAlerts() {
       </div>
 
       <div class="rail-alert-actions">
-        <button class="rail-action-btn" onclick="markAlertDone(${alert.id})">Done</button>
+        <button class="rail-action-btn" onclick="event.stopPropagation(); markAlertDone(${alert.id})">Done</button>
       </div>
 
     </div>
   `).join("");
 }
+
 
 
 async function addAlert() {
@@ -2793,18 +2813,19 @@ async function addRailAlert() {
 
   if (!text) return;
 
-  const { error } = await supabaseClient
-    .from("operations_alerts")
-    .insert([
-      {
-        company,
-        assigned_to: assignedTo,
-        text,
-        priority,
-        due: "Today",
-        done: false
-      }
-    ]);
+ const { error } = await supabaseClient
+.from("operations_alerts")
+.insert([
+{
+company,
+assigned_to: assignedTo,
+text,
+priority,
+due: "Today",
+done: false,
+lead_id: activeLeadId || null
+}
+]);
 
   if (error) {
     showError("Could not add alert: " + error.message);
@@ -2817,8 +2838,22 @@ async function addRailAlert() {
   await loadAlerts();
   renderCards(getVisibleRows());
 
+  pushSystemChatMessage(
+    `New Ops Alert · ${getAlertCompanyLabel(company)}`,
+    `${text} • Assigned: ${assignedTo || "Unassigned"}`
+  );
+
+  renderTeamChat();
   showSaveBanner("Alert added.");
 }
+
+
+pushSystemChatMessage(
+`New Ops Alert · ${getAlertCompanyLabel(company)}`,
+`${text} • Assigned: ${assignedTo || "Unassigned"}`
+);
+
+renderTeamChat();
 
 async function markAlertDone(id) {
   const alert = alerts.find(a => String(a.id) === String(id));
@@ -2834,22 +2869,23 @@ async function markAlertDone(id) {
     .eq("id", id);
 
   if (error) {
-    showError("Could not mark alert done: " + error.message);
+    showError("Could not complete alert: " + error.message);
     return;
   }
 
-  // 🔥 THIS IS THE MAGIC
-  pushSystemChatMessage(
-    `${handledBy} — ${kudos}`,
-    `Closed alert for ${companyLabel}: ${alertText}`
-  );
+function openAlertLead(leadId) { if (!leadId) return; closeRailPanels(); setTimeout(() => { openDrawer(leadId); }, 120); }
 
   await loadAlerts();
   renderCards(getVisibleRows());
 
-  showSaveBanner("Alert marked done.");
-}
+  pushSystemChatMessage(
+    `${kudos} · ${companyLabel}`,
+    `${handledBy} completed: ${alertText}`
+  );
 
+  renderTeamChat();
+  showSaveBanner("Alert completed.");
+}
 
 function renderCards(rows) {
   const ready = rows.filter(r => getPipelineBucket(r) === "ready").length;
