@@ -3214,6 +3214,16 @@ function completeTask(type) {
   const task = logisticsShellRows.find(t => t.id === activeTaskId);
   if (!task) return;
 
+if (type === "delivered" && !task.delivery_photo_ready) {
+showSaveBanner("⚠️ Upload delivery photo before completing.");
+return;
+}
+
+if (type === "pickup" && !task.pickup_photo_ready) {
+showSaveBanner("⚠️ Upload pickup photo before completing.");
+return;
+}
+
   task.jobsite_notes = document.getElementById("tdNotes").value || "";
 
   if (!task.linen_checks) {
