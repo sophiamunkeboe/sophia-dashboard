@@ -1898,8 +1898,6 @@ function renderLogisticsShell() {
   `).join("");
 }
 
-
-
 const KUDOS_MESSAGES = [
   "Clutch Save 🔥",
   "Handled It 💪",
@@ -2857,26 +2855,6 @@ document.getElementById("alertFilterEmployee")?.addEventListener("change", rende
   loadDashboard();
 toggleLeaderboard(false);
 
-
-let activeTaskId = null;
-
-function openTaskDetail(id) {
-  const task = logisticsShellRows.find(t => t.id === id);
-  if (!task) return;
-
-  activeTaskId = id;
-
-  document.getElementById("taskDetailDrawer").classList.add("active");
-  document.getElementById("tdTitle").innerText = task.customer_name;
-  document.getElementById("tdSub").innerText = `Order #${task.order_number}`;
-}
-
-function closeTaskDetail() {
-  document.getElementById("taskDetailDrawer").classList.remove("active");
-}
-window.addEventListener("DOMContentLoaded", () => {
-renderLogisticsShell();
-});
 let activeTaskId = null;
 
 function openTaskDetail(id) {
@@ -2894,6 +2872,7 @@ function openTaskDetail(id) {
 
   renderTaskThreadDetail(task);
 }
+
 
 function closeTaskDetail() {
   const drawer = document.getElementById("taskDetailDrawer");
