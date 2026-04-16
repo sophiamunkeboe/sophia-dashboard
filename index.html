@@ -1638,6 +1638,17 @@ display: flex;
 align-items: center;
 }
 
+.td-phone-link {
+  color: #7cecff;
+  text-decoration: none;
+  font-weight: 700;
+  filter: drop-shadow(0 0 6px rgba(124,236,255,.65));
+}
+
+.td-phone-link:hover {
+  text-decoration: underline;
+}
+
 </style>
 
 </style>
@@ -2116,15 +2127,20 @@ let alerts = [];
 let teamChatMessages = [];
 let logisticsShellRows = [
 
+let logisticsShellRows = [
   {
     id: 1,
     task_type: "delivery",
-    customer_name: "Test Delivery",
+    customer_name: "Nancy Smith",
+    customer_phone: "602-555-1188",
     order_number: "1001",
     assigned_to: "Luis",
     date_label: "Friday",
     address: "123 Main St",
     description: "Wedding setup",
+    completed_status: "",
+    delivery_photo_ready: false,
+    pickup_photo_ready: false,
     thread: [],
     linen_checks: {
       sizes: false,
@@ -2138,11 +2154,15 @@ let logisticsShellRows = [
     id: 2,
     task_type: "pickup",
     customer_name: "Legacy Ballroom",
+    customer_phone: "480-555-2299",
     order_number: "1002",
     assigned_to: "Cesar",
     date_label: "Saturday",
     address: "456 Grand Ave",
     description: "End-of-night pickup",
+    completed_status: "",
+    delivery_photo_ready: false,
+    pickup_photo_ready: false,
     thread: [],
     linen_checks: {
       sizes: false,
@@ -2198,6 +2218,7 @@ return `
 
 <div class="rail-alert-text">
 <strong>${task.customer_name}</strong><br>
+${task.customer_phone || "No phone on file"}<br>
 Order #${task.order_number}
 </div>
 
@@ -3205,8 +3226,17 @@ function openTaskDetail(id) {
 
   document.getElementById("tdTitle").innerText = task.customer_name;
   document.getElementById("tdSub").innerText = `${task.task_type.toUpperCase()} • Order #${task.order_number}`;
-  document.getElementById("tdInfo").innerText =
-    `${task.address} — ${task.description}`;
+
+document.getElementById("tdInfo").innerHTML = `
+<strong>${task.customer_name}</strong><br>
+${
+task.customer_phone
+? `<a href="tel:${task.customer_phone.replace(/[^0-9+]/g, '')}" class="td-phone-link">${task.customer_phone}</a>`
+: "No phone on file"
+}<br>
+${task.address}<br>
+${task.description}
+`;
 
   document.getElementById("tdSize").checked = !!task.linen_checks?.sizes;
   document.getElementById("tdColor").checked = !!task.linen_checks?.colors;
