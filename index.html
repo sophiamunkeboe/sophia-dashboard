@@ -2192,55 +2192,56 @@ railCompany.value = companyKey;
     return "partial";
   }
 
-  function getPipelineBucket(row) {
-    const status = lower(row.status);
-    const quoteReadiness = lower(row.quote_readiness);
-    const workflowRoute = lower(row.workflow_route);
-    const issueType = lower(row.issue_type);
-    const products = lower(row.products_requested);
-    const notes = lower(row.notes);
-    const missingInfo = lower(row.missing_information);
+function getPipelineBucket(row) {
+  const status = lower(row.status);
+  const quoteReadiness = lower(row.quote_readiness);
+  const workflowRoute = lower(row.workflow_route);
+  const issueType = lower(row.issue_type);
+  const products = lower(row.products_requested);
+  const notes = lower(row.notes);
 
-    const hasName = !!lower(row.full_name);
-    const hasPhone = !!lower(row.phone);
-    const hasProducts = !!products;
-    const hasEventDate = !!lower(row.event_date);
+  const hasName = !!lower(row.full_name);
+  const hasPhone = !!lower(row.phone);
+  const hasProducts = !!products;
+  const hasEventDate = !!lower(row.event_date);
+  const hasContact = hasName || hasPhone;
 
-    const hasCoreLeadData = (hasName || hasPhone) && hasProducts;
-    const hasStrongQuoteData = (hasName || hasPhone) && hasProducts && hasEventDate;
+  const existingOrder =
+    asBool(row.existing_order_request) ||
+    workflowRoute.includes("existing") ||
+    products.includes("return update") ||
+    products.includes("rental return") ||
+    products.includes("order update") ||
+    notes.includes("return update") ||
+    notes.includes("change order") ||
+    notes.includes("change quote");
 
-    const existingOrder =
-      asBool(row.existing_order_request) ||
-      workflowRoute.includes("existing") ||
-      products.includes("return update") ||
-      notes.includes("return update") ||
-      notes.includes("change order") ||
-      notes.includes("change quote");
+  const deliveryIssue =
+    asBool(row.delivery_change_request) ||
+    asBool(row.delivery_alert_request) ||
+    !!issueType ||
+    workflowRoute.includes("delivery") ||
+    products.includes("pickup") ||
+    notes.includes("pickup");
 
-    const deliveryIssue =
-      asBool(row.delivery_change_request) ||
-      asBool(row.delivery_alert_request) ||
-      !!issueType ||
-      workflowRoute.includes("delivery");
+  if (existingOrder) return "existing";
+  if (deliveryIssue) return "service";
 
-    const missingIsSignificant =
-      missingInfo &&
-      missingInfo !== "none" &&
-      missingInfo !== "no" &&
-      missingInfo !== "false";
+  if (!hasContact && !hasProducts) return "lowdata";
+  if (!hasProducts) return "incomplete";
 
-    if (!hasName && !hasProducts) return "lowdata";
-    if (!hasCoreLeadData) return "incomplete";
-    if (status === "incomplete" || missingIsSignificant) return "incomplete";
+  if (
+    hasContact &&
+    hasProducts &&
+    hasEventDate &&
+    (status === "ready" || quoteReadiness === "ready" || status === "partial" || status === "new")
+  ) {
+    return "ready";
+  }
 
-    if (existingOrder) return "existing";
-    if (deliveryIssue) return "service";
+  if (hasContact && hasProducts) return "partial";
 
-    if ((status === "ready" || quoteReadiness === "ready") && hasStrongQuoteData) {
-      return "ready";
-    }
-
-   return "partial";
+  return "incomplete";
 }
 
 function calculateEmployeeScores(rows) {
