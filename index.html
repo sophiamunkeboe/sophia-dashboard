@@ -1655,6 +1655,7 @@ align-items: center;
   <!-- APP BACKGROUND LOGO END -->
 
   <div class="app-shell">
+
     <!-- TOP FIXED SECTION START -->
     <section class="top-fixed">
       <div class="app">
@@ -1768,6 +1769,7 @@ align-items: center;
 
 </div>
 </section>
+
 <!-- TOP FIXED SECTION END -->
 
 
@@ -2026,24 +2028,28 @@ align-items: center;
 </aside>
 
 <aside id="logisticsRailPanel" class="rail-panel">
-  <div class="rail-panel-head">
-    <div>
-      <h3 class="rail-panel-title">Logistics</h3>
-      <div class="rail-panel-sub">Driver tasks and routing</div>
-    </div>
-    <button class="rail-close" onclick="closeRailPanels()">×</button>
-  </div>
+<div class="rail-panel-head">
+<div>
+<h3 class="rail-panel-title">Logistics</h3>
+<div class="rail-panel-sub">Driver tasks and routing</div>
+</div>
+<button class="rail-close" onclick="closeRailPanels()">×</button>
+</div>
 
-  <div class="rail-panel-body">
-    <select id="logisticsDriverFilter" class="rail-select" onchange="renderLogisticsShell()">
-      <option value="all">All Drivers</option>
-      <option value="Luis">Luis</option>
-      <option value="Cesar">Cesar</option>
-      <option value="Nick">Nick</option>
-      <option value="Marcus">Marcus</option>
-      <option value="Mikie">Mikie</option>
-      <option value="Dylan">Dylan</option>
-    </select>
+<div class="rail-panel-body">
+<select id="logisticsDriverFilter" class="rail-select" onchange="renderLogisticsShell()">
+<option value="all">All Drivers</option>
+<option value="Luis">Luis</option>
+<option value="Cesar">Cesar</option>
+<option value="Nick">Nick</option>
+<option value="Marcus">Marcus</option>
+<option value="Mikie">Mikie</option>
+<option value="Dylan">Dylan</option>
+</select>
+
+<div id="logisticsList" class="rail-list"></div>
+</div>
+</aside>
 
 <aside id="chatRailPanel" class="rail-panel">
 <div class="rail-panel-head">
@@ -2064,16 +2070,29 @@ Soft launch: system kudos drops are live. Full team chat posting is still coming
 </aside>
 
 <aside id="notesRailPanel" class="rail-panel">
-  <div class="rail-panel-head">
-    <div>
-      <h3 class="rail-panel-title">Notes</h3>
-      <div class="rail-panel-sub">Reserved module</div>
-    </div>
-    <button class="rail-close" onclick="closeRailPanels()">×</button>
-  </div>
-  <div class="rail-panel-body">
-    <div class="rail-shell-card">Coming soon: personal notes and shared team notes.</div>
-  </div>
+<div class="rail-panel-head">
+<div>
+<h3 class="rail-panel-title">Notes</h3>
+<div class="rail-panel-sub">Reserved module</div>
+</div>
+<button class="rail-close" onclick="closeRailPanels()">×</button>
+</div>
+<div class="rail-panel-body">
+<div class="rail-shell-card">Coming soon: personal notes and shared team notes.</div>
+</div>
+</aside>
+
+<aside id="inventoryRailPanel" class="rail-panel">
+<div class="rail-panel-head">
+<div>
+<h3 class="rail-panel-title">Inventory Tight</h3>
+<div class="rail-panel-sub">Reserved module</div>
+</div>
+<button class="rail-close" onclick="closeRailPanels()">×</button>
+</div>
+<div class="rail-panel-body">
+<div class="rail-shell-card">Coming soon: push list, substitutions, and inventory pressure notes.</div>
+</div>
 </aside>
 
 <aside id="leaderboardRailPanel" class="rail-panel">
@@ -2086,19 +2105,6 @@ Soft launch: system kudos drops are live. Full team chat posting is still coming
   </div>
   <div class="rail-panel-body">
     <div class="rail-shell-card">Coming soon: team culture board and soft recognition metrics.</div>
-  </div>
-</aside>
-
-<aside id="inventoryRailPanel" class="rail-panel">
-  <div class="rail-panel-head">
-    <div>
-      <h3 class="rail-panel-title">Inventory Tight</h3>
-      <div class="rail-panel-sub">Reserved module</div>
-    </div>
-    <button class="rail-close" onclick="closeRailPanels()">×</button>
-  </div>
-  <div class="rail-panel-body">
-    <div class="rail-shell-card">Coming soon: push list, substitutions, and inventory pressure notes.</div>
   </div>
 </aside>
 
