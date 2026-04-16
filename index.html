@@ -1693,7 +1693,7 @@ font-size: 14px;
 </div>
 <div class="drawer-save-note">Quote and Order fields are intentionally in the slide-out to keep the dashboard table clean.</div>
 </aside>
-<!-- SLIDE PANEL END →
+<!-- SLIDE PANEL END -->
 
 
 <!-- SOPHIA UTILITY RAIL START -->
@@ -1883,16 +1883,22 @@ function renderLogisticsShell() {
       <div class="rail-alert-top">
         <div class="rail-alert-company">${task.task_type.toUpperCase()}</div>
         <div class="rail-alert-priority">${task.date_label}</div>
-<div class="rail-alert-card" onclick="openTaskDetail(${task.id})">
       </div>
 
       <div class="rail-alert-text">
         <strong>${task.customer_name}</strong><br>
         Order #${task.order_number}
       </div>
+
+      <div class="rail-alert-meta">
+        ${task.description}<br>
+        Assigned: ${task.assigned_to}
+      </div>
     </div>
   `).join("");
 }
+
+
 
 const KUDOS_MESSAGES = [
   "Clutch Save 🔥",
@@ -2956,7 +2962,8 @@ function completeTask(type) {
   closeTaskDetail();
 }
 
-
+loadDashboard();
+renderLogisticsShell();
 </script>
 
 <!-- TASK DETAIL DRAWER -->
