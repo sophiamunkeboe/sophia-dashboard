@@ -2134,7 +2134,9 @@ const statusClass = getTaskStatusClass(task);
 const statusLabel = getTaskStatusLabel(task);
 
 return `
-<div class="rail-alert-card ${statusClass}" onclick="openTaskDetail(${task.id})">
+<div class="rail-alert-card ${statusClass}"
+${task.completed_status ? '' : `onclick="openTaskDetail(${task.id})"`}>
+
 <div class="rail-alert-top">
 <div class="rail-alert-company">${task.task_type.toUpperCase()}</div>
 <div class="rail-alert-priority">${task.date_label}</div>
@@ -2152,7 +2154,9 @@ Assigned: ${task.assigned_to}
 
 <div class="rail-task-status ${statusClass}">
 ${statusLabel}
-</div>
+${task.completed_at ? `<div class="task-time">
+${new Date(task.completed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+</div>` : ""}
 </div>
 `;
 }).join("");
@@ -3222,6 +3226,8 @@ function completeTask(type) {
   task.linen_checks.bags = document.getElementById("tdBags").checked;
 
   task.completed_status = type;
+task.completed_at = new Date().toISOString();
+task.completed_by = task.assigned_to || "Unknown";
 
   showSaveBanner(
     type === "delivered"
