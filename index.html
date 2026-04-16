@@ -2114,53 +2114,28 @@ return "Pending";
 }
 
 function renderLogisticsShell() {
-const container = document.getElementById("logisticsList");
-if (!container) return;
+  const container = document.getElementById("logisticsList");
+  if (!container) return;
 
-const driverFilter = document.getElementById("logisticsDriverFilter")?.value || "all";
+  const driverFilter = document.getElementById("logisticsDriverFilter")?.value || "all";
 
-let visibleTasks = logisticsShellRows;
+  let visibleTasks = logisticsShellRows;
 
-if (driverFilter !== "all") {
-visibleTasks = logisticsShellRows.filter(task => task.assigned_to === driverFilter);
-}
+  if (driverFilter !== "all") {
+    visibleTasks = logisticsShellRows.filter(task => task.assigned_to === driverFilter);
+  }
 
-if (!visibleTasks.length) {
-container.innerHTML = `<div class="rail-shell-card">No tasks for this driver.</div>`;
-return;
-}
+  if (!visibleTasks.length) {
+    container.innerHTML = `<div class="rail-shell-card">No tasks for this driver.</div>`;
+    return;
+  }
 
 container.innerHTML = visibleTasks.map(task => {
-const statusClass = getTaskStatusClass(task);
-const statusLabel = getTaskStatusLabel(task);
+  const statusClass = getTaskStatusClass(task);
+  const statusLabel = getTaskStatusLabel(task);
 
-return `
-<div class="rail-alert-card ${statusClass}" onclick="openTaskDetail(${task.id})">
-<div class="rail-alert-top">
-<div class="rail-alert-company">${task.task_type.toUpperCase()}</div>
-<div class="rail-alert-priority">${task.date_label}</div>
-</div>
-
-<div class="rail-alert-text">
-<strong>${task.customer_name}</strong><br>
-Order #${task.order_number}
-</div>
-
-<div class="rail-alert-meta">
-${task.description}<br>
-Assigned: ${task.assigned_to}
-</div>
-
-<div class="rail-task-status ${statusClass}">
-${statusLabel}
-</div>
-</div>
-`;
-}).join("");
-}
-
-  container.innerHTML = visibleTasks.map(task => `
-    <div class="rail-alert-card" onclick="openTaskDetail(${task.id})">
+  return `
+    <div class="rail-alert-card ${statusClass}" onclick="openTaskDetail(${task.id})">
       <div class="rail-alert-top">
         <div class="rail-alert-company">${task.task_type.toUpperCase()}</div>
         <div class="rail-alert-priority">${task.date_label}</div>
@@ -2175,35 +2150,13 @@ ${statusLabel}
         ${task.description}<br>
         Assigned: ${task.assigned_to}
       </div>
+
+      <div class="rail-task-status ${statusClass}">
+        ${statusLabel}
+      </div>
     </div>
-  `).join("");
-}
-
-
-if (!visibleTasks.length) {
-container.innerHTML = `<div class="rail-shell-card">No tasks for this driver.</div>`;
-return;
-}
-
-container.innerHTML = visibleTasks.map(task => `
-<div class="rail-alert-card" onclick="openTaskDetail(${task.id})">
-<div class="rail-alert-top">
-<div class="rail-alert-company">${task.task_type.toUpperCase()}</div>
-<div class="rail-alert-priority">${task.date_label}</div>
-</div>
-
-<div class="rail-alert-text">
-<strong>${task.customer_name}</strong><br>
-Order #${task.order_number}
-</div>
-
-<div class="rail-alert-meta">
-${task.description}<br>
-Assigned: ${task.assigned_to}
-</div>
-</div>
-`).join("");
-}
+  `;
+}).join("");
 
 const KUDOS_MESSAGES = [
   "Clutch Save 🔥",
