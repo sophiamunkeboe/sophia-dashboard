@@ -2029,18 +2029,19 @@ align-items: center;
 </aside>
 
 <aside id="logisticsRailPanel" class="rail-panel">
-<div class="rail-panel-head">
-<div>
-<h3 class="rail-panel-title">Logistics</h3>
-<div class="rail-panel-sub">Delivery + pickup operations</div>
-</div>
-<button class="rail-close" onclick="closeRailPanels()">×</button>
-</div>
+  <div class="rail-panel-head">
+    <div>
+      <h3 class="rail-panel-title">Logistics</h3>
+      <div class="rail-panel-sub">Driver tasks and routing</div>
+    </div>
+    <button class="rail-close" onclick="closeRailPanels()">×</button>
+  </div>
 
-<div class="rail-panel-body">
-<div class="rail-soft-note">
-Tap a job to open full detail, photos, and communication thread.
-</div>
+  <div class="rail-panel-body">
+    <div id="logisticsList" class="rail-list"></div>
+  </div>
+</aside>
+
 
 <select id="logisticsDriverFilter" class="rail-select" onchange="renderLogisticsShell()">
 <option value="all">All Drivers</option>
@@ -2296,17 +2297,23 @@ function pushSystemChatMessage(line1, line2) {
 }
 
 function safeText(val) {
-if (!val) return "";
-return String(val)
-.replace(/&/g, "&amp;")
-.replace(/</g, "&lt;")
-.replace(/>/g, "&gt;");
+  if (val === null || val === undefined || val === "") return "—";
+  return String(val)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
-function formatDateTime(dateStr) {
-if (!dateStr) return "";
-const d = new Date(dateStr);
-return d.toLocaleString();
+function formatDateTime(dateString) {
+  if (!dateString) return "—";
+  const d = new Date(dateString);
+  if (Number.isNaN(d.getTime())) return safeText(dateString);
+  return d.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
 }
 
 function renderTeamChat() {
@@ -2699,13 +2706,13 @@ function renderLeaderboard(rows) {
 
 async function loadAlerts() {
 const { data, error } = await supabaseClient
-.from("operations_alerts")
+.from("leads")
 .select("*")
-.order("created_at", { ascending: false });
+.order("created_at", { ascending: false })
+.limit(150);
 
-if (error) {
-showError("Could not load alerts: " + error.message);
-return;
+console.log("LEADS DATA", data);
+console.log("LEADS ERROR", error);
 }
 
 alerts = data || [];
@@ -2848,43 +2855,43 @@ lead_id: activeLeadId || null
 }
 
 
+async function markAlertDone(id) {
+const alert = alerts.find(a => String(a.id) === String(id));
+
+const handledBy = alert?.assigned_to || "Team Member";
+const kudos = getRandomKudos();
+const companyLabel = getAlertCompanyLabel(alert?.company || "master");
+const alertText = safeText(alert?.text || "Internal alert handled");
+
+const { error } = await supabaseClient
+.from("operations_alerts")
+.update({ done: true })
+.eq("id", id);
+
+if (error) {
+showError("Could not complete alert: " + error.message);
+return;
+}
+
+await loadAlerts();
+renderCards(getVisibleRows());
+
 pushSystemChatMessage(
-`New Ops Alert · ${getAlertCompanyLabel(company)}`,
-`${text} • Assigned: ${assignedTo || "Unassigned"}`
+`${kudos} · ${companyLabel}`,
+`${handledBy} completed: ${alertText}`
 );
 
 renderTeamChat();
+showSaveBanner("Alert completed.");
+}
 
-async function markAlertDone(id) {
-  const alert = alerts.find(a => String(a.id) === String(id));
+function openAlertLead(leadId) {
+if (!leadId) return;
+closeRailPanels();
 
-  const handledBy = alert?.assigned_to || "Team Member";
-  const kudos = getRandomKudos();
-  const companyLabel = getAlertCompanyLabel(alert?.company || "master");
-  const alertText = safeText(alert?.text || "Internal alert handled");
-
-  const { error } = await supabaseClient
-    .from("operations_alerts")
-    .update({ done: true })
-    .eq("id", id);
-
-  if (error) {
-    showError("Could not complete alert: " + error.message);
-    return;
-  }
-
-function openAlertLead(leadId) { if (!leadId) return; closeRailPanels(); setTimeout(() => { openDrawer(leadId); }, 120); }
-
-  await loadAlerts();
-  renderCards(getVisibleRows());
-
-  pushSystemChatMessage(
-    `${kudos} · ${companyLabel}`,
-    `${handledBy} completed: ${alertText}`
-  );
-
-  renderTeamChat();
-  showSaveBanner("Alert completed.");
+setTimeout(() => {
+openDrawer(leadId);
+}, 120);
 }
 
 function renderCards(rows) {
