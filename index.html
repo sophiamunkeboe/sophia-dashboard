@@ -1584,6 +1584,40 @@ font-size: 14px;
   color: white;
   cursor: pointer;
 }
+.rail-alert-card {
+   ...
+ }
+
+.task-icon {
+margin-right: 6px;
+font-size: 14px;
+filter: drop-shadow(0 0 4px rgba(124,236,255,0.6));
+transition: all 0.2s ease;
+}
+
+.task-icon.done {
+color: #22c55e;
+filter: drop-shadow(0 0 6px rgba(34,197,94,0.8));
+}
+
+.task-icon.warn {
+color: #f59e0b;
+filter: drop-shadow(0 0 6px rgba(245,158,11,0.8));
+}
+
+/* Sophia blue glow (photo icon) */
+.task-icon.photo {
+color: #7cecff;
+filter: drop-shadow(0 0 6px rgba(124,236,255,0.9));
+}
+
+.rail-task-icons {
+margin-top: 6px;
+display: flex;
+align-items: center;
+}
+
+</style>
 
 </style>
 </head>
@@ -2147,8 +2181,18 @@ Order #${task.order_number}
 </div>
 
 <div class="rail-alert-meta">
-${task.description}<br>
-Assigned: ${task.assigned_to}
+  ${task.description}<br>
+  Assigned: ${task.assigned_to}
+</div>
+
+<div class="rail-task-icons">
+
+  ${task.delivery_photo_ready ? `<span class="task-icon">📸</span>` : ''}
+
+  ${task.completed_status ? `<span class="task-icon done">✔</span>` : ''}
+
+  ${!task.delivery_photo_ready && !task.completed_status ? `<span class="task-icon warn">⚠️</span>` : ''}
+
 </div>
 
 <div class="rail-task-status ${statusClass}">
