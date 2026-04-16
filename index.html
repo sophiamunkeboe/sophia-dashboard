@@ -2045,11 +2045,6 @@ align-items: center;
       <option value="Dylan">Dylan</option>
     </select>
 
-    <div id="logisticsList" class="rail-list"></div>
-  </div>
-</aside>
-
-
 <div id="logisticsList" class="rail-list"></div>
 </div>
 </aside>
@@ -2345,11 +2340,6 @@ function renderTeamChat() {
     const audio = new Audio(src);
     audio.volume = 0.18;
     audio.play().catch(() => {});
-  }
-
-  function safeText(value) {
-    if (value === null || value === undefined || value === "") return "—";
-    return String(value);
   }
 
   function lower(value) {
