@@ -2696,13 +2696,16 @@ function renderLeaderboard(rows) {
 
 async function loadAlerts() {
 const { data, error } = await supabaseClient
-.from("leads")
+.from("operations_alerts")
 .select("*")
-.order("created_at", { ascending: false })
-.limit(150);
+.order("created_at", { ascending: false });
 
-console.log("LEADS DATA", data);
-console.log("LEADS ERROR", error);
+console.log("ALERTS DATA", data);
+console.log("ALERTS ERROR", error);
+
+if (error) {
+showError("Could not load alerts: " + error.message);
+return;
 }
 
 alerts = data || [];
@@ -2710,24 +2713,8 @@ renderAlerts();
 }
 
 function getAlertCompanyLabel(companyKey) {
-  if (companyKey === "master") return "Master";
-  return getCompanyLabel(companyKey);
-}
-
-function getVisibleAlerts() {
-  const employeeFilter = document.getElementById("alertFilterEmployee")?.value || "all";
-
-  return alerts.filter(alert => {
-    if (alert.done) return false;
-
-    const companyMatch =
-      activeCompany === "master" ? true : alert.company === activeCompany;
-
-    const employeeMatch =
-      employeeFilter === "all" ? true : alert.assigned_to === employeeFilter;
-
-    return companyMatch && employeeMatch;
-  });
+if (companyKey === "master") return "Master";
+return getCompanyLabel(companyKey);
 }
 
 function renderAlerts() {
