@@ -2105,7 +2105,6 @@ if (task.completed_status === "delivered") return "delivered-task";
 if (task.completed_status === "pickup") return "pickup-task";
 return "pending-task";
 }
-
 function getTaskStatusLabel(task) {
 if (task.issue_flag) return "Issue";
 if (task.completed_status === "delivered") return "Delivered";
@@ -2114,21 +2113,21 @@ return "Pending";
 }
 
 function renderLogisticsShell() {
-  const container = document.getElementById("logisticsList");
-  if (!container) return;
+const container = document.getElementById("logisticsList");
+if (!container) return;
 
-  const driverFilter = document.getElementById("logisticsDriverFilter")?.value || "all";
+const driverFilter = document.getElementById("logisticsDriverFilter")?.value || "all";
 
-  let visibleTasks = logisticsShellRows;
+let visibleTasks = logisticsShellRows;
 
-  if (driverFilter !== "all") {
-    visibleTasks = logisticsShellRows.filter(task => task.assigned_to === driverFilter);
-  }
+if (driverFilter !== "all") {
+visibleTasks = logisticsShellRows.filter(task => task.assigned_to === driverFilter);
+}
 
-  if (!visibleTasks.length) {
-    container.innerHTML = `<div class="rail-shell-card">No tasks for this driver.</div>`;
-    return;
-  }
+if (!visibleTasks.length) {
+container.innerHTML = `<div class="rail-shell-card">No tasks for this driver.</div>`;
+return;
+}
 
 container.innerHTML = visibleTasks.map(task => {
 const statusClass = getTaskStatusClass(task);
@@ -2136,7 +2135,6 @@ const statusLabel = getTaskStatusLabel(task);
 
 return `
 <div class="rail-alert-card ${statusClass}" onclick="openTaskDetail(${task.id})">
-
 <div class="rail-alert-top">
 <div class="rail-alert-company">${task.task_type.toUpperCase()}</div>
 <div class="rail-alert-priority">${task.date_label}</div>
@@ -2155,10 +2153,11 @@ Assigned: ${task.assigned_to}
 <div class="rail-task-status ${statusClass}">
 ${statusLabel}
 </div>
-
 </div>
 `;
 }).join("");
+}
+
 
 const KUDOS_MESSAGES = [
   "Clutch Save 🔥",
