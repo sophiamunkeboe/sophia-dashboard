@@ -4,7 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Sophia Systems Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+</script>
+
+
 <style>
 :root {
 --bg-1: #020611;
@@ -1519,6 +1522,7 @@ font-size: 14px;
 <main class="bottom-scroll">
 <div class="app">
 <div class="content-panel">
+
 <!-- LEADS PANEL HEAD START -->
 <div class="panel-head">
 <div>
@@ -1689,7 +1693,9 @@ font-size: 14px;
 </div>
 <div class="drawer-save-note">Quote and Order fields are intentionally in the slide-out to keep the dashboard table clean.</div>
 </aside>
-<!-- SLIDE PANEL END -->
+<!-- SLIDE PANEL END →
+
+
 <!-- SOPHIA UTILITY RAIL START -->
 <div class="utility-rail">
   <button class="rail-tab rail-tab-alerts blinking" onclick="openRailPanel('alertsRailPanel')">Ops Queue</button>
@@ -1698,6 +1704,7 @@ font-size: 14px;
   <button class="rail-tab" onclick="openRailPanel('notesRailPanel')">Notes</button>
   <button class="rail-tab" onclick="openRailPanel('leaderboardRailPanel')">Board</button>
   <button class="rail-tab" onclick="openRailPanel('inventoryRailPanel')">Inventory</button>
+<button class="rail-tab" onclick="openRailPanel('logisticsRailPanel')">Logistics</button>
 </div>
 
 <aside id="alertsRailPanel" class="rail-panel">
@@ -1765,6 +1772,23 @@ font-size: 14px;
   </div>
 </aside>
 
+<aside id="logisticsRailPanel" class="rail-panel">
+<div class="rail-panel-head">
+<div>
+<h3 class="rail-panel-title">Logistics</h3>
+<div class="rail-panel-sub">Delivery + pickup operations</div>
+</div>
+<button class="rail-close" onclick="closeRailPanels()">×</button>
+</div>
+
+<div class="rail-panel-body">
+<div class="rail-soft-note">
+Tap a job to open full detail, photos, and communication thread.
+</div>
+
+<div id="logisticsList" class="rail-list"></div>
+</div>
+</aside>
 <aside id="chatRailPanel" class="rail-panel">
   <div class="rail-panel-head">
     <div>
@@ -1821,6 +1845,7 @@ font-size: 14px;
     <div class="rail-shell-card">Coming soon: push list, substitutions, and inventory pressure notes.</div>
   </div>
 </aside>
+
 <!-- SOPHIA UTILITY RAIL END -->
 
 <script>
@@ -1833,6 +1858,41 @@ let activeLeadId = null;
 let activeCompany = "master";
 let alerts = [];
 let teamChatMessages = [];
+let logisticsShellRows = [
+
+
+  {
+    id: 1,
+    task_type: "delivery",
+    customer_name: "Test Delivery",
+    order_number: "1001",
+    assigned_to: "Luis",
+    date_label: "Friday",
+    address: "123 Main St",
+    description: "Wedding setup",
+    thread: []
+  }
+];
+
+function renderLogisticsShell() {
+  const container = document.getElementById("logisticsList");
+  if (!container) return;
+
+  container.innerHTML = logisticsShellRows.map(task => `
+    <div class="rail-alert-card" onclick="openTaskDetail(${task.id})">
+      <div class="rail-alert-top">
+        <div class="rail-alert-company">${task.task_type.toUpperCase()}</div>
+        <div class="rail-alert-priority">${task.date_label}</div>
+<div class="rail-alert-card" onclick="openTaskDetail(${task.id})">
+      </div>
+
+      <div class="rail-alert-text">
+        <strong>${task.customer_name}</strong><br>
+        Order #${task.order_number}
+      </div>
+    </div>
+  `).join("");
+}
 
 const KUDOS_MESSAGES = [
   "Clutch Save 🔥",
@@ -2790,12 +2850,177 @@ document.getElementById("alertFilterEmployee")?.addEventListener("change", rende
 
   loadDashboard();
 toggleLeaderboard(false);
+
+
+let activeTaskId = null;
+
+function openTaskDetail(id) {
+  const task = logisticsShellRows.find(t => t.id === id);
+  if (!task) return;
+
+  activeTaskId = id;
+
+  document.getElementById("taskDetailDrawer").classList.add("active");
+  document.getElementById("tdTitle").innerText = task.customer_name;
+  document.getElementById("tdSub").innerText = `Order #${task.order_number}`;
+}
+
+function closeTaskDetail() {
+  document.getElementById("taskDetailDrawer").classList.remove("active");
+}
+window.addEventListener("DOMContentLoaded", () => {
+renderLogisticsShell();
+});
+let activeTaskId = null;
+
+function openTaskDetail(id) {
+  const task = logisticsShellRows.find(t => t.id === id);
+  if (!task) return;
+
+  activeTaskId = id;
+
+  const drawer = document.getElementById("taskDetailDrawer");
+  if (drawer) drawer.classList.add("active");
+
+  document.getElementById("tdTitle").innerText = task.customer_name;
+  document.getElementById("tdSub").innerText = `Order #${task.order_number}`;
+  document.getElementById("tdInfo").innerText = `${task.address} — ${task.description}`;
+
+  renderTaskThreadDetail(task);
+}
+
+function closeTaskDetail() {
+  const drawer = document.getElementById("taskDetailDrawer");
+  if (drawer) drawer.classList.remove("active");
+}
+
+function renderTaskThreadDetail(task) {
+  const container = document.getElementById("tdThread");
+
+  if (!task.thread.length) {
+    container.innerHTML = `<div style="color:#8aa4b8;">No messages yet</div>`;
+    return;
+  }
+
+  container.innerHTML = task.thread.map(msg => `
+    <div style="margin-bottom:6px;">
+      <b>${msg.sender}</b>: ${msg.text}
+    </div>
+  `).join("");
+}
+
+function sendTaskMessage() {
+  const input = document.getElementById("tdMessageInput");
+  const text = input.value.trim();
+  if (!text) return;
+
+  const task = logisticsShellRows.find(t => t.id === activeTaskId);
+  if (!task) return;
+
+  task.thread.push({
+    sender: "Admin",
+    text,
+    created_at: new Date().toISOString()
+  });
+
+  input.value = "";
+  renderTaskThreadDetail(task);
+}
+
+function markLogisticsPhotoUploaded(taskId, type) {
+  const task = logisticsShellRows.find(t => t.id === taskId);
+  if (!task) return;
+
+  if (type === "delivery") task.delivery_photo_ready = true;
+  if (type === "pickup") task.pickup_photo_ready = true;
+
+  showSaveBanner(
+    type === "delivery"
+      ? "Delivery photo uploaded"
+      : "Pickup photo uploaded"
+  );
+
+  renderLogisticsShell();
+}
+
+function completeTask(type) {
+  const task = logisticsShellRows.find(t => t.id === activeTaskId);
+  if (!task) return;
+
+  showSaveBanner(
+    type === "delivered"
+      ? "Task marked delivered"
+      : "Task marked picked up"
+  );
+
+  closeTaskDetail();
+}
+
+
 </script>
 
+<!-- TASK DETAIL DRAWER -->
+<div id="taskDetailDrawer" class="task-detail-drawer">
+  <div class="task-detail-panel">
+
+    <div class="td-header">
+      <div>
+        <div id="tdTitle" class="td-title"></div>
+        <div id="tdSub" class="td-sub"></div>
+      </div>
+      <button class="td-close" onclick="closeTaskDetail()">×</button>
+    </div>
+
+    <div class="task-detail-body">
+      <div id="tdFlags" class="td-flags"></div>
+
+      <div class="td-section">
+        <div class="td-label">Job Info</div>
+        <div id="tdInfo" class="td-text"></div>
+      </div>
+
+      <div class="td-section">
+        <div class="td-label">Order Snapshot</div>
+        <button class="td-btn">View / Upload</button>
+      </div>
+
+      <div class="td-section">
+        <div class="td-label">Photo Proof</div>
+        <div class="td-btn-row">
+          <button class="td-btn" onclick="markLogisticsPhotoUploaded(activeTaskId,'delivery')">Delivery Photo</button>
+          <button class="td-btn" onclick="markLogisticsPhotoUploaded(activeTaskId,'pickup')">Pickup Photo</button>
+        </div>
+      </div>
+
+      <div class="td-section">
+        <div class="td-label">Customer Text Thread</div>
+        <div id="tdThread" class="td-thread"></div>
+
+        <div class="td-input-row">
+          <input id="tdMessageInput" placeholder="Send message through Sophia..." />
+          <button onclick="sendTaskMessage()">Send</button>
+        </div>
+      </div>
+
+      <div class="td-section">
+        <div class="td-label">Jobsite Notes</div>
+        <textarea id="tdNotes"></textarea>
+      </div>
+
+      <div class="td-actions">
+        <button onclick="completeTask('delivered')" class="td-primary">Mark Delivered</button>
+        <button onclick="completeTask('pickup')" class="td-secondary">Mark Picked Up</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 
 </body>
 </html>
+
+
 
 
 
