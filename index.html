@@ -7,7 +7,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
 </script>
 
-
 <style>
 :root {
 --bg-1: #020611;
@@ -82,7 +81,6 @@ z-index: 0;
   z-index: 0;
   user-select: none;
 }
-
 
 .app-shell {
 position: relative;
@@ -795,6 +793,39 @@ transition: 0.18s ease;
 transform: translateY(-1px);
 border-color: rgba(124,236,255,.4);
 box-shadow: inset 0 0 12px rgba(255,255,255,.03), 0 0 18px rgba(124,236,255,.18);
+}
+
+/* ===== ADMIN PILL BUTTONS ===== */
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.pill-btn {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(124,236,255,.18);
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  cursor: pointer;
+}
+
+.pill-btn:hover {
+  border-color: rgba(124,236,255,.45);
+  box-shadow: 0 0 14px rgba(124,236,255,.25);
+}
+
+/* ===== REFERENCE IMAGE ===== */
+.reference-img {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(124,236,255,.18);
+  box-shadow: 0 0 14px rgba(124,236,255,.12);
 }
 
 .done-btn { border-color: rgba(110,255,168,.18); box-shadow: inset 0 0 10px rgba(255,255,255,.02), 0 0 12px rgba(110,255,168,.08); }
@@ -1843,6 +1874,7 @@ align-items: center;
 <div class="drawer-label">Phone</div>
 <div class="drawer-value" id="drawerPhone">—</div>
 </div>
+
 <div class="drawer-card half">
 <div class="drawer-label">Email</div>
 <div class="drawer-value" id="drawerEmail">—</div>
@@ -1906,7 +1938,16 @@ align-items: center;
 
 <div class="drawer-card">
 <div class="drawer-label">Coordinator Notes</div>
-<textarea id="drawerCoordinatorNotes" class="drawer-textarea" placeholder="Internal coordinator notes..."></textarea>
+<textarea id="drawerCoordinatorNotes" class="drawer-textarea" placeholder="Internal coordinator notes."></textarea>
+</div>
+
+<div class="drawer-card">
+  <div class="drawer-label">Reference Order Photo</div>
+  <input id="referencePhotoUpload" type="file" accept="image/*" class="drawer-input" />
+  <div id="referencePhotoPreview" style="margin-top:10px;"></div>
+  <div style="margin-top:10px;">
+    <button class="glass-btn" onclick="saveReferencePhoto()">Save Reference Photo</button>
+  </div>
 </div>
 
 <div class="drawer-card half">
@@ -1942,12 +1983,51 @@ align-items: center;
 </div>
 </div>
 
+<div class="drawer-card half">
+<div class="drawer-label">Assigned To</div>
+<select id="drawerAssignedTo" class="drawer-select">
+<option value="">Unassigned</option>
+<option value="Carina">Carina</option>
+<option value="James">James</option>
+<option value="Linda">Linda</option>
+<option value="Stefani">Stefani</option>
+</select>
+</div>
+
+<div class="drawer-card half">
+<div class="drawer-label">Follow Up Status</div>
+<select id="drawerFollowUpStatus" class="drawer-select">
+<option value="false">Pending</option>
+<option value="true">Done</option>
+</select>
+</div>
+
+<div class="drawer-card">
+<div class="drawer-label">Routing Flags</div>
+<div class="drawer-value" id="drawerFlags">—</div>
+</div>
+
+<div class="drawer-card">
+  <div class="drawer-label">Admin Automations</div>
+  <div class="pill-row">
+    <button class="pill-btn" onclick="sendAdminAutomation('48hr')">48 HR CONFIRM</button>
+    <button class="pill-btn" onclick="sendAdminAutomation('payment')">PAYMENT ISSUE</button>
+    <button class="pill-btn" onclick="sendAdminAutomation('address')">CONFIRM ADDRESS</button>
+    <button class="pill-btn" onclick="sendAdminAutomation('pickup')">PICKUP PREP</button>
+    <button class="pill-btn" onclick="sendAdminAutomation('feedback')">FEEDBACK</button>
+    <button class="pill-btn" onclick="sendAdminAutomation('reference')">ORDER PHOTO</button>
+  </div>
+</div>
+
+</div>
+
 <div class="drawer-actions">
 <button class="glass-btn" onclick="saveDrawerChanges()">Save Client Details</button>
 <button class="glass-btn done-btn" onclick="markDrawerFollowed()">Mark Followed</button>
 </div>
 <div class="drawer-save-note">Quote and Order fields are intentionally in the slide-out to keep the dashboard table clean.</div>
 </aside>
+
 <!-- SLIDE PANEL END -->
 
 
@@ -3218,6 +3298,92 @@ const reopenId = activeLeadId;
 await loadDashboard();
 if (reopenId) openDrawer(reopenId);
   }
+function sendAdminAutomation(type) {
+  if (!activeLeadId) return;
+
+  const row = rows.find(r => Number(r.id) === Number(activeLeadId));
+  if (!row) return;
+
+  const BRAND_PROFILES = {
+    taylor: { label: "Taylor", agentName: "Megan" },
+    thankq: { label: "Thank Q", agentName: "Quinn" },
+    aer: { label: "AER", agentName: "Angela" },
+    sel: { label: "Special Events", agentName: "Zoey" },
+    munkeboe: { label: "Munkeboe", agentName: "Sophia" },
+    master: { label: "Sophia Systems", agentName: "Sophia" }
+  };
+
+  const companyKey = String(row.company || activeCompany || "master").toLowerCase();
+  const brand = BRAND_PROFILES[companyKey] || BRAND_PROFILES.master;
+
+  const fullName =
+    row.full_name ||
+    [row.first_name, row.last_name].filter(Boolean).join(" ").trim() ||
+    "there";
+
+  const firstName = fullName.split(" ")[0] || "there";
+
+  const address = [
+    row.address || "",
+    row.city || "",
+    row.zip_code || row.zip || ""
+  ].filter(Boolean).join(", ") || "address not listed";
+
+  const itemSummary = row.products_requested || row.products || "your order items";
+  const phoneNumber = "602-xxx-xxxx";
+
+  let message = "";
+
+  if (type === "48hr") {
+    message = `Hi ${firstName}, this is ${brand.agentName} with ${brand.label}. We’re scheduled to deliver your order in 48 hours.
+
+Please confirm the delivery address:
+${address}
+
+Planned items:
+${itemSummary}
+
+Please let us know if anything needs to be corrected, including quantities, colors, or address details.`;
+  }
+
+  if (type === "payment") {
+    message = `Hi ${firstName}, this is ${brand.agentName} with ${brand.label}. We were unable to process the card on file for your order.
+
+Please contact me at ${phoneNumber} to update the card on file.`;
+  }
+
+  if (type === "address") {
+    message = `Hi ${firstName}, this is ${brand.agentName} with ${brand.label}. Can you please confirm this is the correct delivery address?
+
+${address}`;
+  }
+
+  if (type === "pickup") {
+    message = `Hi ${firstName}, this is ${brand.agentName} with ${brand.label}. For pickup day, please have all items grouped together and ready for our driver.
+
+If your order includes linens, please place used linens in the laundry bag or bags provided. If you have more than one bag, please even out the amounts between bags. Please leave hangers outside the bags for collection as well.
+
+Please make sure item counts are correct.`;
+  }
+
+  if (type === "feedback") {
+    message = `Hi ${firstName}, this is ${brand.agentName} with ${brand.label}. Thank you for your order. Please let us know how our service was and if there is anything we can do to improve your experience.`;
+  }
+
+  if (type === "reference") {
+    message = `Hi ${firstName}, this is ${brand.agentName} with ${brand.label}. I’ve attached the reference image we have for your upcoming order. Please review the items, quantities, and colors and let us know if anything looks incorrect.`;
+  }
+
+  if (!message) return;
+
+  pushSystemChatMessage(
+    `Admin Sent · ${brand.label}`,
+    message
+  );
+
+  renderTeamChat();
+  showSaveBanner("Admin automation queued.");
+}
 
   document.getElementById("searchInput").addEventListener("input", applySearch);
 document.getElementById("alertFilterEmployee")?.addEventListener("change", renderAlerts);
