@@ -2178,52 +2178,51 @@ let activeLeadId = null;
 let activeCompany = "master";
 let alerts = [];
 let teamChatMessages = [];
-let logisticsShellRows = [];
- {
-
-    id: 1,
-    task_type: "delivery",
-    customer_name: "Nancy Smith",
-    customer_phone: "602-555-1188",
-    order_number: "1001",
-    assigned_to: "Luis",
-    date_label: "Friday",
-    address: "123 Main St",
-    description: "Wedding setup",
-    completed_status: "",
-    delivery_photo_ready: false,
-    pickup_photo_ready: false,
-    thread: [],
-    linen_checks: {
-      sizes: false,
-      colors: false,
-      qty: false,
-      bags: false
-    },
-    jobsite_notes: ""
-  },
-  {
-    id: 2,
-    task_type: "pickup",
-    customer_name: "Legacy Ballroom",
-    customer_phone: "480-555-2299",
-    order_number: "1002",
-    assigned_to: "Cesar",
-    date_label: "Saturday",
-    address: "456 Grand Ave",
-    description: "End-of-night pickup",
-    completed_status: "",
-    delivery_photo_ready: false,
-    pickup_photo_ready: false,
-    thread: [],
-    linen_checks: {
-      sizes: false,
-      colors: false,
-      qty: false,
-      bags: false
-    },
-    jobsite_notes: ""
-  }
+let logisticsShellRows = [
+{
+id: 1,
+task_type: "delivery",
+customer_name: "Nancy Smith",
+customer_phone: "602-555-1188",
+order_number: "1001",
+assigned_to: "Luis",
+date_label: "Friday",
+address: "123 Main St",
+description: "Wedding setup",
+completed_status: "",
+delivery_photo_ready: false,
+pickup_photo_ready: false,
+thread: [],
+linen_checks: {
+sizes: false,
+colors: false,
+qty: false,
+bags: false
+},
+jobsite_notes: ""
+},
+{
+id: 2,
+task_type: "pickup",
+customer_name: "Legacy Ballroom",
+customer_phone: "480-555-2299",
+order_number: "1002",
+assigned_to: "Cesar",
+date_label: "Saturday",
+address: "456 Grand Ave",
+description: "End-of-night pickup",
+completed_status: "",
+delivery_photo_ready: false,
+pickup_photo_ready: false,
+thread: [],
+linen_checks: {
+sizes: false,
+colors: false,
+qty: false,
+bags: false
+},
+jobsite_notes: ""
+}
 ];
 
 function getTaskStatusClass(task) {
@@ -3292,7 +3291,7 @@ if (reopenId) openDrawer(reopenId);
 function sendAdminAutomation(type) {
   if (!activeLeadId) return;
 
-  const row = rows.find(r => Number(r.id) === Number(activeLeadId));
+const row = getLeadById(activeLeadId);
   if (!row) return;
 
   const BRAND_PROFILES = {
