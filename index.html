@@ -3111,47 +3111,46 @@ if (target) {
 target.classList.add("active-row");
 }
 }
+function openDrawer(id) {
+  const row = getLeadById(id);
+  if (!row) return;
+  activeLeadId = id;
+  setActiveRow(id);
 
-  function openDrawer(id) {
-    const row = getLeadById(id);
-    if (!row) return;
-    activeLeadId = id;
-    setActiveRow(id);
+  document.getElementById("drawerCustomerName").textContent = safeText(row.full_name);
+  document.getElementById("drawerPhone").textContent = safeText(row.phone);
+  document.getElementById("drawerEmail").textContent = safeText(row.email);
+  document.getElementById("drawerEventDate").textContent = safeText(row.event_date);
+  document.getElementById("drawerDeliveryMethod").textContent = safeText(row.delivery_method);
+  document.getElementById("drawerAddress").textContent = buildAddress(row);
+  document.getElementById("drawerProducts").textContent = safeText(row.products_requested);
 
-    document.getElementById("drawerCustomerName").textContent = safeText(row.full_name);
-    document.getElementById("drawerPhone").textContent = safeText(row.phone);
-    document.getElementById("drawerEmail").textContent = safeText(row.email);
-    document.getElementById("drawerEventDate").textContent = safeText(row.event_date);
-    document.getElementById("drawerDeliveryMethod").textContent = safeText(row.delivery_method);
-    document.getElementById("drawerAddress").textContent = buildAddress(row);
-    document.getElementById("drawerProducts").textContent = safeText(row.products_requested);
+  const rowStatus = getRowStatus(row);
+  const pipelineBucket = getPipelineBucket(row);
+  const companyLabel = getCompanyName(row) || getCompanyLabel(normalizeCompany(getCompanyName(row)));
 
-const rowStatus = getRowStatus(row);
-const pipelineBucket = getPipelineBucket(row);
-const companyLabel = getCompanyName(row) || getCompanyLabel(normalizeCompany(getCompanyName(row)));
+  document.getElementById("drawerCompany").textContent = safeText(companyLabel);
+  document.getElementById("drawerRoute").innerHTML =
+    `${safeText(row.workflow_route || pipelineBucket)} <span class="pill tiny-route ${statusClass(rowStatus)}">${statusLabel(rowStatus)}</span>`;
+  document.getElementById("drawerStatus").textContent = statusLabel(rowStatus);
+  document.getElementById("drawerPipelineBucket").textContent = statusLabel(pipelineBucket);
 
-document.getElementById("drawerCompany").textContent = safeText(companyLabel);
-document.getElementById("drawerRoute").innerHTML =
-`${safeText(row.workflow_route || pipelineBucket)} <span class="pill tiny-route ${statusClass(rowStatus)}">${statusLabel(rowStatus)}</span>`;
-document.getElementById("drawerStatus").textContent = statusLabel(rowStatus);
-document.getElementById("drawerPipelineBucket").textContent = statusLabel(pipelineBucket);
+  document.getElementById("drawerRequestedEmployee").textContent = safeText(row.requested_employee);
+  document.getElementById("drawerSentiment").textContent = safeText(row.sentiment);
+  document.getElementById("drawerMissingInformation").textContent = safeText(row.missing_information);
+  document.getElementById("drawerNotes").value = row.notes || "";
+  document.getElementById("drawerCoordinatorNotes").value = row.coordinator_notes || "";
+  document.getElementById("drawerQuoteNumber").value = row.quote_number || "";
+  document.getElementById("drawerOrderNumber").value = row.order_number || "";
+  document.getElementById("drawerAssignedTo").value = row.assigned_to || "";
+  document.getElementById("drawerFollowUpStatus").value = String(asBool(row.follow_up_status));
+  document.getElementById("drawerFlags").textContent = buildFlags(row);
+  renderReferencePhoto(row);
 
-
-    document.getElementById("drawerRequestedEmployee").textContent = safeText(row.requested_employee);
-    document.getElementById("drawerSentiment").textContent = safeText(row.sentiment);
-    document.getElementById("drawerMissingInformation").textContent = safeText(row.missing_information);
-    document.getElementById("drawerNotes").value = row.notes || "";
-    document.getElementById("drawerCoordinatorNotes").value = row.coordinator_notes || "";
-    document.getElementById("drawerQuoteNumber").value = row.quote_number || "";
-    document.getElementById("drawerOrderNumber").value = row.order_number || "";
-    document.getElementById("drawerAssignedTo").value = row.assigned_to || "";
-    document.getElementById("drawerFollowUpStatus").value = String(asBool(row.follow_up_status));
-    document.getElementById("drawerFlags").textContent = buildFlags(row);
-
-    document.getElementById("drawerOverlay").classList.add("open");
-    document.getElementById("leadDrawer").classList.add("open");
-    playSound("open");
-  }
+  document.getElementById("drawerOverlay").classList.add("open");
+  document.getElementById("leadDrawer").classList.add("open");
+  playSound("open");
+}
 
   function closeDrawer() {
 document.getElementById("drawerOverlay").classList.remove("open");
@@ -3188,27 +3187,23 @@ async function loadDashboard() {
   allRows = data || [];
 
   const grid = document.getElementById("metricGrid");
-  if (grid) {
-    grid.setAttribute("data-company", activeCompany);
-  }
+  if (grid) grid.setAttribute("data-company", activeCompany);
 
   const tableWrap = document.getElementById("tableWrap");
-  if (tableWrap) {
-    tableWrap.setAttribute("data-company", activeCompany);
-  }
+  if (tableWrap) tableWrap.setAttribute("data-company", activeCompany);
 
   const drawer = document.getElementById("leadDrawer");
-  if (drawer) {
-    drawer.setAttribute("data-company", activeCompany);
-  }
+  if (drawer) drawer.setAttribute("data-company", activeCompany);
 
-  const visibleRows = getVisibleRows();
-  renderCards(visibleRows);
-  renderTable(visibleRows);
+ const visibleRows = getVisibleRows();
+renderCards(visibleRows);
+renderTable(visibleRows);
 
-  await loadAlerts();
-  await loadLogisticsTasks();
+await loadAlerts();
+await loadLogisticsTasks(); // 👈 ADD THIS LINE
+
 }
+
 
   async function assignLead(id, employee) {
     playSound("click");
@@ -3293,6 +3288,7 @@ const reopenId = activeLeadId;
 await loadDashboard();
 if (reopenId) openDrawer(reopenId);
   }
+
 function sendAdminAutomation(type) {
   if (!activeLeadId) return;
 
