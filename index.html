@@ -3640,12 +3640,22 @@ function completeTask(type) {
   const task = logisticsShellRows.find(t => t.id === activeTaskId);
   if (!task) return;
 
+  task.jobsite_notes = document.getElementById("tdNotes").value || "";
+
+  if (!task.linen_checks) {
+    task.linen_checks = { sizes: false, colors: false, qty: false, bags: false };
+  }
+
+  task.linen_checks.sizes = document.getElementById("tdSize").checked;
+  task.linen_checks.colors = document.getElementById("tdColor").checked;
+  task.linen_checks.qty = document.getElementById("tdQty").checked;
+  task.linen_checks.bags = document.getElementById("tdBags").checked;
+
   if (type === "delivered") {
     if (!canCompleteDelivery(task)) {
       showSaveBanner("⚠️ Need arrival, delivery photo, and inventory check before marking delivered.");
       return;
     }
-
     task.completed_status = "delivered";
   }
 
@@ -3654,11 +3664,12 @@ function completeTask(type) {
       showSaveBanner("⚠️ Need arrival, pickup photo, pickup inventory check, and linen/hanger checks before marking picked up.");
       return;
     }
-
     task.completed_status = "pickup";
   }
 
   task.completed_at = new Date().toISOString();
+  task.completed_by = task.assigned_to || "Unknown";
+
   showSaveBanner(
     type === "delivered"
       ? "Task marked delivered"
