@@ -2180,6 +2180,7 @@ let alerts = [];
 let teamChatMessages = [];
 let logisticsShellRows = [
 {
+
 id: 1,
 task_type: "delivery",
 customer_name: "Nancy Smith",
@@ -2192,6 +2193,14 @@ description: "Wedding setup",
 completed_status: "",
 delivery_photo_ready: false,
 pickup_photo_ready: false,
+arrival_at: null,
+completed_at: null,
+no_linen: false,
+inventory_checked_delivery: false,
+inventory_checked_pickup: false,
+linens_collected: false,
+hangers_collected: false,
+has_open_issue: false,
 thread: [],
 linen_checks: {
 sizes: false,
@@ -2214,6 +2223,14 @@ description: "End-of-night pickup",
 completed_status: "",
 delivery_photo_ready: false,
 pickup_photo_ready: false,
+arrival_at: null,
+completed_at: null,
+no_linen: false,
+inventory_checked_delivery: false,
+inventory_checked_pickup: false,
+linens_collected: false,
+hangers_collected: false,
+has_open_issue: false,
 thread: [],
 linen_checks: {
 sizes: false,
@@ -2231,10 +2248,12 @@ if (task.completed_status === "delivered") return "delivered-task";
 if (task.completed_status === "pickup") return "pickup-task";
 return "pending-task";
 }
+
 function getTaskStatusLabel(task) {
 if (task.issue_flag) return "Issue";
 if (task.completed_status === "delivered") return "Delivered";
 if (task.completed_status === "pickup") return "Picked Up";
+if (task.arrival_at) return "Arrived";
 return "Pending";
 }
 
@@ -3461,11 +3480,20 @@ ${task.address}<br>
 ${task.description}
 `;
 
-  document.getElementById("tdSize").checked = !!task.linen_checks?.sizes;
-  document.getElementById("tdColor").checked = !!task.linen_checks?.colors;
-  document.getElementById("tdQty").checked = !!task.linen_checks?.qty;
-  document.getElementById("tdBags").checked = !!task.linen_checks?.bags;
-  document.getElementById("tdNotes").value = task.jobsite_notes || "";
+document.getElementById("tdInventoryDelivery").checked = !!task.inventory_checked_delivery;
+document.getElementById("tdInventoryPickup").checked = !!task.inventory_checked_pickup;
+document.getElementById("tdNoLinen").checked = !!task.no_linen;
+
+document.getElementById("tdSize").checked = !!task.linen_checks?.sizes;
+document.getElementById("tdColor").checked = !!task.linen_checks?.colors;
+document.getElementById("tdQty").checked = !!task.linen_checks?.qty;
+document.getElementById("tdBags").checked = !!task.linen_checks?.bags;
+
+document.getElementById("tdLinensCollected").checked = !!task.linens_collected;
+document.getElementById("tdHangersCollected").checked = !!task.hangers_collected;
+
+document.getElementById("tdNotes").value = task.jobsite_notes || "";
+
 
   renderTaskThreadDetail(task);
 }
@@ -3511,6 +3539,87 @@ function sendTaskMessage() {
   renderTaskThreadDetail(task);
 }
 
+function saveTaskNotes() {
+  const task = logisticsShellRows.find(t => t.id === activeTaskId);
+  if (!task) return;
+
+  const notesInput = document.getElementById("tdNotes");
+  if (!notesInput) return;
+
+  task.jobsite_notes = notesInput.value.trim();
+}
+
+function markArrived(taskId) {
+  const task = logisticsShellRows.find(t => t.id === taskId);
+  if (!task) return;
+
+  task.arrival_at = new Date().toISOString();
+  showSaveBanner("Arrival logged.");
+  renderLogisticsShell();
+}
+
+function setNoLinen(taskId, value) {
+  const task = logisticsShellRows.find(t => t.id === taskId);
+  if (!task) return;
+
+  task.no_linen = value;
+}
+
+function toggleInventoryCheck(taskId, type, value) {
+  const task = logisticsShellRows.find(t => t.id === taskId);
+  if (!task) return;
+
+  if (type === "delivery") task.inventory_checked_delivery = value;
+  if (type === "pickup") task.inventory_checked_pickup = value;
+}
+
+function toggleLinenCheck(field, value) {
+  const task = logisticsShellRows.find(t => t.id === activeTaskId);
+  if (!task) return;
+
+  if (!task.linen_checks) {
+    task.linen_checks = {
+      sizes: false,
+      colors: false,
+      qty: false,
+      bags: false
+    };
+  }
+
+  task.linen_checks[field] = value;
+}
+
+function togglePickupSupport(field, value) {
+  const task = logisticsShellRows.find(t => t.id === activeTaskId);
+  if (!task) return;
+
+  if (field === "linens_collected") task.linens_collected = value;
+  if (field === "hangers_collected") task.hangers_collected = value;
+}
+
+function canCompleteDelivery(task) {
+  return (
+    !!task.arrival_at &&
+    task.delivery_photo_ready === true &&
+    task.inventory_checked_delivery === true &&
+    !task.has_open_issue
+  );
+}
+
+function canCompletePickup(task) {
+  const linenOk = task.no_linen
+    ? true
+    : task.linens_collected && task.hangers_collected;
+
+  return (
+    !!task.arrival_at &&
+    task.pickup_photo_ready === true &&
+    task.inventory_checked_pickup === true &&
+    linenOk &&
+    !task.has_open_issue
+  );
+}
+
 function markLogisticsPhotoUploaded(taskId, type) {
   const task = logisticsShellRows.find(t => t.id === taskId);
   if (!task) return;
@@ -3531,31 +3640,25 @@ function completeTask(type) {
   const task = logisticsShellRows.find(t => t.id === activeTaskId);
   if (!task) return;
 
-if (type === "delivered" && !task.delivery_photo_ready) {
-showSaveBanner("⚠️ Upload delivery photo before completing.");
-return;
-}
+  if (type === "delivered") {
+    if (!canCompleteDelivery(task)) {
+      showSaveBanner("⚠️ Need arrival, delivery photo, and inventory check before marking delivered.");
+      return;
+    }
 
-if (type === "pickup" && !task.pickup_photo_ready) {
-showSaveBanner("⚠️ Upload pickup photo before completing.");
-return;
-}
-
-  task.jobsite_notes = document.getElementById("tdNotes").value || "";
-
-  if (!task.linen_checks) {
-    task.linen_checks = { sizes: false, colors: false, qty: false, bags: false };
+    task.completed_status = "delivered";
   }
 
-  task.linen_checks.sizes = document.getElementById("tdSize").checked;
-  task.linen_checks.colors = document.getElementById("tdColor").checked;
-  task.linen_checks.qty = document.getElementById("tdQty").checked;
-  task.linen_checks.bags = document.getElementById("tdBags").checked;
+  if (type === "pickup") {
+    if (!canCompletePickup(task)) {
+      showSaveBanner("⚠️ Need arrival, pickup photo, pickup inventory check, and linen/hanger checks before marking picked up.");
+      return;
+    }
 
-  task.completed_status = type;
-task.completed_at = new Date().toISOString();
-task.completed_by = task.assigned_to || "Unknown";
+    task.completed_status = "pickup";
+  }
 
+  task.completed_at = new Date().toISOString();
   showSaveBanner(
     type === "delivered"
       ? "Task marked delivered"
@@ -3565,6 +3668,7 @@ task.completed_by = task.assigned_to || "Unknown";
   renderLogisticsShell();
   closeTaskDetail();
 }
+
 </script>
 
 <!-- TASK DETAIL DRAWER -->
@@ -3594,13 +3698,92 @@ task.completed_by = task.assigned_to || "Unknown";
 
     <div class="td-section">
       <div class="td-label">Linen Verification</div>
-      <div class="td-checks">
-        <label><input type="checkbox" id="tdSize"> Sizes checked</label>
-        <label><input type="checkbox" id="tdColor"> Colors checked</label>
-        <label><input type="checkbox" id="tdQty"> Quantity verified</label>
-        <label><input type="checkbox" id="tdBags"> Bags confirmed</label>
-      </div>
-    </div>
+ <div class="td-section">
+  <div class="td-label">Delivery / Pickup Checks</div>
+  <div class="td-checks">
+    <label>
+      <input
+        type="checkbox"
+        id="tdInventoryDelivery"
+        onchange="toggleInventoryCheck(activeTaskId, 'delivery', this.checked)"
+      >
+      Inventory Checked (Delivery)
+    </label>
+
+    <label>
+      <input
+        type="checkbox"
+        id="tdInventoryPickup"
+        onchange="toggleInventoryCheck(activeTaskId, 'pickup', this.checked)"
+      >
+      Inventory Checked (Pickup)
+    </label>
+
+    <label>
+      <input
+        type="checkbox"
+        id="tdNoLinen"
+        onchange="setNoLinen(activeTaskId, this.checked)"
+      >
+      No Linen
+    </label>
+
+    <label>
+      <input
+        type="checkbox"
+        id="tdSize"
+        onchange="toggleLinenCheck('sizes', this.checked)"
+      >
+      Sizes checked
+    </label>
+
+    <label>
+      <input
+        type="checkbox"
+        id="tdColor"
+        onchange="toggleLinenCheck('colors', this.checked)"
+      >
+      Colors checked
+    </label>
+
+    <label>
+      <input
+        type="checkbox"
+        id="tdQty"
+        onchange="toggleLinenCheck('qty', this.checked)"
+      >
+      Quantity verified
+    </label>
+
+    <label>
+      <input
+        type="checkbox"
+        id="tdBags"
+        onchange="toggleLinenCheck('bags', this.checked)"
+      >
+      Bags confirmed
+    </label>
+
+    <label>
+      <input
+        type="checkbox"
+        id="tdLinensCollected"
+        onchange="togglePickupSupport('linens_collected', this.checked)"
+      >
+      Linens collected
+    </label>
+
+    <label>
+      <input
+        type="checkbox"
+        id="tdHangersCollected"
+        onchange="togglePickupSupport('hangers_collected', this.checked)"
+      >
+      Hangers collected
+    </label>
+  </div>
+</div>
+
 
     <div class="td-section">
       <div class="td-label">Customer Text Thread</div>
@@ -3614,13 +3797,17 @@ task.completed_by = task.assigned_to || "Unknown";
 
     <div class="td-section">
       <div class="td-label">Jobsite Notes</div>
-      <textarea id="tdNotes" class="drawer-textarea" placeholder="Internal notes for team..."></textarea>
+      <textarea id="tdNotes" class="drawer-textarea" placeholder="Internal notes for team." oninput="saveTaskNotes()"></textarea>
     </div>
 
-    <div class="td-actions">
-      <button onclick="completeTask('delivered')" class="td-primary">Mark Delivered</button>
-      <button onclick="completeTask('pickup')" class="td-secondary">Mark Picked Up</button>
-    </div>
+   <div class="td-actions">
+  <button onclick="markArrived(activeTaskId)" class="td-btn">Arrived</button>
+  <button onclick="markLogisticsPhotoUploaded(activeTaskId,'delivery')" class="td-btn">Delivery Photo</button>
+  <button onclick="markLogisticsPhotoUploaded(activeTaskId,'pickup')" class="td-btn">Pickup Photo</button>
+  <button onclick="completeTask('delivered')" class="td-primary">Mark Delivered</button>
+  <button onclick="completeTask('pickup')" class="td-secondary">Mark Picked Up</button>
+</div>
+
 
   </div>
 </div>
