@@ -1208,6 +1208,11 @@ border-color: rgba(255,138,163,.26);
 box-shadow: inset 0 0 10px rgba(255,255,255,.02), 0 0 18px rgba(255,138,163,.14);
 }
 
+.rail-alert-card.arrived-task {
+  border-color: rgba(124,236,255,.26);
+  box-shadow: inset 0 0 10px rgba(255,255,255,.02), 0 0 18px rgba(124,236,255,.14);
+}
+
 .rail-task-status {
   display: inline-flex;
   margin-top: 10px;
@@ -1238,6 +1243,11 @@ box-shadow: inset 0 0 10px rgba(255,255,255,.02), 0 0 18px rgba(255,138,163,.14)
 .rail-task-status.issue-task {
   color: #ffe0e7;
   background: linear-gradient(180deg, rgba(255,138,163,.22), rgba(124,38,63,.18));
+}
+
+.rail-task-status.arrived-task {
+  color: #dff7ff;
+  background: linear-gradient(180deg, rgba(124,236,255,.22), rgba(24,96,120,.18));
 }
 
 .rail-alert-top {
@@ -1659,6 +1669,13 @@ filter: drop-shadow(0 0 4px rgba(245,158,11,0.6));
 .task-icon.photo {
 color: #7cecff;
 filter: drop-shadow(0 0 6px rgba(124,236,255,0.9));
+}
+
+.task-time {
+  margin-top: 4px;
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: #d7e8ff;
 }
 
 .rail-task-icons {
@@ -2243,14 +2260,16 @@ jobsite_notes: ""
 ];
 
 function getTaskStatusClass(task) {
-if (task.issue_flag) return "issue-task";
-if (task.completed_status === "delivered") return "delivered-task";
-if (task.completed_status === "pickup") return "pickup-task";
-return "pending-task";
+  if (task.issue_flag || task.has_open_issue) return "issue-task";
+  if (task.completed_status === "delivered") return "delivered-task";
+  if (task.completed_status === "pickup") return "pickup-task";
+  if (task.arrival_at) return "arrived-task";
+  return "pending-task";
 }
 
+
 function getTaskStatusLabel(task) {
-if (task.issue_flag) return "Issue";
+if (task.issue_flag || task.has_open_issue) return "Issue";
 if (task.completed_status === "delivered") return "Delivered";
 if (task.completed_status === "pickup") return "Picked Up";
 if (task.arrival_at) return "Arrived";
@@ -2299,19 +2318,39 @@ Order #${task.order_number}
 
 <div class="rail-task-icons">
 
-  ${task.delivery_photo_ready ? `<span class="task-icon photo">📸</span>` : ''}
+ <div class="rail-task-icons">
+  ${task.arrival_at ? `<span class="task-icon">📍</span>` : ''}
+
+  ${
+    (task.task_type === "delivery" && task.delivery_photo_ready) ||
+    (task.task_type === "pickup" && task.pickup_photo_ready)
+      ? `<span class="task-icon photo">📸</span>`
+      : ''
+  }
 
   ${task.completed_status ? `<span class="task-icon done">✔</span>` : ''}
 
-  ${!task.delivery_photo_ready && !task.completed_status ? `<span class="task-icon warn">⚠️</span>` : ''}
-
+  ${
+    !task.completed_status &&
+    (
+      (task.task_type === "delivery" && !task.delivery_photo_ready) ||
+      (task.task_type === "pickup" && !task.pickup_photo_ready)
+    )
+      ? `<span class="task-icon warn">⚠️</span>`
+      : ''
+  }
 </div>
 
 <div class="rail-task-status ${statusClass}">
 ${statusLabel}
-${task.completed_at ? `<div class="task-time">
-${new Date(task.completed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-</div>` : ""}
+${
+task.completed_at
+? `<div class="task-time">${new Date(task.completed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>`
+: task.arrival_at
+? `<div class="task-time">${new Date(task.arrival_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>`
+: ""
+}
+</div>
 </div>
 `;
 }).join("");
