@@ -3539,62 +3539,71 @@ function sendTaskMessage() {
   renderTaskThreadDetail(task);
 }
 
-function saveTaskNotes() {
+async function saveTaskNotes() {
   const task = logisticsShellRows.find(t => t.id === activeTaskId);
   if (!task) return;
 
-  const notesInput = document.getElementById("tdNotes");
-  if (!notesInput) return;
-
-  task.jobsite_notes = notesInput.value.trim();
+  task.jobsite_notes = document.getElementById("tdNotes").value || "";
+  await saveTaskToSupabase(task);
 }
 
-function markArrived(taskId) {
+async function markArrived(taskId) {
   const task = logisticsShellRows.find(t => t.id === taskId);
   if (!task) return;
 
   task.arrival_at = new Date().toISOString();
+
+  const ok = await saveTaskToSupabase(task);
+  if (!ok) return;
+
   showSaveBanner("Arrival logged.");
   renderLogisticsShell();
 }
 
-function setNoLinen(taskId, value) {
+async function setNoLinen(taskId, value) {
   const task = logisticsShellRows.find(t => t.id === taskId);
   if (!task) return;
 
   task.no_linen = value;
+  await saveTaskToSupabase(task);
 }
 
-function toggleInventoryCheck(taskId, type, value) {
-  const task = logisticsShellRows.find(t => t.id === taskId);
-  if (!task) return;
 
-  if (type === "delivery") task.inventory_checked_delivery = value;
-  if (type === "pickup") task.inventory_checked_pickup = value;
+async function toggleInventoryCheck(taskId, type, value) {
+const task = logisticsShellRows.find(t => t.id === taskId);
+if (!task) return;
+
+if (type === "delivery") task.inventory_checked_delivery = value;
+if (type === "pickup") task.inventory_checked_pickup = value;
+
+await saveTaskToSupabase(task);
 }
 
-function toggleLinenCheck(field, value) {
-  const task = logisticsShellRows.find(t => t.id === activeTaskId);
-  if (!task) return;
+async function toggleLinenCheck(field, value) {
+const task = logisticsShellRows.find(t => t.id === activeTaskId);
+if (!task) return;
 
-  if (!task.linen_checks) {
-    task.linen_checks = {
-      sizes: false,
-      colors: false,
-      qty: false,
-      bags: false
-    };
-  }
-
-  task.linen_checks[field] = value;
+if (!task.linen_checks) {
+task.linen_checks = {
+sizes: false,
+colors: false,
+qty: false,
+bags: false
+};
 }
 
-function togglePickupSupport(field, value) {
-  const task = logisticsShellRows.find(t => t.id === activeTaskId);
-  if (!task) return;
+task.linen_checks[field] = value;
+await saveTaskToSupabase(task);
+}
 
-  if (field === "linens_collected") task.linens_collected = value;
-  if (field === "hangers_collected") task.hangers_collected = value;
+async function togglePickupSupport(field, value) {
+const task = logisticsShellRows.find(t => t.id === activeTaskId);
+if (!task) return;
+
+if (field === "linens_collected") task.linens_collected = value;
+if (field === "hangers_collected") task.hangers_collected = value;
+
+await saveTaskToSupabase(task);
 }
 
 function canCompleteDelivery(task) {
@@ -3620,12 +3629,57 @@ function canCompletePickup(task) {
   );
 }
 
-function markLogisticsPhotoUploaded(taskId, type) {
+async function saveTaskToSupabase(task) {
+  if (!task || !task.id) return false;
+
+  const payload = {
+    completed_status: task.completed_status || "",
+    completed_at: task.completed_at || null,
+    completed_by: task.completed_by || null,
+
+    delivery_photo_ready: !!task.delivery_photo_ready,
+    pickup_photo_ready: !!task.pickup_photo_ready,
+
+    arrival_at: task.arrival_at || null,
+    no_linen: !!task.no_linen,
+    inventory_checked_delivery: !!task.inventory_checked_delivery,
+    inventory_checked_pickup: !!task.inventory_checked_pickup,
+    linens_collected: !!task.linens_collected,
+    hangers_collected: !!task.hangers_collected,
+    has_open_issue: !!task.has_open_issue,
+
+    linen_checks: task.linen_checks || {
+      sizes: false,
+      colors: false,
+      qty: false,
+      bags: false
+    },
+
+    jobsite_notes: task.jobsite_notes || ""
+  };
+
+  const { error } = await supabaseClient
+    .from("logistics_tasks")
+    .update(payload)
+    .eq("id", task.id);
+
+  if (error) {
+    showError("Could not save logistics task: " + error.message);
+    return false;
+  }
+
+  return true;
+}
+
+async function markLogisticsPhotoUploaded(taskId, type) {
   const task = logisticsShellRows.find(t => t.id === taskId);
   if (!task) return;
 
   if (type === "delivery") task.delivery_photo_ready = true;
   if (type === "pickup") task.pickup_photo_ready = true;
+
+  const ok = await saveTaskToSupabase(task);
+  if (!ok) return;
 
   showSaveBanner(
     type === "delivery"
@@ -3636,7 +3690,7 @@ function markLogisticsPhotoUploaded(taskId, type) {
   renderLogisticsShell();
 }
 
-function completeTask(type) {
+async function completeTask(type) {
   const task = logisticsShellRows.find(t => t.id === activeTaskId);
   if (!task) return;
 
@@ -3670,13 +3724,16 @@ function completeTask(type) {
   task.completed_at = new Date().toISOString();
   task.completed_by = task.assigned_to || "Unknown";
 
+  const ok = await saveTaskToSupabase(task);
+  if (!ok) return;
+
   showSaveBanner(
     type === "delivered"
       ? "Task marked delivered"
       : "Task marked picked up"
   );
 
-  renderLogisticsShell();
+  await loadLogisticsTasks();
   closeTaskDetail();
 }
 
@@ -3805,7 +3862,7 @@ function completeTask(type) {
 
     <div class="td-section">
       <div class="td-label">Jobsite Notes</div>
-      <textarea id="tdNotes" class="drawer-textarea" placeholder="Internal notes for team." oninput="saveTaskNotes()"></textarea>
+     <textarea id="tdNotes" class="drawer-textarea" placeholder="Internal notes for team." oninput="saveTaskNotes()"></textarea>
     </div>
 
    <div class="td-actions">
