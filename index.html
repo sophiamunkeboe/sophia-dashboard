@@ -3371,16 +3371,67 @@ Please make sure item counts are correct.`;
     message
   );
 
-  renderTeamChat();
-  showSaveBanner("Admin automation queued.");
+ renderTeamChat();
+showSaveBanner("Admin automation queued.");
 }
 
-  document.getElementById("searchInput").addEventListener("input", applySearch);
+function renderReferencePhoto(row) {
+  const preview = document.getElementById("referencePhotoPreview");
+  if (!preview) return;
+
+  if (!row || !row.reference_order_photo_url) {
+    preview.innerHTML = `<div class="muted">No reference image uploaded.</div>`;
+    return;
+  }
+
+  preview.innerHTML = `
+    <img
+      src="${row.reference_order_photo_url}"
+      alt="Reference Order Photo"
+      class="reference-img"
+    />
+  `;
+}
+
+function saveReferencePhoto() {
+  if (!activeLeadId) return;
+
+  const input = document.getElementById("referencePhotoUpload");
+  if (!input || !input.files.length) return;
+
+  const file = input.files[0];
+  const reader = new FileReader();
+
+  reader.onload = async function(e) {
+    const base64 = e.target.result;
+
+    const { error } = await supabaseClient
+      .from("leads")
+      .update({ reference_order_photo_url: base64 })
+      .eq("id", activeLeadId);
+
+    if (error) {
+      showError("Could not save reference photo: " + error.message);
+      return;
+    }
+
+    showSaveBanner("Reference photo saved.");
+
+    const reopenId = activeLeadId;
+    await loadDashboard();
+    if (reopenId) openDrawer(reopenId);
+  };
+
+  reader.readAsDataURL(file);
+}
+
+document.getElementById("searchInput").addEventListener("input", applySearch);
 document.getElementById("alertFilterEmployee")?.addEventListener("change", renderAlerts);
 
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeDrawer();
-  });
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeDrawer();
+});
+
 
   loadDashboard();
 toggleLeaderboard(false);
