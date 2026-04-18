@@ -3593,8 +3593,11 @@ async function markArrived(taskId) {
   const ok = await saveTaskToSupabase(task);
   if (!ok) return;
 
-  showSaveBanner("Arrival logged.");
+  showSaveBanner("📍 Arrived logged");
+
   renderLogisticsShell();
+
+  closeTaskDetail(); // 👈 THIS IS THE KEY
 }
 
 async function setNoLinen(taskId, value) {
