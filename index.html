@@ -2490,6 +2490,7 @@ function renderTeamChat() {
       minute: "2-digit"
     });
   }
+
 function getCompanyName(row) {
   return (
     row.company_label ||
@@ -2524,6 +2525,16 @@ function normalizeCompany(value) {
   return v.replace(/\s+/g, "");
 }
 
+function getCompanyLabel(companyKey) {
+  switch (companyKey) {
+    case "taylor": return "Taylor";
+    case "aer": return "AER";
+    case "thankq": return "Thank Q";
+    case "munkeboe": return "Munkeboe";
+    case "sel": return "SEL";
+    default: return "—";
+  }
+}
 
 function rowMatchesActiveCompany(row) {
   if (activeCompany === "master") return true;
@@ -2542,7 +2553,6 @@ function rowMatchesActiveCompany(row) {
 
   return normalized === activeCompany;
 }
-
 
 function getVisibleRows() {
   return allRows.filter(rowMatchesActiveCompany);
@@ -3087,7 +3097,7 @@ return;
 
         return `
       <tr data-row-id="${rowId}" onclick="openDrawer('${rowId}')">
-  <td><td><span class="pill">${safeText(row.company_label || getCompanyLabel(lower(row.company_key)) || "—")}</span></td>
+  <td><span class="pill">${safeText(row.company_label || getCompanyLabel(lower(row.company_key)) || "—")}</span></td>
   <td class="name-cell">${safeText(row.full_name)}</td>
   <td>${safeText(row.phone)}</td>
   <td>${safeText(row.event_date)}</td>
