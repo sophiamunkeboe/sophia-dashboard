@@ -2492,6 +2492,7 @@ function renderTeamChat() {
   }
 function getCompanyName(row) {
   return (
+    row.company_label ||
     row.company_name ||
     row.company ||
     row.location ||
@@ -2505,36 +2506,43 @@ function normalizeCompany(value) {
 
   if (!v) return "";
 
+  // Direct company_key matches (preferred)
+  if (v === "taylor") return "taylor";
+  if (v === "munkeboe") return "munkeboe";
+  if (v === "thankq") return "thankq";
+  if (v === "aer") return "aer";
+  if (v === "sel") return "sel";
+  if (v === "specialevents") return "sel";
+
+  // Fuzzy matches (fallback for label-based input)
   if (v.includes("munk")) return "munkeboe";
   if (v.includes("thank")) return "thankq";
-  if (v === "aer" || v.includes("arizona event")) return "aer";
-  if (v.includes("sel") || v.includes("special events linens")) return "sel";
+  if (v.includes("arizona event")) return "aer";
+  if (v.includes("special events")) return "sel";
   if (v.includes("taylor")) return "taylor";
 
   return v.replace(/\s+/g, "");
 }
 
-function getCompanyLabel(companyKey) {
-  switch (companyKey) {
-    case "taylor": return "Taylor";
-    case "aer": return "AER";
-    case "thankq": return "Thank Q";
-    case "munkeboe": return "Munkeboe";
-    case "sel": return "SEL";
-    default: return "—";
-  }
-}
 
 function rowMatchesActiveCompany(row) {
-if (activeCompany === "master") return true;
+  if (activeCompany === "master") return true;
 
-const normalized = normalizeCompany(getCompanyName(row));
+  // Prefer direct company_key match (most reliable)
+  const directKey = lower(row.company_key);
+  if (directKey) {
+    return directKey === activeCompany;
+  }
 
-// Current live feed is Munkeboe until other company inbounds are wired
-if (activeCompany === "munkeboe" && !normalized) return true;
+  // Fallback: normalize from company_label or legacy fields
+  const normalized = normalizeCompany(getCompanyName(row));
 
-return normalized === activeCompany;
+  // Legacy backfill: old Munkeboe rows with no company_key/label still show under Munkeboe tab
+  if (activeCompany === "munkeboe" && !normalized) return true;
+
+  return normalized === activeCompany;
 }
+
 
 function getVisibleRows() {
   return allRows.filter(rowMatchesActiveCompany);
@@ -2852,7 +2860,11 @@ function renderAlerts() {
   const list = document.getElementById("railAlertsList");
   if (!list) return;
 
-  const visibleAlerts = getVisibleAlerts();
+const visibleAlerts = alerts.filter(alert => {
+    if (alert.done) return false;
+    if (activeCompany === "master") return true;
+    return alert.company === activeCompany;
+  });
 
   if (!visibleAlerts.length) {
     list.innerHTML = '<div class="rail-shell-card">No open alerts yet.</div>';
@@ -3075,7 +3087,7 @@ return;
 
         return `
       <tr data-row-id="${rowId}" onclick="openDrawer('${rowId}')">
-  <td><span class="pill">${safeText(getCompanyName(row) || getCompanyLabel(normalizeCompany(getCompanyName(row))))}</span></td>
+  <td><td><span class="pill">${safeText(row.company_label || getCompanyLabel(lower(row.company_key)) || "—")}</span></td>
   <td class="name-cell">${safeText(row.full_name)}</td>
   <td>${safeText(row.phone)}</td>
   <td>${safeText(row.event_date)}</td>
