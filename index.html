@@ -2139,7 +2139,7 @@ function renderTable(rows) {
           <td><span class="pill">${safeText(row.company_label || getCompanyLabel(lower(row.company_key)) || "—")}</span></td>
           <td class="name-cell">
             ${safeText(row.full_name)}
-            ${row.customer_company ? `<span class="name-company-hint">🏢 ${safeText(row.customer_company)}</span>` : ""}
+            ${row.business_name ? `<span class="name-company-hint">🏢 ${safeText(row.business_name)}</span>` : ""}
           </td>
           <td>${safeText(row.phone)}</td>
           <td>${safeText(row.event_date)}</td>
@@ -2343,11 +2343,11 @@ async function preloadExtensionCounts(row) {
     const alertEl = document.getElementById("drawerCompanyAlert");
     if (alertEl) {
       let companyName = "";
-      // Check lead row first
-      if (row.customer_company && String(row.customer_company).trim() !== "") {
-        companyName = String(row.customer_company).trim();
+      // Check lead row first (leads table uses business_name column)
+      if (row.business_name && String(row.business_name).trim() !== "") {
+        companyName = String(row.business_name).trim();
       } else {
-        // Fallback: pull most recent non-empty customer_company from history
+        // Fallback: pull most recent non-empty customer_company from history (historical tables use customer_company)
         const histCompany = allHistory.find(h => h.customer_company && String(h.customer_company).trim() !== "")?.customer_company;
         if (histCompany) companyName = String(histCompany).trim();
       }
