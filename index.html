@@ -539,6 +539,51 @@ padding: 22px;
 .drawer-label { color: #c8d9ef; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 8px; opacity: .85; }
 .drawer-value { font-size: 14px; color: white; line-height: 1.45; word-break: break-word; }
 
+/* TIME-SENSITIVE CARD (v1.3.8) */
+.time-sensitive-card {
+  grid-column: span 2;
+  border: 1px solid rgba(255,165,80,.25);
+  background: linear-gradient(180deg, rgba(255,165,80,.06), rgba(255,100,50,.02));
+}
+.time-sensitive-card.is-active {
+  border-color: rgba(255,120,80,.55);
+  background: linear-gradient(180deg, rgba(255,120,80,.14), rgba(255,80,30,.06));
+  box-shadow: inset 0 0 22px rgba(255,120,80,.12), 0 0 18px rgba(255,120,80,.18);
+}
+.ts-header { display: flex; align-items: center; }
+.ts-checkbox-label {
+  display: inline-flex; align-items: center; gap: 10px;
+  cursor: pointer; padding: 6px 4px;
+  font-size: 14px; color: #ffd7bf; font-weight: 600;
+  letter-spacing: .03em;
+}
+.ts-checkbox {
+  width: 18px; height: 18px;
+  accent-color: #ff8a50;
+  cursor: pointer;
+}
+.ts-icon { font-size: 18px; }
+.ts-label-text { text-transform: uppercase; letter-spacing: .1em; font-size: 12px; }
+.ts-details { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+.ts-row { display: grid; grid-template-columns: minmax(140px, 200px) 1fr; gap: 12px; }
+.ts-time-input { font-variant-numeric: tabular-nums; }
+.ts-warning {
+  font-size: 12px; color: #ffbf95; opacity: .85;
+  padding: 8px 12px; border-radius: 8px;
+  background: rgba(255,120,80,.08); border: 1px dashed rgba(255,165,80,.3);
+}
+/* Badge on list rows */
+.ts-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  margin-left: 6px; padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px; font-weight: 700; letter-spacing: .08em;
+  color: #ffdbc2;
+  background: linear-gradient(180deg, rgba(255,120,80,.2), rgba(255,80,30,.08));
+  border: 1px solid rgba(255,120,80,.45);
+  text-shadow: 0 0 4px rgba(255,165,80,.4);
+}
+
 .drawer-input, .drawer-textarea, .drawer-select {
 width: 100%; border-radius: 12px; border: 1px solid rgba(124,236,255,.16); background: rgba(255,255,255,.03); color: white; padding: 12px 12px; outline: none; font-size: 14px;
 }
@@ -1194,6 +1239,22 @@ th.signals-col, td.signals-col { width: 140px; }
 
 .assign-dropdown { position: relative; display: inline-block; }
 
+/* Drawer-specific assignment container (larger/wider than table version) */
+.drawer-assign-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.drawer-assign-container .assign-trigger {
+  font-size: 13px;
+  padding: 5px 14px 5px 5px;
+}
+.drawer-assign-container .assign-trigger .avatar {
+  width: 28px;
+  height: 28px;
+}
+
 .assign-trigger {
   display: inline-flex;
   align-items: center;
@@ -1380,15 +1441,32 @@ table.slim-table { min-width: 1420px; }
 <div class="drawer-card"><div class="drawer-label">Coordinator Notes</div><textarea id="drawerCoordinatorNotes" class="drawer-textarea" placeholder="Internal coordinator notes..."></textarea></div>
 <div class="drawer-card half"><div class="drawer-label">Quote Number</div><input id="drawerQuoteNumber" class="drawer-input" placeholder="Enter quote number" /></div>
 <div class="drawer-card half"><div class="drawer-label">Order Number</div><input id="drawerOrderNumber" class="drawer-input" placeholder="Enter order number" /></div>
+<!-- TIME-SENSITIVE CARD (v1.3.8) -->
+<div class="drawer-card time-sensitive-card">
+<div class="ts-header">
+<label class="ts-checkbox-label">
+<input type="checkbox" id="drawerTimeSensitive" class="ts-checkbox" />
+<span class="ts-icon">🕐</span>
+<span class="ts-label-text">Time-Sensitive Delivery</span>
+</label>
+</div>
+<div id="drawerTimeSensitiveDetails" class="ts-details" style="display:none;">
+<div class="ts-row">
+<div class="ts-field">
+<div class="drawer-label">Required Time</div>
+<input type="time" id="drawerDeliveryTime" class="drawer-input ts-time-input" />
+</div>
+<div class="ts-field">
+<div class="drawer-label">Notes (e.g., "9am SHARP", "before vendor arrives")</div>
+<input type="text" id="drawerTimeNotes" class="drawer-input" placeholder="Specifics for the driver..." />
+</div>
+</div>
+<div class="ts-warning">⚠️ Time-sensitive bookings block the schedule. Dispatch must confirm capacity before finalizing.</div>
+</div>
+</div>
 <div class="drawer-card half">
 <div class="drawer-label">Assigned To</div>
-<select id="drawerAssignedTo" class="drawer-select">
-<option value="">Unassigned</option>
-<option value="Carina">Carina</option>
-<option value="James">James</option>
-<option value="Linda">Linda</option>
-<option value="Stefani">Stefani</option>
-</select>
+<div id="drawerAssignedContainer" class="drawer-assign-container"></div>
 </div>
 <div class="drawer-card half">
 <div class="drawer-label">Follow Up Status</div>
@@ -1490,10 +1568,6 @@ table.slim-table { min-width: 1420px; }
       </select>
       <select id="railAlertAssignedTo" class="rail-select">
         <option value="">All Employees</option>
-        <option value="Carina">Carina</option>
-        <option value="James">James</option>
-        <option value="Linda">Linda</option>
-        <option value="Stefani">Stefani</option>
       </select>
       <select id="railAlertPriority" class="rail-select">
         <option value="low">Low</option>
@@ -1828,6 +1902,98 @@ async function loadActiveUsers() {
     .order("sort_order", { ascending: true });
   if (error) { console.error("loadActiveUsers error:", error); activeUsers = []; return; }
   activeUsers = data || [];
+  populateRailAssignedDropdown();
+}
+
+function populateRailAssignedDropdown() {
+  const sel = document.getElementById("railAlertAssignedTo");
+  if (!sel) return;
+  // Preserve the "All Employees" first option, replace the rest
+  const currentVal = sel.value;
+  sel.innerHTML = '<option value="">All Employees</option>';
+  activeUsers.forEach(u => {
+    const opt = document.createElement("option");
+    opt.value = u.short_name;
+    opt.textContent = u.short_name;
+    sel.appendChild(opt);
+  });
+  // Restore selection if possible
+  if (currentVal) sel.value = currentVal;
+}
+
+function renderDrawerAssignPicker(currentShortName) {
+  const container = document.getElementById("drawerAssignedContainer");
+  if (!container) return;
+  const currentUser = getUserByShortName(currentShortName);
+  const triggerHtml = currentUser
+    ? `
+      <button class="assign-trigger" onclick="event.stopPropagation(); toggleDrawerAssignMenu()" style="border-color: ${currentUser.rep_color}66;">
+        <img class="avatar" src="${currentUser.avatar_url}" alt="${currentUser.short_name}" style="border: 2px solid ${currentUser.rep_color};" />
+        <span>${currentUser.short_name}</span>
+        <span class="caret">▾</span>
+      </button>
+    `
+    : `
+      <button class="assign-trigger unassigned" onclick="event.stopPropagation(); toggleDrawerAssignMenu()">
+        <span>Unassigned</span>
+        <span class="caret">▾</span>
+      </button>
+    `;
+  const itemsHtml = `
+    <div class="assign-menu-item ${!currentUser ? "current" : ""}" onclick="event.stopPropagation(); assignFromDrawerPicker('')">
+      <span style="width:22px; height:22px; display:inline-block;"></span>
+      <span style="opacity:.7;">Unassigned</span>
+    </div>
+    ${activeUsers.map(u => {
+      const isCurrent = currentUser && currentUser.id === u.id;
+      return `
+        <div class="assign-menu-item ${isCurrent ? "current" : ""}" onclick="event.stopPropagation(); assignFromDrawerPicker('${u.short_name}')">
+          <img class="avatar" src="${u.avatar_url}" alt="${u.short_name}" style="border: 2px solid ${u.rep_color};" />
+          <span>${u.short_name}</span>
+        </div>
+      `;
+    }).join("")}
+  `;
+  container.innerHTML = `
+    <div class="assign-dropdown" data-drawer-picker="1">
+      ${triggerHtml}
+      <div class="assign-menu" id="drawer-assign-menu">
+        ${itemsHtml}
+      </div>
+    </div>
+  `;
+  // Store current value as data attribute so saveDrawerChanges can read it
+  container.setAttribute("data-current-value", currentShortName || "");
+}
+
+function toggleDrawerAssignMenu() {
+  const menu = document.getElementById("drawer-assign-menu");
+  if (!menu) return;
+  const wasOpen = menu.classList.contains("open");
+  document.querySelectorAll(".assign-menu.open").forEach(m => m.classList.remove("open"));
+  if (!wasOpen) menu.classList.add("open");
+}
+
+async function assignFromDrawerPicker(shortName) {
+  document.querySelectorAll(".assign-menu.open").forEach(m => m.classList.remove("open"));
+  const container = document.getElementById("drawerAssignedContainer");
+  if (container) container.setAttribute("data-current-value", shortName || "");
+  // Re-render to show new avatar
+  renderDrawerAssignPicker(shortName);
+  // If we have an active lead, save immediately (keeps in sync with table avatar dropdown pattern)
+  if (activeLeadId) {
+    const { error } = await supabaseClient
+      .from("leads")
+      .update({ assigned_to: shortName || null })
+      .eq("id", activeLeadId);
+    if (error) { showError("Could not assign: " + error.message); return; }
+    showSaveBanner(shortName ? `Assigned to ${shortName}.` : "Unassigned.");
+    // Update allRows cache so the table reflects immediately on next render
+    const idx = allRows.findIndex(r => String(r.id) === String(activeLeadId));
+    if (idx >= 0) allRows[idx].assigned_to = shortName || null;
+    renderTable(getVisibleRows());
+    renderCards(getVisibleRows());
+  }
 }
 
 function getUserByShortName(shortName) {
@@ -1989,6 +2155,16 @@ function toggleAssignMenu(rowId) {
 async function assignLeadFromDropdown(leadId, shortName) {
   document.querySelectorAll(".assign-menu.open").forEach(m => m.classList.remove("open"));
   await assignLead(leadId, shortName);
+}
+
+// Rail alert dropdown — dynamic population from activeUsers
+function populateRailAlertAssignDropdown() {
+  const select = document.getElementById("railAlertAssignedTo");
+  if (!select) return;
+  const previousValue = select.value;
+  select.innerHTML = `<option value="">All Employees</option>` +
+    activeUsers.map(u => `<option value="${u.short_name}">${u.short_name}</option>`).join("");
+  if (previousValue) select.value = previousValue;
 }
 
 document.addEventListener("click", (e) => {
@@ -2155,6 +2331,7 @@ function renderTable(rows) {
           <td><span class="pill">${safeText(row.company_label || getCompanyLabel(lower(row.company_key)) || "—")}</span></td>
           <td class="name-cell">
             ${safeText(row.full_name)}
+            ${row.time_sensitivity === "time_sensitive" ? `<span class="ts-badge" title="${row.delivery_time_window ? 'Required: ' + safeText(row.delivery_time_window) : 'Time-sensitive'}${row.time_sensitive_notes ? ' — ' + safeText(row.time_sensitive_notes) : ''}">🕐 ${row.delivery_time_window ? safeText(row.delivery_time_window) : "TIME SENSITIVE"}</span>` : ""}
             ${row.business_name ? `<span class="name-company-hint">🏢 ${safeText(row.business_name)}</span>` : ""}
           </td>
           <td>${safeText(row.phone)}</td>
@@ -2236,7 +2413,17 @@ function openDrawer(id) {
   document.getElementById("drawerCoordinatorNotes").value = row.coordinator_notes || "";
   document.getElementById("drawerQuoteNumber").value = row.quote_number || "";
   document.getElementById("drawerOrderNumber").value = row.order_number || "";
-  document.getElementById("drawerAssignedTo").value = row.assigned_to || "";
+  // Time-sensitive fields (v1.3.8)
+  const isTimeSensitive = (row.time_sensitivity === "time_sensitive");
+  const tsCheckbox = document.getElementById("drawerTimeSensitive");
+  const tsDetails = document.getElementById("drawerTimeSensitiveDetails");
+  const tsCard = document.querySelector(".time-sensitive-card");
+  tsCheckbox.checked = isTimeSensitive;
+  tsDetails.style.display = isTimeSensitive ? "flex" : "none";
+  if (tsCard) tsCard.classList.toggle("is-active", isTimeSensitive);
+  document.getElementById("drawerDeliveryTime").value = row.delivery_time_window || "";
+  document.getElementById("drawerTimeNotes").value = row.time_sensitive_notes || "";
+  renderDrawerAssignPicker(row.assigned_to || "");
   document.getElementById("drawerFollowUpStatus").value = String(asBool(row.follow_up_status));
   document.getElementById("drawerFlags").textContent = buildFlags(row);
   renderReferencePhoto(row);
@@ -2777,6 +2964,7 @@ async function loadDashboard() {
   clearError();
   renderTeamChat();
   await loadActiveUsers();
+  populateRailAlertAssignDropdown();
 
   const { data, error } = await supabaseClient
     .from("v_leads_with_signals")
@@ -2844,8 +3032,12 @@ async function saveDrawerChanges() {
     coordinator_notes: document.getElementById("drawerCoordinatorNotes").value.trim(),
     quote_number: document.getElementById("drawerQuoteNumber").value.trim(),
     order_number: document.getElementById("drawerOrderNumber").value.trim(),
-    assigned_to: document.getElementById("drawerAssignedTo").value || null,
-    follow_up_status: document.getElementById("drawerFollowUpStatus").value === "true"
+    assigned_to: document.getElementById("drawerAssignedContainer")?.getAttribute("data-current-value") || null,
+    follow_up_status: document.getElementById("drawerFollowUpStatus").value === "true",
+    // Time-sensitive fields (v1.3.8)
+    time_sensitivity: document.getElementById("drawerTimeSensitive").checked ? "time_sensitive" : "standard",
+    delivery_time_window: document.getElementById("drawerDeliveryTime").value.trim() || null,
+    time_sensitive_notes: document.getElementById("drawerTimeNotes").value.trim() || null
   };
   if (payload.follow_up_status) {
     payload.followed_up_by = payload.assigned_to || getLeadById(activeLeadId)?.assigned_to || "Unassigned";
@@ -3199,6 +3391,82 @@ async function completeTask(type) {
 }
 
 document.getElementById("searchInput").addEventListener("input", applySearch);
+
+// Auto-save Quote # and Order # on blur
+async function autosaveDrawerField(fieldName, value) {
+  if (!activeLeadId) return;
+  // Normalize value: strings get trimmed, explicit null stays null
+  let normalized;
+  if (value === null || value === undefined) {
+    normalized = null;
+  } else {
+    normalized = String(value).trim();
+    if (normalized === "") normalized = null;
+  }
+  const update = {};
+  update[fieldName] = normalized;
+  const { error } = await supabaseClient.from("leads").update(update).eq("id", activeLeadId);
+  if (error) { showError("Could not autosave: " + error.message); return; }
+  // Update local cache so table reflects without full reload
+  const idx = allRows.findIndex(r => String(r.id) === String(activeLeadId));
+  if (idx >= 0) allRows[idx][fieldName] = normalized;
+  // Friendly label for banner
+  const labels = {
+    quote_number: "Quote #",
+    order_number: "Order #",
+    delivery_time_window: "Delivery time",
+    time_sensitive_notes: "Time notes"
+  };
+  showSaveBanner(`${labels[fieldName] || fieldName} saved.`);
+}
+
+async function autosaveDrawerPayload(payload) {
+  if (!activeLeadId) return;
+  const { error } = await supabaseClient.from("leads").update(payload).eq("id", activeLeadId);
+  if (error) { showError("Could not autosave: " + error.message); return; }
+  // Update local cache
+  const idx = allRows.findIndex(r => String(r.id) === String(activeLeadId));
+  if (idx >= 0) Object.assign(allRows[idx], payload);
+  // Re-render table so the badge appears/disappears
+  renderTable(getVisibleRows());
+  renderCards(getVisibleRows());
+  const msg = payload.time_sensitivity === "time_sensitive"
+    ? "🕐 Marked time-sensitive"
+    : payload.time_sensitivity === "standard" ? "Removed time-sensitive flag" : "Saved.";
+  showSaveBanner(msg);
+}
+
+document.getElementById("drawerQuoteNumber").addEventListener("blur", (e) => {
+  autosaveDrawerField("quote_number", e.target.value);
+});
+document.getElementById("drawerOrderNumber").addEventListener("blur", (e) => {
+  autosaveDrawerField("order_number", e.target.value);
+});
+// Time-Sensitive toggle (v1.3.8)
+document.getElementById("drawerTimeSensitive").addEventListener("change", (e) => {
+  const details = document.getElementById("drawerTimeSensitiveDetails");
+  const card = document.querySelector(".time-sensitive-card");
+  const isOn = e.target.checked;
+  details.style.display = isOn ? "flex" : "none";
+  if (card) card.classList.toggle("is-active", isOn);
+  // Autosave the flag + wipe details if turning off
+  const payload = {
+    time_sensitivity: isOn ? "time_sensitive" : "standard"
+  };
+  if (!isOn) {
+    payload.delivery_time_window = null;
+    payload.time_sensitive_notes = null;
+    document.getElementById("drawerDeliveryTime").value = "";
+    document.getElementById("drawerTimeNotes").value = "";
+  }
+  autosaveDrawerPayload(payload);
+});
+document.getElementById("drawerDeliveryTime").addEventListener("blur", (e) => {
+  autosaveDrawerField("delivery_time_window", e.target.value || null);
+});
+document.getElementById("drawerTimeNotes").addEventListener("blur", (e) => {
+  autosaveDrawerField("time_sensitive_notes", e.target.value || null);
+});
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     // If extension is open, Escape closes it first. Second Escape closes primary drawer.
