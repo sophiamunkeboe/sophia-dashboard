@@ -1665,6 +1665,352 @@ filter: drop-shadow(0 0 4px rgba(245,158,11,0.6));
 }
 }
 
+/* ============================================================
+   PATCH 1 · ROW DENSITY · CHIPS · SIGNALS · AVATARS · DROPDOWN
+   ============================================================ */
+
+/* ---- Slim row cap ---- */
+tbody tr.slim-row {
+  height: 56px;
+}
+
+tbody tr.slim-row td {
+  padding: 8px 14px;
+  vertical-align: middle;
+  font-size: 13px;
+}
+
+/* Products column clamps to 2 lines max */
+tbody tr.slim-row td.products-cell {
+  max-width: 340px;
+}
+
+.products-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+  font-size: 13px;
+  color: #deebff;
+}
+
+.products-chip-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ---- Item count chip: 4 tiers ---- */
+.item-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  border: 1px solid rgba(255,255,255,.10);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.item-chip.tier-1 {
+  color: #dff7ff;
+  background: linear-gradient(180deg, rgba(124,236,255,.22), rgba(24,96,120,.18));
+  border-color: rgba(124,236,255,.30);
+  box-shadow: 0 0 10px rgba(124,236,255,.18);
+}
+
+.item-chip.tier-2 {
+  color: #fff1c9;
+  background: linear-gradient(180deg, rgba(255,212,106,.22), rgba(132,92,20,.18));
+  border-color: rgba(255,212,106,.32);
+  box-shadow: 0 0 12px rgba(255,212,106,.20);
+}
+
+.item-chip.tier-3 {
+  color: #ffe1c8;
+  background: linear-gradient(180deg, rgba(255,150,60,.25), rgba(140,70,20,.20));
+  border-color: rgba(255,150,60,.36);
+  box-shadow: 0 0 14px rgba(255,150,60,.22);
+}
+
+.item-chip.tier-4 {
+  color: #ffd8df;
+  background: linear-gradient(180deg, rgba(255,90,110,.28), rgba(120,30,50,.22));
+  border-color: rgba(255,90,110,.42);
+  box-shadow: 0 0 18px rgba(255,90,110,.26);
+}
+
+/* ---- Aging pulse on item chip ---- */
+.item-chip.pulse-medium {
+  animation: agingPulseMedium 1.9s ease-in-out infinite;
+}
+
+.item-chip.pulse-fast {
+  animation: agingPulseFast 1.3s ease-in-out infinite;
+}
+
+@keyframes agingPulseMedium {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(255,212,106,.22);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(255,212,106,.60), 0 0 40px rgba(255,212,106,.28);
+    transform: scale(1.04);
+  }
+}
+
+@keyframes agingPulseFast {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(255,90,110,.28);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(255,90,110,.75), 0 0 45px rgba(255,90,110,.35);
+    transform: scale(1.06);
+  }
+}
+
+/* ---- $ tier chip ---- */
+.dollar-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-family: "SFMono-Regular", "Consolas", "Menlo", monospace;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  border: 1px solid rgba(124,236,255,.18);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  color: #cfe6ff;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.dollar-chip.tier-1 { opacity: .55; }
+.dollar-chip.tier-2 { color: #dff7ff; border-color: rgba(124,236,255,.32); }
+.dollar-chip.tier-3 {
+  color: #fff1c9;
+  border-color: rgba(255,212,106,.40);
+  background: linear-gradient(180deg, rgba(255,212,106,.16), rgba(255,255,255,.02));
+}
+.dollar-chip.tier-4 {
+  color: #ffd8df;
+  border-color: rgba(255,90,110,.45);
+  background: linear-gradient(180deg, rgba(255,90,110,.18), rgba(255,255,255,.02));
+  box-shadow: 0 0 12px rgba(255,90,110,.20);
+}
+
+/* ---- Signals column ---- */
+th.signals-col, td.signals-col {
+  width: 140px;
+}
+
+.signals-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.signal-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  border: 1px solid rgba(255,255,255,.12);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.signal-pill.repeat {
+  color: #fff1c9;
+  background: linear-gradient(180deg, rgba(255,212,106,.24), rgba(132,92,20,.18));
+  border-color: rgba(255,212,106,.38);
+  box-shadow: 0 0 10px rgba(255,212,106,.18);
+}
+
+.signal-pill.anchor {
+  color: #dff7ff;
+  background: linear-gradient(180deg, rgba(124,236,255,.22), rgba(24,96,120,.18));
+  border-color: rgba(124,236,255,.36);
+  box-shadow: 0 0 10px rgba(124,236,255,.18);
+}
+
+.signal-pill.cheap {
+  color: #ffd8df;
+  background: linear-gradient(180deg, rgba(255,90,110,.24), rgba(120,30,50,.18));
+  border-color: rgba(255,90,110,.42);
+  box-shadow: 0 0 10px rgba(255,90,110,.20);
+  position: relative;
+}
+
+.signal-pill.cheap::after {
+  content: "DEMO";
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  font-size: 7px;
+  letter-spacing: .08em;
+  color: #7fa1b8;
+  background: rgba(0,0,0,.55);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 4px;
+  padding: 1px 3px;
+  line-height: 1;
+}
+
+/* ---- Assigned column: avatar + name pill (Variant B) ---- */
+.assigned-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 10px 3px 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  border: 1px solid rgba(124,236,255,.18);
+  font-size: 12px;
+  font-weight: 700;
+  color: #eef7ff;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.assigned-pill .avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 2px solid rgba(124,236,255,.35);
+  background: rgba(0,0,0,.3);
+  flex-shrink: 0;
+}
+
+.assigned-pill.unassigned {
+  color: #9fb3c8;
+  border-style: dashed;
+  opacity: .75;
+  padding: 4px 12px;
+}
+
+/* ---- Assign dropdown ---- */
+.assign-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.assign-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 10px 3px 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  border: 1px solid rgba(124,236,255,.24);
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  line-height: 1;
+  white-space: nowrap;
+  transition: all .18s ease;
+}
+
+.assign-trigger:hover {
+  border-color: rgba(124,236,255,.50);
+  box-shadow: 0 0 14px rgba(124,236,255,.22);
+}
+
+.assign-trigger .avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  object-fit: cover;
+  background: rgba(0,0,0,.3);
+  flex-shrink: 0;
+}
+
+.assign-trigger .caret {
+  margin-left: 2px;
+  font-size: 10px;
+  opacity: .7;
+}
+
+.assign-trigger.unassigned {
+  color: #9fb3c8;
+  border-style: dashed;
+  padding: 4px 12px;
+}
+
+.assign-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 180px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(10,20,40,.98), rgba(8,16,30,.98));
+  border: 1px solid rgba(124,236,255,.28);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.45), 0 0 20px rgba(124,236,255,.12);
+  backdrop-filter: blur(12px);
+  padding: 6px;
+  z-index: 100;
+  display: none;
+}
+
+.assign-menu.open {
+  display: block;
+}
+
+.assign-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #eef7ff;
+  transition: background .15s ease;
+}
+
+.assign-menu-item:hover,
+.assign-menu-item.current {
+  background: rgba(124,236,255,.12);
+}
+
+.assign-menu-item .avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  object-fit: cover;
+  background: rgba(0,0,0,.3);
+  flex-shrink: 0;
+}
+
+/* ---- Legacy employee-buttons hidden in slim mode ---- */
+tbody tr.slim-row .employee-buttons {
+  display: none;
+}
+
+/* ---- Slim row: consolidate table minimum width for new columns ---- */
+table.slim-table {
+  min-width: 1420px;
+}
+
 /* Sophia blue glow (photo icon) */
 .task-icon.photo {
 color: #7cecff;
@@ -2195,7 +2541,7 @@ let activeLeadId = null;
 let activeCompany = "master";
 let alerts = [];
 let teamChatMessages = [];
-let logisticsShellRows = [
+let activeUsers = [];
 {
 
 id: 1,
@@ -2825,14 +3171,194 @@ function renderLeaderboard(rows) {
   }).join("");
 }
 
+async function loadActiveUsers() {
+  const { data, error } = await supabaseClient
+    .from("users")
+    .select("id, short_name, avatar_url, rep_color, sort_order")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.error("loadActiveUsers error:", error);
+    activeUsers = [];
+    return;
+  }
+
+  activeUsers = data || [];
+}
+
+function getUserByShortName(shortName) {
+  if (!shortName) return null;
+  const target = String(shortName).trim().toLowerCase();
+  return activeUsers.find(u =>
+    String(u.short_name || "").trim().toLowerCase() === target
+  ) || null;
+}
+
+function computeItemCount(productsText) {
+  if (!productsText || !String(productsText).trim()) return 0;
+  const chunks = String(productsText)
+    .split(/[,\n]+/)
+    .map(c => c.trim())
+    .filter(c => c.length > 0);
+  return chunks.length;
+}
+
+function computeItemTier(count) {
+  if (count >= 20) return 4;
+  if (count >= 15) return 3;
+  if (count >= 10) return 2;
+  if (count >= 5) return 1;
+  return 0;
+}
+
+function computeDollarTier(count) {
+  const estimate = count * 200;
+  if (estimate >= 3500) return 4;
+  if (estimate >= 1500) return 3;
+  if (estimate >= 500) return 2;
+  if (estimate > 0) return 1;
+  return 0;
+}
+
+function computeAgingPulseClass(row, itemTier) {
+  if (itemTier < 2) return "";
+  if (row.assigned_to) return "";
+
+  const firstSeen = row.first_seen_at || row.created_at;
+  if (!firstSeen) return "";
+
+  const ageMs = Date.now() - new Date(firstSeen).getTime();
+  const ageHours = ageMs / (1000 * 60 * 60);
+
+  if (itemTier >= 3 && ageHours >= 12) return "pulse-fast";
+  if (itemTier >= 2 && ageHours >= 6) return "pulse-medium";
+  return "";
+}
+
+function renderItemChip(row) {
+  const count = computeItemCount(row.products_requested);
+  const tier = computeItemTier(count);
+  if (tier === 0) return "";
+
+  const emoji = tier === 4 ? "🔥" : tier === 3 ? "⚠" : tier === 2 ? "⚡" : "🪑";
+  const pulseClass = computeAgingPulseClass(row, tier);
+  return `<span class="item-chip tier-${tier} ${pulseClass}">${emoji} ${count} items</span>`;
+}
+
+function renderDollarChip(row) {
+  const count = computeItemCount(row.products_requested);
+  const tier = computeDollarTier(count);
+  if (tier === 0) return "";
+  const dollars = "$".repeat(tier);
+  return `<span class="dollar-chip tier-${tier}">${dollars}</span>`;
+}
+
+function renderSignals(row) {
+  const pills = [];
+
+  const repeatCount = Number(row.repeat_client_count) || 0;
+  if (repeatCount > 0) {
+    pills.push(`<span class="signal-pill repeat" title="Repeat client: ${repeatCount} prior order(s)">👑 ${repeatCount}x</span>`);
+  }
+
+  if (row.anchor_overlap === true) {
+    pills.push(`<span class="signal-pill anchor" title="Anchor overlap: same date + zip as a confirmed delivery">⚓</span>`);
+  }
+
+  // Cheap shopper — STUBBED for Patch 1. Real cross-brand wiring lands in Patch 2.
+  // Shown on demo rows only so the visual is testable. Keep commented unless testing.
+  // if (row.__demo_cheap === true) {
+  //   pills.push(`<span class="signal-pill cheap" title="Cheap shopper — stubbed, wiring in Patch 2">⚠ CHEAP</span>`);
+  // }
+
+  if (!pills.length) return `<span class="muted">—</span>`;
+  return `<div class="signals-wrap">${pills.join("")}</div>`;
+}
+
+function renderAssignDropdown(row) {
+  const currentName = row.assigned_to || "";
+  const currentUser = getUserByShortName(currentName);
+  const rowId = String(row.id ?? "");
+
+  let triggerHtml;
+  if (currentUser) {
+    triggerHtml = `
+      <button class="assign-trigger" onclick="event.stopPropagation(); toggleAssignMenu('${rowId}')" style="border-color: ${currentUser.rep_color}66;">
+        <img class="avatar" src="${currentUser.avatar_url}" alt="${currentUser.short_name}" style="border: 2px solid ${currentUser.rep_color};" />
+        <span>${currentUser.short_name}</span>
+        <span class="caret">▾</span>
+      </button>
+    `;
+  } else {
+    triggerHtml = `
+      <button class="assign-trigger unassigned" onclick="event.stopPropagation(); toggleAssignMenu('${rowId}')">
+        <span>Unassigned</span>
+        <span class="caret">▾</span>
+      </button>
+    `;
+  }
+
+  const itemsHtml = activeUsers.map(u => {
+    const isCurrent = currentUser && currentUser.id === u.id;
+    return `
+      <div class="assign-menu-item ${isCurrent ? "current" : ""}" onclick="event.stopPropagation(); assignLeadFromDropdown('${rowId}', '${u.short_name}')">
+        <img class="avatar" src="${u.avatar_url}" alt="${u.short_name}" style="border: 2px solid ${u.rep_color};" />
+        <span>${u.short_name}</span>
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <div class="assign-dropdown" data-dropdown-for="${rowId}">
+      ${triggerHtml}
+      <div class="assign-menu" id="assign-menu-${rowId}">
+        ${itemsHtml}
+      </div>
+    </div>
+  `;
+}
+
+function renderAssignedPill(row) {
+  const name = row.assigned_to || "";
+  const user = getUserByShortName(name);
+
+  if (!user) {
+    return `<span class="assigned-pill unassigned">Unassigned</span>`;
+  }
+
+  return `
+    <span class="assigned-pill" style="border-color: ${user.rep_color}66;">
+      <img class="avatar" src="${user.avatar_url}" alt="${user.short_name}" style="border-color: ${user.rep_color};" />
+      <span>${user.short_name}</span>
+    </span>
+  `;
+}
+
+function toggleAssignMenu(rowId) {
+  const menu = document.getElementById("assign-menu-" + rowId);
+  if (!menu) return;
+  const wasOpen = menu.classList.contains("open");
+  document.querySelectorAll(".assign-menu.open").forEach(m => m.classList.remove("open"));
+  if (!wasOpen) menu.classList.add("open");
+}
+
+async function assignLeadFromDropdown(leadId, shortName) {
+  document.querySelectorAll(".assign-menu.open").forEach(m => m.classList.remove("open"));
+  await assignLead(leadId, shortName);
+}
+
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".assign-dropdown")) {
+    document.querySelectorAll(".assign-menu.open").forEach(m => m.classList.remove("open"));
+  }
+});
+
 async function loadAlerts() {
   const { data, error } = await supabaseClient
     .from("operations_alerts")
     .select("*")
     .order("created_at", { ascending: false });
-
-  console.log("ALERTS DATA", data);
-  console.log("ALERTS ERROR", error);
 
   if (error) {
     showError("Could not load alerts: " + error.message);
@@ -3245,8 +3771,10 @@ async function loadDashboard() {
   clearError();
   renderTeamChat();
 
+  await loadActiveUsers();
+
   const { data, error } = await supabaseClient
-    .from("leads")
+    .from("v_leads_with_signals")
     .select("*")
     .order("created_at", { ascending: false })
     .limit(150);
