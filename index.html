@@ -2194,6 +2194,7 @@ align-items: center;
 <th>Products</th>
 <th>Route</th>
 <th>Status</th>
+<th class="signals-col">Signals</th>
 <th>Assigned</th>
 <th>Follow Up</th>
 <th>Assign</th>
@@ -2203,7 +2204,7 @@ align-items: center;
 </thead>
 <tbody id="tableBody">
 <tr>
-<td colspan="12" class="muted">Loading data...</td>
+<td colspan="13" class="muted">Loading data...</td>
 </tr>
 </tbody>
 </table>
@@ -3611,37 +3612,41 @@ function renderCards(rows) {
     const tbody = document.getElementById("tableBody");
 
     if (!rows.length) {
-tbody.innerHTML = '<tr><td colspan="12" class="muted">No rows found.</td></tr>';
+tbody.innerHTML = '<tr><td colspan="13" class="muted">No rows found.</td></tr>';
 return;
 }
 
     try {
-      tbody.innerHTML = rows.map(row => {
+    tbody.innerHTML = rows.map(row => {
         const rowStatus = getRowStatus(row);
         const followed = asBool(row.follow_up_status);
         const rowId = String(row.id ?? "");
+        const itemChip = renderItemChip(row);
+        const dollarChip = renderDollarChip(row);
+        const chipRow = (itemChip || dollarChip)
+          ? `<div class="products-chip-row">${itemChip}${dollarChip}</div>`
+          : "";
 
         return `
-      <tr data-row-id="${rowId}" onclick="openDrawer('${rowId}')">
+      <tr class="slim-row" data-row-id="${rowId}" onclick="openDrawer('${rowId}')">
   <td><span class="pill">${safeText(row.company_label || getCompanyLabel(lower(row.company_key)) || "—")}</span></td>
   <td class="name-cell">${safeText(row.full_name)}</td>
   <td>${safeText(row.phone)}</td>
   <td>${safeText(row.event_date)}</td>
-  <td class="products-cell">${safeText(row.products_requested)}</td>
+  <td class="products-cell">
+    <div class="products-text">${safeText(row.products_requested)}</div>
+    ${chipRow}
+  </td>
   <td>${safeText(row.workflow_route)}</td>
   <td><span class="pill ${statusClass(rowStatus)}">${statusLabel(rowStatus)}</span></td>
-  <td><span class="pill">${safeText(row.assigned_to)}</span></td>
+  <td class="signals-col">${renderSignals(row)}</td>
+  <td>${renderAssignedPill(row)}</td>
         <td>
               <span class="pill ${followed ? "ready" : "partial"}">${followed ? "Done" : "Pending"}</span>
               ${followed && row.followed_up_by ? `<span class="follow-note">By ${safeText(row.followed_up_by)}</span>` : ""}
             </td>
             <td onclick="event.stopPropagation()">
-              <div class="employee-buttons">
-                <button class="glass-btn" onclick="assignLead('${rowId}', 'Carina')">Carina</button>
-                <button class="glass-btn" onclick="assignLead('${rowId}', 'James')">James</button>
-                <button class="glass-btn" onclick="assignLead('${rowId}', 'Linda')">Linda</button>
-                <button class="glass-btn" onclick="assignLead('${rowId}', 'Stefani')">Stefani</button>
-              </div>
+              ${renderAssignDropdown(row)}
             </td>
             <td onclick="event.stopPropagation()">
               <button class="glass-btn done-btn" onclick="markFollowed('${rowId}')">Mark Done</button>
@@ -3650,6 +3655,7 @@ return;
           </tr>
         `;
       }).join("");
+
     } catch (err) {
       console.error("renderTable failed:", err);
   tbody.innerHTML = '<tr><td colspan="12" class="muted">Table render failed. Check console.</td></tr>';
@@ -4471,6 +4477,7 @@ async function completeTask(type) {
 
 </body>
 </html>
+
 
 
 
