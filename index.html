@@ -1025,9 +1025,9 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 
 /* Champion spotlight — rotating avatar */
 .kudos-champion-wrap {
-  padding: 20px 16px 16px;
+  padding: 18px 16px 18px;
   text-align: center;
-  background: radial-gradient(circle at center, rgba(255,215,0,.12), rgba(255,140,0,.04) 60%, transparent 80%);
+  background: radial-gradient(circle at center, rgba(255,215,0,.14), rgba(255,140,0,.04) 60%, transparent 80%);
   border-bottom: 1px solid rgba(255,215,0,.22);
   position: relative;
   overflow: hidden;
@@ -1046,42 +1046,87 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   0%, 100% { opacity: .6; }
   50%      { opacity: 1; }
 }
-.kudos-champion-label {
-  font-size: 10px; font-weight: 800; letter-spacing: .22em;
-  text-transform: uppercase;
-  color: #ffe8a3;
-  text-shadow: 0 0 12px rgba(255,215,0,.55);
-  margin-bottom: 10px;
+
+/* Marquee header bar */
+.kudos-champion-marquee {
+  position: relative;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,215,0,.20) 15%, rgba(255,215,0,.35) 50%, rgba(255,215,0,.20) 85%, transparent 100%);
+  border-top: 1px solid rgba(255,215,0,.40);
+  border-bottom: 1px solid rgba(255,215,0,.40);
+  padding: 6px 8px;
+  margin: 0 -16px 14px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .28em;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255,215,0,.8), 0 0 20px rgba(255,180,0,.5);
+  overflow: hidden;
 }
+.kudos-champion-marquee::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.30), transparent);
+  animation: marqueeShine 4s linear infinite;
+}
+@keyframes marqueeShine {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.kudos-champion-marquee-text { position: relative; z-index: 1; display: inline-block; }
+
+/* Champion showcase container (with flash transition support) */
+.kudos-champion-showcase {
+  position: relative;
+  animation: championAppear .6s ease-out;
+}
+.kudos-champion-showcase.flashing {
+  animation: championFlashIn .9s ease-out;
+}
+@keyframes championAppear {
+  from { opacity: 0; transform: scale(.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes championFlashIn {
+  0%   { opacity: 0; filter: brightness(4) blur(8px); transform: scale(1.25); }
+  30%  { opacity: 1; filter: brightness(2.5) blur(0); transform: scale(1.05); }
+  60%  { filter: brightness(1.3); transform: scale(1); }
+  100% { filter: brightness(1); transform: scale(1); }
+}
+
 .kudos-champion-avatar-wrap {
   position: relative;
   display: inline-block;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .kudos-champion-crown {
   position: absolute;
-  top: -22px;
+  top: -30px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 28px;
+  font-size: 36px;
   animation: crownFloat 2.2s ease-in-out infinite;
-  filter: drop-shadow(0 0 8px rgba(255,215,0,.7));
+  filter: drop-shadow(0 0 10px rgba(255,215,0,.8)) drop-shadow(0 0 20px rgba(255,180,0,.5));
+  z-index: 2;
 }
 @keyframes crownFloat {
   0%,100% { transform: translateX(-50%) translateY(0); }
-  50%     { transform: translateX(-50%) translateY(-5px); }
+  50%     { transform: translateX(-50%) translateY(-6px); }
 }
 .kudos-champion-avatar {
-  width: 88px; height: 88px;
+  width: 130px; height: 130px;
   border-radius: 50%;
-  border: 3px solid gold;
-  box-shadow: 0 0 24px rgba(255,215,0,.70), 0 0 48px rgba(255,180,0,.35);
-  animation: championRotate 10s linear infinite, championGlow 2s ease-in-out infinite;
+  border: 4px solid gold;
+  box-shadow:
+    0 0 32px rgba(255,215,0,.80),
+    0 0 64px rgba(255,180,0,.40),
+    inset 0 0 0 2px rgba(255,255,255,.30);
+  animation: championRotate 12s linear infinite, championGlow 2.2s ease-in-out infinite;
   object-fit: cover;
 }
 .kudos-champion-avatar.no-avatar {
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 36px; font-weight: 800;
+  font-size: 54px; font-weight: 800;
   background: linear-gradient(135deg, #ffd700, #ff8c00);
   color: #1a1a2e;
 }
@@ -1090,35 +1135,88 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   to   { transform: rotateY(360deg); }
 }
 @keyframes championGlow {
-  0%,100% { box-shadow: 0 0 24px rgba(255,215,0,.70), 0 0 48px rgba(255,180,0,.35); }
-  50%     { box-shadow: 0 0 38px rgba(255,215,0,.95), 0 0 70px rgba(255,180,0,.55); }
+  0%,100% { box-shadow: 0 0 32px rgba(255,215,0,.80), 0 0 64px rgba(255,180,0,.40), inset 0 0 0 2px rgba(255,255,255,.30); }
+  50%     { box-shadow: 0 0 50px rgba(255,215,0,1.00), 0 0 90px rgba(255,180,0,.65), inset 0 0 0 2px rgba(255,255,255,.45); }
 }
+
+/* Name bar */
 .kudos-champion-name {
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 800;
   color: #fff;
-  text-shadow: 0 0 16px rgba(255,215,0,.55);
+  text-shadow: 0 0 16px rgba(255,215,0,.70), 0 0 32px rgba(255,180,0,.45);
   margin-top: 4px;
-  letter-spacing: .02em;
-}
-.kudos-champion-stat {
-  margin-top: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #ffe8a3;
-  letter-spacing: .1em;
+  letter-spacing: .06em;
   text-transform: uppercase;
 }
+
+/* Neon scoreboard score display */
+.kudos-champion-score {
+  margin: 10px auto 0;
+  padding: 8px 20px;
+  display: inline-block;
+  border-top: 2px solid rgba(124,236,255,.60);
+  border-bottom: 2px solid rgba(124,236,255,.60);
+  font-family: "Courier New", "SF Mono", Consolas, monospace;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  color: #7cecff;
+  text-shadow:
+    0 0 8px rgba(124,236,255,.9),
+    0 0 16px rgba(124,236,255,.6),
+    0 0 32px rgba(124,236,255,.3);
+  animation: scoreboardPulse 2.4s ease-in-out infinite;
+  font-variant-numeric: tabular-nums;
+}
+@keyframes scoreboardPulse {
+  0%, 100% {
+    text-shadow: 0 0 8px rgba(124,236,255,.9), 0 0 16px rgba(124,236,255,.6), 0 0 32px rgba(124,236,255,.3);
+  }
+  50% {
+    text-shadow: 0 0 12px rgba(124,236,255,1), 0 0 24px rgba(124,236,255,.85), 0 0 48px rgba(124,236,255,.5);
+  }
+}
+
+.kudos-champion-category {
+  margin-top: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #ffe8a3;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+
+/* Stats LED ticker */
+.kudos-champion-ticker {
+  margin-top: 14px;
+  padding: 8px 12px;
+  background: rgba(0,0,0,.35);
+  border-radius: 10px;
+  border: 1px solid rgba(124,236,255,.20);
+  font-family: "Courier New", "SF Mono", Consolas, monospace;
+  font-size: 11px;
+  color: #b9ffcf;
+  letter-spacing: .08em;
+  text-shadow: 0 0 6px rgba(110,255,168,.5);
+  font-variant-numeric: tabular-nums;
+}
+.kudos-champion-ticker .sep {
+  margin: 0 10px;
+  color: rgba(124,236,255,.5);
+}
+
 .kudos-champion-badge {
   display: inline-block;
-  margin-top: 10px;
-  padding: 5px 14px;
+  margin-top: 12px;
+  padding: 6px 16px;
   border-radius: 999px;
   font-size: 11px; font-weight: 800;
-  letter-spacing: .14em;
+  letter-spacing: .16em;
   color: #1a1a2e;
   background: linear-gradient(135deg, #ffd700, #ffa500);
-  box-shadow: 0 0 16px rgba(255,215,0,.5);
+  box-shadow: 0 0 18px rgba(255,215,0,.55), 0 0 32px rgba(255,180,0,.30);
+  text-transform: uppercase;
 }
 
 /* Range toggle */
@@ -4351,34 +4449,64 @@ function renderKudos() {
     ? `<img class="kudos-champion-avatar" src="${champUser.avatar_url}" alt="${safeText(champion.rep)}" />`
     : `<div class="kudos-champion-avatar no-avatar">${safeText(String(champion.rep || "?").charAt(0).toUpperCase())}</div>`;
 
-  const champPrimaryStat = (() => {
+  // Primary score — big neon number display (just the value, no label)
+  const champPrimaryScore = (() => {
     switch (kudosCurrentCategory) {
-      case "revenue": return formatMoney(champion.revenue_won) + " REVENUE";
-      case "close":   return (Number(champion.close_rate_pct) || 0).toFixed(1) + "% CLOSE RATE";
-      case "volume":  return (Number(champion.quotes_total) || 0) + " QUOTES";
-      case "breadth": return (Number(champion.brands_worked) || 0) + " BRANDS";
+      case "revenue": return formatMoney(champion.revenue_won);
+      case "close":   return (Number(champion.close_rate_pct) || 0).toFixed(1) + "%";
+      case "volume":  return (Number(champion.quotes_total) || 0);
+      case "breadth": return (Number(champion.brands_worked) || 0) + " / 5";
     }
   })();
+
+  // Category label under the score
+  const champCategoryLabel = (() => {
+    switch (kudosCurrentCategory) {
+      case "revenue": return "REVENUE EARNED";
+      case "close":   return "CLOSE RATE";
+      case "volume":  return "QUOTES TOUCHED";
+      case "breadth": return "BRANDS WORKED";
+    }
+  })();
+
+  // Supplementary stat ticker — always shows the "other" numbers
+  const ticker = `<span>${Number(champion.quotes_won) || 0}W</span><span class="sep">·</span>` +
+                 `<span>${Number(champion.quotes_lost) || 0}L</span><span class="sep">·</span>` +
+                 `<span>${Number(champion.quotes_active) || 0}A</span><span class="sep">·</span>` +
+                 `<span>${(Number(champion.close_rate_pct) || 0).toFixed(0)}% CLOSE</span><span class="sep">·</span>` +
+                 `<span>${formatMoney(champion.revenue_won)}</span>`;
 
   const champBadge = (() => {
     switch (kudosCurrentCategory) {
-      case "revenue": return "💰 REVENUE CHAMPION";
-      case "close":   return "🎯 CLOSE CHAMPION";
-      case "volume":  return "⚡ VOLUME CHAMPION";
-      case "breadth": return "🌐 BREADTH CHAMPION";
+      case "revenue": return "💰 Revenue Champion";
+      case "close":   return "🎯 Close Champion";
+      case "volume":  return "⚡ Volume Champion";
+      case "breadth": return "🌐 Breadth Champion";
     }
   })();
 
+  // Detect if champion changed → fire flash animation
+  const previousChampionKey = spotlight.getAttribute("data-champ-key") || "";
+  const currentChampionKey = `${champion.rep}::${kudosCurrentCategory}`;
+  const isChampionChange = previousChampionKey && previousChampionKey !== currentChampionKey;
+
   spotlight.innerHTML = `
-    <div class="kudos-champion-label">Today's Kudos Champion</div>
-    <div class="kudos-champion-avatar-wrap">
-      <div class="kudos-champion-crown">👑</div>
-      ${champAvatar}
+    <div class="kudos-champion-marquee">
+      <span class="kudos-champion-marquee-text">✨ TOP PERFORMER — TODAY ✨</span>
     </div>
-    <div class="kudos-champion-name">${safeText(champion.rep)}</div>
-    <div class="kudos-champion-stat">${champPrimaryStat}</div>
-    <div class="kudos-champion-badge">${champBadge}</div>
+    <div class="kudos-champion-showcase ${isChampionChange ? "flashing" : ""}">
+      <div class="kudos-champion-avatar-wrap">
+        <div class="kudos-champion-crown">👑</div>
+        ${champAvatar}
+      </div>
+      <div class="kudos-champion-name">${safeText(champion.rep)}</div>
+      <div class="kudos-champion-score">${champPrimaryScore}</div>
+      <div class="kudos-champion-category">${champCategoryLabel}</div>
+      <div class="kudos-champion-ticker">${ticker}</div>
+      <div class="kudos-champion-badge">${champBadge}</div>
+    </div>
   `;
+  spotlight.setAttribute("data-champ-key", currentChampionKey);
 
   // Leaderboard cards
   const cards = sorted.map((rep, i) => renderKudosCard(rep, i, kudosCurrentCategory)).join("");
