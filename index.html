@@ -1842,6 +1842,29 @@ th.signals-col, td.signals-col {
   box-shadow: 0 0 10px rgba(255,212,106,.18);
 }
 
+.signal-pill.repeat.vip {
+  color: #fffbe6;
+  background: linear-gradient(180deg, rgba(255,224,140,.45), rgba(170,120,30,.30));
+  border-color: rgba(255,224,140,.85);
+  box-shadow: 0 0 16px rgba(255,220,120,.55), 0 0 36px rgba(255,200,80,.30);
+  text-shadow: 0 0 6px rgba(255,220,140,.70);
+  animation: vipCrownPulse 2.2s ease-in-out infinite;
+  font-weight: 900;
+}
+
+@keyframes vipCrownPulse {
+  0%, 100% {
+    box-shadow: 0 0 16px rgba(255,220,120,.55), 0 0 36px rgba(255,200,80,.30);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 26px rgba(255,230,140,.95), 0 0 56px rgba(255,200,80,.55);
+    transform: scale(1.06);
+  }
+}
+
+
+
 .signal-pill.anchor {
   color: #dff7ff;
   background: linear-gradient(180deg, rgba(124,236,255,.22), rgba(24,96,120,.18));
@@ -3283,9 +3306,14 @@ function renderSignals(row) {
   const pills = [];
 
   const repeatCount = Number(row.repeat_client_count) || 0;
-  if (repeatCount > 0) {
-    pills.push(`<span class="signal-pill repeat" title="Repeat client: ${repeatCount} prior order(s)">👑 ${repeatCount}x</span>`);
+  const isVip = row.vip_client === true;
+  if (isVip) {
+    const countLabel = repeatCount > 0 ? `${repeatCount}x` : 'VIP';
+    pills.push(`<span class="signal-pill repeat vip" title="VIP: 10+ orders in a 12-month window">👑 ${countLabel}</span>`);
+  } else if (repeatCount > 0) {
+    pills.push(`<span class="signal-pill repeat" title="Repeat client: ${repeatCount} prior order(s) in last 4 years">👑 ${repeatCount}x</span>`);
   }
+
 
   if (row.anchor_overlap === true) {
     pills.push(`<span class="signal-pill anchor" title="Anchor overlap: same date + zip as a confirmed delivery">⚓</span>`);
