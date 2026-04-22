@@ -1877,6 +1877,23 @@ th.signals-col, td.signals-col {
   border-color: rgba(255,90,110,.42);
 }
 
+.signal-pill.overdue {
+  color: #ffe4c4;
+  background: linear-gradient(180deg, rgba(255,160,60,.28), rgba(140,70,20,.22));
+  border-color: rgba(255,160,60,.55);
+  box-shadow: 0 0 12px rgba(255,160,60,.30);
+  animation: overduePulse 2.4s ease-in-out infinite;
+}
+
+@keyframes overduePulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(255,160,60,.30);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255,160,60,.60), 0 0 36px rgba(255,160,60,.25);
+  }
+}
+
 .signal-pill.cheap.tier-1 {
   background: linear-gradient(180deg, rgba(255,90,110,.24), rgba(120,30,50,.18));
   box-shadow: 0 0 10px rgba(255,90,110,.22);
@@ -3319,7 +3336,7 @@ function renderSignals(row) {
     pills.push(`<span class="signal-pill anchor" title="Anchor overlap: same date + zip as a confirmed delivery">⚓</span>`);
   }
 
- const cheapTier = Number(row.cheap_tier) || 0; if (cheapTier === 1) { pills.push(`<span class="signal-pill cheap tier-1" title="Cheap shopper: 2 brands, no orders (30d)">⚠ CHEAP</span>`); } else if (cheapTier === 2) { pills.push(`<span class="signal-pill cheap tier-2" title="Real cheap: 3 brands, no orders (30d)">🚨 REAL CHEAP</span>`); } else if (cheapTier >= 3) { pills.push(`<span class="signal-pill cheap tier-3" title="Cheap poor: 4+ brands, no orders (30d)">💀 CHEAP POOR</span>`); }
+  if (row.overdue_balance === true) { const amt = Number(row.overdue_amount) || 0; const amtLabel = amt > 0 ? `$${amt.toFixed(0)}` : ''; pills.push(`<span class="signal-pill overdue" title="Overdue balance: $${amt.toFixed(2)} in last 12 months">🧾 ${amtLabel} OVERDUE</span>`); } const cheapTier = Number(row.cheap_tier) || 0; if (cheapTier === 1) {{ pills.push(`<span class="signal-pill cheap tier-1" title="Cheap shopper: 2 brands, no orders (30d)">⚠ CHEAP</span>`); } else if (cheapTier === 2) { pills.push(`<span class="signal-pill cheap tier-2" title="Real cheap: 3 brands, no orders (30d)">🚨 REAL CHEAP</span>`); } else if (cheapTier >= 3) { pills.push(`<span class="signal-pill cheap tier-3" title="Cheap poor: 4+ brands, no orders (30d)">💀 CHEAP POOR</span>`); }
 
   if (!pills.length) return `<span class="muted">—</span>`;
   return `<div class="signals-wrap">${pills.join("")}</div>`;
