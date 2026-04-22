@@ -2425,7 +2425,7 @@ async function loadExtensionQuotes(row) {
     <div class="ext-summary">
       <div class="ext-summary-stat"><div class="label">Total Quotes</div><div class="value">${quotes.length}</div></div>
       <div class="ext-summary-stat"><div class="label">Converted</div><div class="value">${convertedCount}</div></div>
-      <div class="ext-summary-stat"><div class="label">Conversion Rate</div><div class="value">${conversionRate}%</div></div>
+      <div class="ext-summary-stat"><div class="label">Quote Close Rate</div><div class="value">${conversionRate}%</div></div>
       <div class="ext-summary-stat"><div class="label">Last Quote</div><div class="value">${formatOrderDate(quotes[0]?.record_date)}</div></div>
     </div>
   `;
@@ -2544,11 +2544,35 @@ async function loadExtensionIntel(row) {
     const avgOrder = orders.length > 0 ? totalSpend / orders.length : 0;
     const firstOrder = orders[orders.length - 1]?.record_date;
     const lastOrder = orders[0]?.record_date;
-    const convertedCount = quotes.filter(q => {
+
+    // QUOTE STATUS BREAKDOWN
+    const wonQuotes = quotes.filter(q => {
       const s = (String(q.status_class || "") + " " + String(q.status_raw || "")).toLowerCase();
       return s.includes("won") || s.includes("convert") || s.includes("ordered");
     }).length;
-    const conversionRate = quotes.length > 0 ? Math.round((convertedCount / quotes.length) * 100) : 0;
+    const lostQuotes = quotes.filter(q => {
+      const s = (String(q.status_class || "") + " " + String(q.status_raw || "")).toLowerCase();
+      return s.includes("lost");
+    }).length;
+    const openQuotes = quotes.length - wonQuotes - lostQuotes;
+    const quoteCloseRate = quotes.length > 0 ? Math.round((wonQuotes / quotes.length) * 100) : 0;
+
+    // QUOTE ↔ ORDER LINKING
+    // Orders are "straight-to-order" if no quote has ref_order_no matching this order's record_no
+    const orderNosWithQuotes = new Set(
+      quotes
+        .filter(q => q.ref_order_no)
+        .map(q => String(q.ref_order_no).trim().toUpperCase())
+    );
+    const ordersFromQuotes = orders.filter(o => {
+      return o.record_no && orderNosWithQuotes.has(String(o.record_no).trim().toUpperCase());
+    }).length;
+    const straightOrders = orders.length - ordersFromQuotes;
+
+    // TRUE WIN RATE (includes straight orders as automatic wins)
+    const totalOpportunities = quotes.length + straightOrders;
+    const totalCaptured = wonQuotes + straightOrders;
+    const trueWinRate = totalOpportunities > 0 ? Math.round((totalCaptured / totalOpportunities) * 100) : 0;
 
     const brandCounts = {};
     orders.forEach(o => {
@@ -2556,6 +2580,10 @@ async function loadExtensionIntel(row) {
       brandCounts[b] = (brandCounts[b] || 0) + 1;
     });
     const brandRows = Object.entries(brandCounts).sort((a, b) => b[1] - a[1]);
+
+    // Detect if this is a mostly-Munkeboe client (they go straight-to-order a lot)
+    const munkeboeOrders = brandCounts["munkeboe"] || 0;
+    const isMunkeboeDominant = orders.length > 0 && (munkeboeOrders / orders.length) >= 0.5;
 
     const signalRows = [];
     if (row.vip_client === true) signalRows.push({ k: "👑 VIP Status", v: `${row.repeat_client_count || 10}+ orders in 12mo window` });
@@ -2566,21 +2594,38 @@ async function loadExtensionIntel(row) {
     if (cheapTier === 1) signalRows.push({ k: "⚠ Cheap Shopper", v: "2 brands, no orders (30d)" });
     else if (cheapTier === 2) signalRows.push({ k: "🚨 Real Cheap", v: "3 brands, no orders (30d)" });
     else if (cheapTier >= 3) signalRows.push({ k: "💀 Cheap Poor", v: "4+ brands, no orders (30d)" });
+    if (isMunkeboeDominant && straightOrders > 0) {
+      signalRows.push({ k: "🎯 Munkeboe Direct", v: `${straightOrders} straight-to-order (trusted regular)` });
+    }
 
     const html = `
       <div class="ext-summary">
         <div class="ext-summary-stat"><div class="label">Lifetime Spend</div><div class="value">${formatMoney(totalSpend)}</div></div>
         <div class="ext-summary-stat"><div class="label">Total Orders</div><div class="value">${orders.length}</div></div>
         <div class="ext-summary-stat"><div class="label">Avg Order</div><div class="value">${formatMoney(avgOrder)}</div></div>
-        <div class="ext-summary-stat"><div class="label">Quote→Order</div><div class="value">${conversionRate}%</div></div>
+        <div class="ext-summary-stat"><div class="label">True Win Rate</div><div class="value">${trueWinRate}%</div></div>
       </div>
 
       <div class="intel-section">
         <div class="intel-section-title">Timeline</div>
         <div class="intel-kv-row"><span class="k">First Order</span><span class="v">${formatOrderDate(firstOrder)}</span></div>
         <div class="intel-kv-row"><span class="k">Last Order</span><span class="v">${formatOrderDate(lastOrder)}</span></div>
+      </div>
+
+      <div class="intel-section">
+        <div class="intel-section-title">Order Flow Breakdown</div>
+        <div class="intel-kv-row"><span class="k">From a quote</span><span class="v">${ordersFromQuotes}</span></div>
+        <div class="intel-kv-row"><span class="k">Straight-to-order</span><span class="v">${straightOrders}</span></div>
+        <div class="intel-kv-row"><span class="k">Total orders</span><span class="v">${orders.length}</span></div>
+      </div>
+
+      <div class="intel-section">
+        <div class="intel-section-title">Quote Activity</div>
         <div class="intel-kv-row"><span class="k">Total Quotes</span><span class="v">${quotes.length}</span></div>
-        <div class="intel-kv-row"><span class="k">Converted</span><span class="v">${convertedCount}</span></div>
+        <div class="intel-kv-row"><span class="k">Closed Won</span><span class="v">${wonQuotes}</span></div>
+        <div class="intel-kv-row"><span class="k">Closed Lost</span><span class="v">${lostQuotes}</span></div>
+        ${openQuotes > 0 ? `<div class="intel-kv-row"><span class="k">Open / Other</span><span class="v">${openQuotes}</span></div>` : ""}
+        <div class="intel-kv-row"><span class="k">Quote Close Rate</span><span class="v">${quoteCloseRate}%</span></div>
       </div>
 
       ${signalRows.length ? `
