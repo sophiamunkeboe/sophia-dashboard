@@ -3342,12 +3342,11 @@ function renderSignals(row) {
     pills.push(`<span class="signal-pill repeat" title="Repeat client: ${repeatCount} prior order(s) in last 4 years">👑 ${repeatCount}x</span>`);
   }
 
-
   if (row.anchor_overlap === true) {
     pills.push(`<span class="signal-pill anchor" title="Anchor overlap: same date + zip as a confirmed delivery">⚓</span>`);
   }
 
-if (row.overdue_balance === true) {
+  if (row.overdue_balance === true) {
     const amt = Number(row.overdue_amount) || 0;
     const amtLabel = amt > 0 ? `$${amt.toFixed(0)}` : '';
     pills.push(`<span class="signal-pill overdue" title="Overdue balance: $${amt.toFixed(2)} in last 12 months">🧾 ${amtLabel} OVERDUE</span>`);
@@ -3362,11 +3361,9 @@ if (row.overdue_balance === true) {
     pills.push(`<span class="signal-pill cheap tier-3" title="Cheap poor: 4+ brands, no orders (30d)">💀 CHEAP POOR</span>`);
   }
 
-
   if (!pills.length) return `<span class="muted">—</span>`;
   return `<div class="signals-wrap">${pills.join("")}</div>`;
 }
-
 function renderAssignDropdown(row) {
   const currentName = row.assigned_to || "";
   const currentUser = getUserByShortName(currentName);
