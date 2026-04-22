@@ -649,6 +649,47 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   padding: 5px 10px;
 }
 
+/* BUSINESS ACCOUNT BLINK — firm red, ~1s cycle */
+.drawer-company-alert {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #ffd8df;
+  background: linear-gradient(180deg, rgba(255,60,90,.35), rgba(160,20,50,.25));
+  border: 1px solid rgba(255,60,90,.75);
+  animation: businessBlink 1s ease-in-out infinite;
+  text-shadow: 0 0 6px rgba(255,180,200,.7);
+}
+.drawer-company-alert:empty { display: none; }
+
+@keyframes businessBlink {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(255,60,90,.45), 0 0 18px rgba(255,60,90,.22);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(255,60,90,.95), 0 0 48px rgba(255,60,90,.55);
+    opacity: .92;
+  }
+}
+
+/* Company hint under name in Live Leads table — static, not blinking */
+.name-company-hint {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #ff8aa3;
+  opacity: .85;
+}
+
 /* EXTENSION BUTTON ROW */
 .drawer-ext-row {
   display: grid;
@@ -1302,6 +1343,7 @@ table.slim-table { min-width: 1420px; }
 <div class="drawer-head">
 <div>
 <h3 class="drawer-title" id="drawerCustomerName">Client Detail</h3>
+<div class="drawer-company-alert" id="drawerCompanyAlert"></div>
 <div class="drawer-sub">Lead intelligence, quote tracking, and routing context</div>
 <div class="drawer-signals" id="drawerSignals"></div>
 </div>
@@ -2095,7 +2137,10 @@ function renderTable(rows) {
       return `
         <tr class="slim-row" data-row-id="${rowId}" onclick="openDrawer('${rowId}')">
           <td><span class="pill">${safeText(row.company_label || getCompanyLabel(lower(row.company_key)) || "—")}</span></td>
-          <td class="name-cell">${safeText(row.full_name)}</td>
+          <td class="name-cell">
+            ${safeText(row.full_name)}
+            ${row.customer_company ? `<span class="name-company-hint">🏢 ${safeText(row.customer_company)}</span>` : ""}
+          </td>
           <td>${safeText(row.phone)}</td>
           <td>${safeText(row.event_date)}</td>
           <td class="products-cell">
@@ -2180,10 +2225,18 @@ function openDrawer(id) {
   document.getElementById("drawerFlags").textContent = buildFlags(row);
   renderReferencePhoto(row);
 
+  // Format phone nicely
+  const phoneEl = document.getElementById("drawerPhone");
+  if (phoneEl) phoneEl.textContent = formatPhone(row.phone);
+
+  // Reset company alert (will be set by preloadExtensionCounts if business detected)
+  const alertEl = document.getElementById("drawerCompanyAlert");
+  if (alertEl) { alertEl.textContent = ""; alertEl.style.display = "none"; }
+
   // Render signal pills in drawer header
   document.getElementById("drawerSignals").innerHTML = renderSignals(row);
 
-  // Preload extension counts
+  // Preload extension counts (also applies email + company fallbacks)
   preloadExtensionCounts(row);
 
   document.getElementById("drawerOverlay").classList.add("open");
@@ -2195,6 +2248,8 @@ function closeDrawer() {
   closeExtensionDrawer();
   document.getElementById("drawerOverlay").classList.remove("open");
   document.getElementById("leadDrawer").classList.remove("open");
+  const alertEl = document.getElementById("drawerCompanyAlert");
+  if (alertEl) { alertEl.textContent = ""; alertEl.style.display = "none"; }
   activeLeadId = null;
   setTimeout(() => { setActiveRow(null); }, 50);
 }
@@ -2216,6 +2271,17 @@ function normalizePhoneDigits(phone) {
 function normalizeEmail(email) {
   if (!email) return "";
   return String(email).trim().toLowerCase();
+}
+
+function formatPhone(phone) {
+  if (!phone) return "—";
+  const digits = String(phone).replace(/\D/g, "");
+  let ten = digits;
+  if (ten.length === 11 && ten.startsWith("1")) ten = ten.slice(1);
+  if (ten.length === 10) {
+    return `(${ten.slice(0,3)}) ${ten.slice(3,6)}-${ten.slice(6)}`;
+  }
+  return phone;
 }
 
 async function queryClientHistory(phone, email, recordType) {
@@ -2258,12 +2324,46 @@ async function preloadExtensionCounts(row) {
 
     const orders = ordersRes.data || [];
     const quotes = quotesRes.data || [];
+    const allHistory = [...orders, ...quotes].sort((a, b) => {
+      const ad = a.record_date ? new Date(a.record_date).getTime() : 0;
+      const bd = b.record_date ? new Date(b.record_date).getTime() : 0;
+      return bd - ad;
+    });
+
+    // EMAIL FALLBACK: if lead has no email, pull most recent from history
+    const emailEl = document.getElementById("drawerEmail");
+    if (emailEl && (!row.email || String(row.email).trim() === "")) {
+      const histEmail = allHistory.find(h => h.email && String(h.email).trim() !== "")?.email;
+      if (histEmail) {
+        emailEl.innerHTML = `${safeText(histEmail)} <span style="font-size:10px; color:#9fb3c8; letter-spacing:.08em; text-transform:uppercase; margin-left:6px;">from history</span>`;
+      }
+    }
+
+    // COMPANY NAME DETECTION: check lead row + historical records
+    const alertEl = document.getElementById("drawerCompanyAlert");
+    if (alertEl) {
+      let companyName = "";
+      // Check lead row first
+      if (row.customer_company && String(row.customer_company).trim() !== "") {
+        companyName = String(row.customer_company).trim();
+      } else {
+        // Fallback: pull most recent non-empty customer_company from history
+        const histCompany = allHistory.find(h => h.customer_company && String(h.customer_company).trim() !== "")?.customer_company;
+        if (histCompany) companyName = String(histCompany).trim();
+      }
+      if (companyName) {
+        alertEl.textContent = `🏢 ${companyName}`;
+        alertEl.style.display = "inline-block";
+      } else {
+        alertEl.textContent = "";
+        alertEl.style.display = "none";
+      }
+    }
 
     extensionCountsCache.orders = orders.length;
     extensionCountsCache.quotes = quotes.length;
     extensionCountsCache.delivery = orders.filter(o => {
       const dm = String(o.delivery_method || "").toLowerCase().trim();
-      // Only real deliveries (exclude pickup, laundry service, will-call, blank)
       return dm && (dm.includes("deliver") || dm.includes("driver") || dm.includes("courier") || dm.includes("truck") || dm.includes("drop"));
     }).length;
 
@@ -2379,12 +2479,14 @@ async function loadExtensionOrders(row) {
     if (statusLabel.includes("deliver") || statusLabel.includes("complet") || statusLabel.includes("closed") || statusLabel.includes("return") || statusLabel.includes("won")) statusClass = "delivered";
     else if (statusLabel.includes("paid")) statusClass = "paid";
     const hasRealStatus = rawStatus.length > 0;
+    const eventDateLine = o.event_start_date ? `<div style="font-size:11px; color:#c8d9ef; margin-top:2px;">📅 Event: ${formatOrderDate(o.event_start_date)}</div>` : "";
     return `
       <div class="ext-row-card">
         <div class="ext-row-top">
           <div>
             <div class="ext-row-order">Order #${safeText(orderNo)}</div>
             <div class="ext-row-date">${formatOrderDate(o.record_date)}</div>
+            ${eventDateLine}
           </div>
           <div class="ext-row-total">${formatMoney(o.total)}</div>
         </div>
@@ -2644,8 +2746,8 @@ async function loadExtensionIntel(row) {
 
       <div class="intel-section">
         <div class="intel-section-title">Contact</div>
-        <div class="intel-kv-row"><span class="k">Phone</span><span class="v">${safeText(row.phone)}</span></div>
-        <div class="intel-kv-row"><span class="k">Email</span><span class="v">${safeText(row.email)}</span></div>
+        <div class="intel-kv-row"><span class="k">Phone</span><span class="v">${formatPhone(row.phone)}</span></div>
+        <div class="intel-kv-row"><span class="k">Email</span><span class="v">${row.email ? safeText(row.email) : (orders.concat(quotes).find(h => h.email && String(h.email).trim())?.email ? safeText(orders.concat(quotes).find(h => h.email && String(h.email).trim()).email) + ' <span style="font-size:10px; color:#9fb3c8; letter-spacing:.08em; text-transform:uppercase; margin-left:6px;">from history</span>' : '—')}</span></div>
       </div>
     `;
 
