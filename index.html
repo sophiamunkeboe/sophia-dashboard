@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Sophia Systems Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Mapbox GL JS (v1.4.0) -->
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.css" rel="stylesheet" />
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.js"></script>
 
 <style>
 :root {
@@ -991,6 +994,337 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   font-size: 13px;
 }
 
+/* ============================================ */
+/* KUDOS LEADERBOARD (v1.4.1)                  */
+/* ============================================ */
+
+/* Rail tab styling — gold shimmer */
+.rail-tab-kudos {
+  border-color: rgba(255,215,0,.40) !important;
+  color: #ffedb5 !important;
+  background: linear-gradient(180deg, rgba(255,215,0,.10), rgba(255,140,0,.04)) !important;
+  box-shadow: 0 0 16px rgba(255,215,0,.20) !important;
+  animation: kudosRailGlow 3s ease-in-out infinite;
+}
+.rail-tab-kudos:hover {
+  border-color: rgba(255,215,0,.70) !important;
+  box-shadow: 0 0 28px rgba(255,215,0,.45), 0 0 48px rgba(255,180,0,.20) !important;
+}
+@keyframes kudosRailGlow {
+  0%, 100% { box-shadow: 0 0 16px rgba(255,215,0,.20); }
+  50%      { box-shadow: 0 0 28px rgba(255,215,0,.35), 0 0 48px rgba(255,180,0,.18); }
+}
+
+/* Panel overrides */
+.kudos-panel {
+  width: 460px !important;
+}
+@media (max-width: 980px) {
+  .kudos-panel { width: min(430px, calc(100vw - 64px)) !important; }
+}
+
+/* Champion spotlight — rotating avatar */
+.kudos-champion-wrap {
+  padding: 20px 16px 16px;
+  text-align: center;
+  background: radial-gradient(circle at center, rgba(255,215,0,.12), rgba(255,140,0,.04) 60%, transparent 80%);
+  border-bottom: 1px solid rgba(255,215,0,.22);
+  position: relative;
+  overflow: hidden;
+}
+.kudos-champion-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,215,0,.06) 0%, transparent 40%),
+    radial-gradient(circle at 70% 80%, rgba(255,140,0,.06) 0%, transparent 40%);
+  animation: kudosGlimmer 5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes kudosGlimmer {
+  0%, 100% { opacity: .6; }
+  50%      { opacity: 1; }
+}
+.kudos-champion-label {
+  font-size: 10px; font-weight: 800; letter-spacing: .22em;
+  text-transform: uppercase;
+  color: #ffe8a3;
+  text-shadow: 0 0 12px rgba(255,215,0,.55);
+  margin-bottom: 10px;
+}
+.kudos-champion-avatar-wrap {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+.kudos-champion-crown {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 28px;
+  animation: crownFloat 2.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(255,215,0,.7));
+}
+@keyframes crownFloat {
+  0%,100% { transform: translateX(-50%) translateY(0); }
+  50%     { transform: translateX(-50%) translateY(-5px); }
+}
+.kudos-champion-avatar {
+  width: 88px; height: 88px;
+  border-radius: 50%;
+  border: 3px solid gold;
+  box-shadow: 0 0 24px rgba(255,215,0,.70), 0 0 48px rgba(255,180,0,.35);
+  animation: championRotate 10s linear infinite, championGlow 2s ease-in-out infinite;
+  object-fit: cover;
+}
+.kudos-champion-avatar.no-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 36px; font-weight: 800;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  color: #1a1a2e;
+}
+@keyframes championRotate {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+@keyframes championGlow {
+  0%,100% { box-shadow: 0 0 24px rgba(255,215,0,.70), 0 0 48px rgba(255,180,0,.35); }
+  50%     { box-shadow: 0 0 38px rgba(255,215,0,.95), 0 0 70px rgba(255,180,0,.55); }
+}
+.kudos-champion-name {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 0 16px rgba(255,215,0,.55);
+  margin-top: 4px;
+  letter-spacing: .02em;
+}
+.kudos-champion-stat {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffe8a3;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.kudos-champion-badge {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 11px; font-weight: 800;
+  letter-spacing: .14em;
+  color: #1a1a2e;
+  background: linear-gradient(135deg, #ffd700, #ffa500);
+  box-shadow: 0 0 16px rgba(255,215,0,.5);
+}
+
+/* Range toggle */
+.kudos-range-toggle {
+  display: flex; gap: 6px;
+  padding: 10px 14px 6px;
+  border-bottom: 1px solid rgba(124,236,255,.08);
+}
+.kudos-range-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(124,236,255,.16);
+  background: rgba(255,255,255,.03);
+  color: #a9c3d8;
+  font-size: 10px; font-weight: 800;
+  letter-spacing: .12em;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.kudos-range-btn:hover { border-color: rgba(124,236,255,.36); color: #eef7ff; }
+.kudos-range-btn.active {
+  background: linear-gradient(180deg, rgba(255,215,0,.18), rgba(255,140,0,.06));
+  border-color: rgba(255,215,0,.45);
+  color: #ffedb5;
+  box-shadow: 0 0 14px rgba(255,215,0,.25);
+}
+
+/* Category bar */
+.kudos-category-bar {
+  display: flex; gap: 4px;
+  padding: 8px 12px 10px;
+  overflow-x: auto;
+  border-bottom: 1px solid rgba(124,236,255,.08);
+}
+.kudos-cat-btn {
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(124,236,255,.14);
+  background: rgba(255,255,255,.03);
+  color: #a9c3d8;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .08em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .18s ease;
+}
+.kudos-cat-btn.active {
+  background: linear-gradient(180deg, rgba(124,236,255,.18), rgba(124,236,255,.06));
+  border-color: rgba(124,236,255,.40);
+  color: #d7f5ff;
+}
+
+/* Body */
+.kudos-body { padding: 12px !important; gap: 8px !important; }
+
+/* Rep cards */
+.kudos-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  border: 1px solid rgba(124,236,255,.14);
+  transition: all .2s ease;
+}
+.kudos-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 18px rgba(124,236,255,.18);
+}
+
+/* Tier-specific styling */
+.kudos-card.tier-legend {
+  background: linear-gradient(90deg, rgba(255,215,0,.14), rgba(255,140,0,.04));
+  border-color: rgba(255,215,0,.50);
+  box-shadow: inset 0 0 20px rgba(255,215,0,.10), 0 0 20px rgba(255,215,0,.18);
+}
+.kudos-card.tier-legend::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 14px;
+  background: linear-gradient(120deg, transparent 40%, rgba(255,215,0,.2) 50%, transparent 60%);
+  animation: legendShimmer 3s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+@keyframes legendShimmer {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.kudos-card.tier-elite {
+  background: linear-gradient(90deg, rgba(200,200,255,.10), rgba(160,160,255,.03));
+  border-color: rgba(200,200,255,.38);
+  box-shadow: inset 0 0 16px rgba(200,200,255,.08);
+}
+.kudos-card.tier-advanced {
+  border-color: rgba(124,236,255,.38);
+  box-shadow: inset 0 0 14px rgba(124,236,255,.08);
+}
+.kudos-card.tier-rising {
+  border-color: rgba(124,236,255,.22);
+}
+.kudos-card.tier-steady {
+  border-color: rgba(180,200,220,.18);
+}
+
+.kudos-rank {
+  width: 28px;
+  font-size: 14px; font-weight: 800;
+  text-align: center;
+  color: #eef7ff;
+}
+.kudos-rank.first  { color: gold; text-shadow: 0 0 10px rgba(255,215,0,.8); font-size: 18px; }
+.kudos-rank.second { color: silver; text-shadow: 0 0 8px rgba(192,192,192,.7); font-size: 16px; }
+.kudos-rank.third  { color: #cd7f32; text-shadow: 0 0 8px rgba(205,127,50,.7); font-size: 16px; }
+
+.kudos-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,.14);
+  flex-shrink: 0;
+}
+.kudos-avatar.letter-fallback {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #2d4a7a, #1a2f4d);
+  color: #e8f3ff;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.kudos-main { flex: 1; min-width: 0; }
+.kudos-line1 {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+}
+.kudos-name {
+  font-size: 14px; font-weight: 700;
+  color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.kudos-primary-stat {
+  font-size: 14px; font-weight: 800;
+  color: #7fe5a6;
+  letter-spacing: .02em;
+  flex-shrink: 0;
+}
+.kudos-line2 {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #9fb3c8;
+  display: flex; gap: 6px; flex-wrap: wrap;
+  align-items: center;
+}
+.kudos-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: .08em;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(124,236,255,.18);
+  color: #c8d9ef;
+}
+.kudos-chip.volume  { color: #ffedb5; border-color: rgba(255,215,0,.40); background: rgba(255,215,0,.08); }
+.kudos-chip.close   { color: #b9ffcf; border-color: rgba(110,255,168,.40); background: rgba(110,255,168,.08); }
+.kudos-chip.breadth { color: #ded4ff; border-color: rgba(150,130,255,.40); background: rgba(124,100,255,.10); }
+.kudos-chip.sertifi { color: #ffd7bf; border-color: rgba(255,165,80,.40); background: rgba(255,120,80,.08); }
+.kudos-chip.chasing { color: #ffe0e7; border-color: rgba(255,138,163,.40); background: rgba(255,138,163,.08); }
+.kudos-chip.cleanup { color: #ffd2a0; border-color: rgba(255,150,80,.40); background: rgba(255,130,60,.08); }
+
+.kudos-tier-pip {
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 9px; font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.kudos-tier-pip.tier-legend   { color: #1a1a2e; background: linear-gradient(135deg, #ffd700, #ffa500); }
+.kudos-tier-pip.tier-elite    { color: #1a1a2e; background: linear-gradient(135deg, #e8e8ff, #b8b8e8); }
+.kudos-tier-pip.tier-advanced { color: #001826; background: linear-gradient(135deg, #7cecff, #4dabf7); }
+.kudos-tier-pip.tier-rising   { color: #001826; background: rgba(124,236,255,.35); }
+.kudos-tier-pip.tier-steady   { color: #eef7ff; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); }
+
+/* Summary footer */
+.kudos-summary {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(124,236,255,.10);
+  font-size: 11px;
+  color: #a9c3d8;
+  line-height: 1.6;
+  text-align: center;
+}
+.kudos-summary .num { color: #fff; font-weight: 800; font-size: 13px; }
+
+.kudos-empty-placeholder {
+  padding: 30px 16px;
+  text-align: center;
+  color: #8fb4c9;
+  font-size: 13px;
+}
+
 .drawer-textarea { min-height: 90px; resize: vertical; }
 .drawer-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
 .drawer-save-note { margin-top: 10px; font-size: 12px; color: #a9c3df; }
@@ -1883,7 +2217,7 @@ table.slim-table { min-width: 1420px; }
   <button class="rail-tab" onclick="openRailPanel('tasksRailPanel')">Tasks</button>
   <button class="rail-tab" onclick="openRailPanel('chatRailPanel')">Chat</button>
   <button class="rail-tab" onclick="openRailPanel('notesRailPanel')">Notes</button>
-  <button class="rail-tab" onclick="openRailPanel('leaderboardRailPanel')">Board</button>
+  <button class="rail-tab rail-tab-kudos" onclick="openKudosPanel()">🏆 KUDOS</button>
   <button class="rail-tab" onclick="openRailPanel('inventoryRailPanel')">Inventory</button>
   <button class="rail-tab" onclick="openRailPanel('logisticsRailPanel')">Logistics</button>
 </div>
@@ -1973,15 +2307,61 @@ table.slim-table { min-width: 1420px; }
 <div class="rail-panel-body"><div class="rail-shell-card">Coming soon: push list, substitutions, and inventory pressure notes.</div></div>
 </aside>
 
-<aside id="leaderboardRailPanel" class="rail-panel">
-  <div class="rail-panel-head"><div><h3 class="rail-panel-title">Leaderboard</h3><div class="rail-panel-sub">Reserved module</div></div><button class="rail-close" onclick="closeRailPanels()">×</button></div>
-  <div class="rail-panel-body"><div class="rail-shell-card">Coming soon: team culture board and soft recognition metrics.</div></div>
+<aside id="leaderboardRailPanel" class="rail-panel kudos-panel">
+  <div class="rail-panel-head">
+    <div>
+      <h3 class="rail-panel-title">🏆 KUDOS Leaderboard</h3>
+      <div class="rail-panel-sub" id="kudosSub">Loading team stats…</div>
+    </div>
+    <button class="rail-close" onclick="closeRailPanels()">×</button>
+  </div>
+
+  <!-- Champion Spotlight -->
+  <div id="kudosChampionSpotlight" class="kudos-champion-wrap">
+    <div class="kudos-empty-placeholder">Loading champion…</div>
+  </div>
+
+  <!-- Time range toggle -->
+  <div class="kudos-range-toggle">
+    <button class="kudos-range-btn active" data-range="month" onclick="switchKudosRange('month', event)">MONTH</button>
+    <button class="kudos-range-btn" data-range="week" onclick="switchKudosRange('week', event)">WEEK</button>
+    <button class="kudos-range-btn" data-range="all" onclick="switchKudosRange('all', event)">ALL</button>
+  </div>
+
+  <!-- Category tab bar -->
+  <div class="kudos-category-bar">
+    <button class="kudos-cat-btn active" data-cat="revenue" onclick="switchKudosCat('revenue', event)">💰 REVENUE</button>
+    <button class="kudos-cat-btn" data-cat="close" onclick="switchKudosCat('close', event)">🎯 CLOSE %</button>
+    <button class="kudos-cat-btn" data-cat="volume" onclick="switchKudosCat('volume', event)">⚡ VOLUME</button>
+    <button class="kudos-cat-btn" data-cat="breadth" onclick="switchKudosCat('breadth', event)">🌐 BREADTH</button>
+  </div>
+
+  <div class="rail-panel-body kudos-body" id="kudosBody">
+    <div class="lrp-empty">Loading leaderboard…</div>
+  </div>
 </aside>
 
 <script>
   const SUPABASE_URL = "https://aeonjnohadmbxfuoirqa.supabase.co";
   const SUPABASE_KEY = "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf";
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ============================================
+  // MAPBOX CONFIG (v1.4.0)
+  // ============================================
+  // Paste your Mapbox public token below (starts with "pk.")
+  // Get it from: https://console.mapbox.com/account/access-tokens/
+  const MAPBOX_TOKEN = "PASTE_YOUR_MAPBOX_TOKEN_HERE";
+
+  // Initialize Mapbox if token is set
+  if (typeof mapboxgl !== "undefined" && MAPBOX_TOKEN && MAPBOX_TOKEN !== "PASTE_YOUR_MAPBOX_TOKEN_HERE") {
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+    console.log("✅ Mapbox loaded — token accepted. Ready for Phase 2B map rendering.");
+  } else if (typeof mapboxgl === "undefined") {
+    console.warn("⚠️ Mapbox GL JS not loaded. Check CDN script in <head>.");
+  } else {
+    console.warn("⚠️ MAPBOX_TOKEN not set. Paste your token in the config block at the top of the <script>.");
+  }
 
 let allRows = [];
 let activeLeadId = null;
@@ -3759,6 +4139,327 @@ document.addEventListener("click", (e) => {
 });
 
 function getRandomKudos() { return KUDOS_MESSAGES[Math.floor(Math.random() * KUDOS_MESSAGES.length)]; }
+
+// ============================================
+// KUDOS LEADERBOARD (v1.4.1)
+// ============================================
+
+let kudosData = [];
+let kudosCurrentRange = "month";    // month|week|all (week/all stub for now)
+let kudosCurrentCategory = "revenue"; // revenue|close|volume|breadth
+
+function openKudosPanel() {
+  const target = document.getElementById("leaderboardRailPanel");
+  if (!target) return;
+  const alreadyOpen = target.classList.contains("open");
+  closeRailPanels();
+  if (!alreadyOpen) {
+    target.classList.add("open");
+    loadKudosData();
+  }
+}
+
+async function loadKudosData() {
+  const body = document.getElementById("kudosBody");
+  const sub = document.getElementById("kudosSub");
+  if (!body) return;
+  body.innerHTML = `<div class="lrp-empty">Loading leaderboard…</div>`;
+  if (sub) sub.textContent = "Loading team stats…";
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("v_rep_stats_30d")
+      .select("*");
+    if (error) throw error;
+    kudosData = data || [];
+    renderKudos();
+    if (sub) sub.textContent = `Last 30 days · ${kudosData.length} active reps · refreshed ${new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
+  } catch (err) {
+    console.error("Kudos load error:", err);
+    body.innerHTML = `<div class="lrp-empty">Could not load leaderboard.<br><br><small>${safeText(err.message || "Unknown error")}</small></div>`;
+  }
+}
+
+function switchKudosCat(cat, e) {
+  kudosCurrentCategory = cat;
+  document.querySelectorAll(".kudos-cat-btn").forEach(b => b.classList.remove("active"));
+  if (e && e.currentTarget) e.currentTarget.classList.add("active");
+  renderKudos();
+}
+
+function switchKudosRange(range, e) {
+  kudosCurrentRange = range;
+  document.querySelectorAll(".kudos-range-btn").forEach(b => b.classList.remove("active"));
+  if (e && e.currentTarget) e.currentTarget.classList.add("active");
+  // TODO: When v_rep_stats_7d and v_rep_stats_all views exist, switch datasource
+  renderKudos();
+}
+
+function sortKudosByCategory(rows, cat) {
+  const sorted = [...rows];
+  switch (cat) {
+    case "revenue":
+      sorted.sort((a, b) => (Number(b.revenue_won) || 0) - (Number(a.revenue_won) || 0));
+      break;
+    case "close":
+      // Sort by close rate, but tiebreak by # of completed (won+lost) so high-volume at top
+      sorted.sort((a, b) => {
+        const aRate = Number(a.close_rate_pct) || 0;
+        const bRate = Number(b.close_rate_pct) || 0;
+        if (bRate !== aRate) return bRate - aRate;
+        const aClosed = (Number(a.quotes_won) || 0) + (Number(a.quotes_lost) || 0);
+        const bClosed = (Number(b.quotes_won) || 0) + (Number(b.quotes_lost) || 0);
+        return bClosed - aClosed;
+      });
+      break;
+    case "volume":
+      sorted.sort((a, b) => (Number(b.quotes_total) || 0) - (Number(a.quotes_total) || 0));
+      break;
+    case "breadth":
+      sorted.sort((a, b) => {
+        const aB = Number(a.brands_worked) || 0;
+        const bB = Number(b.brands_worked) || 0;
+        if (bB !== aB) return bB - aB;
+        return (Number(b.quotes_total) || 0) - (Number(a.quotes_total) || 0);
+      });
+      break;
+  }
+  return sorted;
+}
+
+function kudosTier(rep, index, category) {
+  // Tier based on rank in the current category + absolute thresholds
+  const revenue = Number(rep.revenue_won) || 0;
+  const closeRate = Number(rep.close_rate_pct) || 0;
+  const volume = Number(rep.quotes_total) || 0;
+
+  if (category === "revenue") {
+    if (revenue >= 20000) return "legend";
+    if (revenue >= 12000) return "elite";
+    if (revenue >= 5000) return "advanced";
+    if (revenue >= 1000) return "rising";
+    return "steady";
+  }
+  if (category === "close") {
+    if (closeRate >= 85 && volume >= 10) return "legend";
+    if (closeRate >= 75) return "elite";
+    if (closeRate >= 65) return "advanced";
+    if (closeRate >= 50) return "rising";
+    return "steady";
+  }
+  if (category === "volume") {
+    if (volume >= 120) return "legend";
+    if (volume >= 60) return "elite";
+    if (volume >= 30) return "advanced";
+    if (volume >= 10) return "rising";
+    return "steady";
+  }
+  if (category === "breadth") {
+    const brands = Number(rep.brands_worked) || 0;
+    if (brands >= 4) return "legend";
+    if (brands >= 3) return "elite";
+    if (brands >= 2) return "advanced";
+    return "rising";
+  }
+  return "steady";
+}
+
+function tierLabel(tier) {
+  const map = {
+    legend: "👑 LEGEND",
+    elite: "◆ ELITE",
+    advanced: "◆ ADVANCED",
+    rising: "◆ RISING",
+    steady: "STEADY"
+  };
+  return map[tier] || "STEADY";
+}
+
+function getRepUser(repName) {
+  if (!repName) return null;
+  const normalized = String(repName).trim().toLowerCase();
+  // Direct match to activeUsers.short_name
+  let user = activeUsers.find(u =>
+    String(u.short_name || "").trim().toLowerCase() === normalized);
+  if (user) return user;
+  // Try fuzzy match — strip "MB", "tr", "TR" suffixes (LindaMB → Linda)
+  const stripped = normalized.replace(/(mb|tr|tq|sel|aer)$/i, "").trim();
+  if (stripped && stripped !== normalized) {
+    user = activeUsers.find(u =>
+      String(u.short_name || "").trim().toLowerCase() === stripped);
+    if (user) return user;
+  }
+  return null;
+}
+
+function repBadges(rep, category) {
+  const badges = [];
+  const quotes = Number(rep.quotes_total) || 0;
+  const closeRate = Number(rep.close_rate_pct) || 0;
+  const revenue = Number(rep.revenue_won) || 0;
+  const brands = Number(rep.brands_worked) || 0;
+  const chasing = Number(rep.being_followed_up) || 0;
+  const sertifis = Number(rep.sertifis_sent) || 0;
+  const cleanup = Number(rep.needs_cleanup) || 0;
+
+  // Category-specific primary badges
+  if (category !== "volume" && quotes >= 100) {
+    badges.push({ cls: "volume", text: "⚡ HIGH VOLUME" });
+  }
+  if (category !== "close" && closeRate >= 85 && quotes >= 10) {
+    badges.push({ cls: "close", text: "🎯 SNIPER" });
+  }
+  if (category !== "breadth" && brands >= 4) {
+    badges.push({ cls: "breadth", text: "🌐 ALL BRANDS" });
+  }
+  if (sertifis >= 2) {
+    badges.push({ cls: "sertifi", text: `📝 ${sertifis} SERTIFI` });
+  }
+  if (chasing >= 10) {
+    badges.push({ cls: "chasing", text: `🔄 ${chasing} CHASING` });
+  }
+  if (cleanup > 0) {
+    badges.push({ cls: "cleanup", text: `🧹 ${cleanup} CLEANUP` });
+  }
+  return badges;
+}
+
+function formatMoney(n) {
+  if (n === null || n === undefined || isNaN(n)) return "$0";
+  const num = Number(n);
+  if (num >= 1000) return "$" + (num / 1000).toFixed(1) + "k";
+  return "$" + Math.round(num);
+}
+
+function renderKudos() {
+  const body = document.getElementById("kudosBody");
+  const spotlight = document.getElementById("kudosChampionSpotlight");
+  if (!body || !spotlight) return;
+
+  if (!kudosData || kudosData.length === 0) {
+    spotlight.innerHTML = `<div class="kudos-empty-placeholder">No activity yet in the last 30 days.</div>`;
+    body.innerHTML = `<div class="lrp-empty">No team data available.</div>`;
+    return;
+  }
+
+  const sorted = sortKudosByCategory(kudosData, kudosCurrentCategory);
+  const champion = sorted[0];
+
+  // Champion spotlight
+  const champUser = getRepUser(champion.rep);
+  const champAvatar = champUser?.avatar_url
+    ? `<img class="kudos-champion-avatar" src="${champUser.avatar_url}" alt="${safeText(champion.rep)}" />`
+    : `<div class="kudos-champion-avatar no-avatar">${safeText(String(champion.rep || "?").charAt(0).toUpperCase())}</div>`;
+
+  const champPrimaryStat = (() => {
+    switch (kudosCurrentCategory) {
+      case "revenue": return formatMoney(champion.revenue_won) + " REVENUE";
+      case "close":   return (Number(champion.close_rate_pct) || 0).toFixed(1) + "% CLOSE RATE";
+      case "volume":  return (Number(champion.quotes_total) || 0) + " QUOTES";
+      case "breadth": return (Number(champion.brands_worked) || 0) + " BRANDS";
+    }
+  })();
+
+  const champBadge = (() => {
+    switch (kudosCurrentCategory) {
+      case "revenue": return "💰 REVENUE CHAMPION";
+      case "close":   return "🎯 CLOSE CHAMPION";
+      case "volume":  return "⚡ VOLUME CHAMPION";
+      case "breadth": return "🌐 BREADTH CHAMPION";
+    }
+  })();
+
+  spotlight.innerHTML = `
+    <div class="kudos-champion-label">Today's Kudos Champion</div>
+    <div class="kudos-champion-avatar-wrap">
+      <div class="kudos-champion-crown">👑</div>
+      ${champAvatar}
+    </div>
+    <div class="kudos-champion-name">${safeText(champion.rep)}</div>
+    <div class="kudos-champion-stat">${champPrimaryStat}</div>
+    <div class="kudos-champion-badge">${champBadge}</div>
+  `;
+
+  // Leaderboard cards
+  const cards = sorted.map((rep, i) => renderKudosCard(rep, i, kudosCurrentCategory)).join("");
+
+  // Team summary footer
+  const totalRevenue = kudosData.reduce((s, r) => s + (Number(r.revenue_won) || 0), 0);
+  const totalQuotes = kudosData.reduce((s, r) => s + (Number(r.quotes_total) || 0), 0);
+  const totalWon = kudosData.reduce((s, r) => s + (Number(r.quotes_won) || 0), 0);
+  const totalLost = kudosData.reduce((s, r) => s + (Number(r.quotes_lost) || 0), 0);
+  const teamCloseRate = (totalWon + totalLost) > 0
+    ? (100 * totalWon / (totalWon + totalLost)).toFixed(1)
+    : "0";
+
+  const summary = `
+    <div class="kudos-summary">
+      <div>Team · Last 30 Days</div>
+      <div style="margin-top:6px;">
+        <span class="num">${formatMoney(totalRevenue)}</span> revenue ·
+        <span class="num">${totalWon}</span> wins ·
+        <span class="num">${totalQuotes}</span> quotes ·
+        <span class="num">${teamCloseRate}%</span> close
+      </div>
+    </div>
+  `;
+
+  body.innerHTML = cards + summary;
+}
+
+function renderKudosCard(rep, index, category) {
+  const tier = kudosTier(rep, index, category);
+  const user = getRepUser(rep.rep);
+  const avatar = user?.avatar_url
+    ? `<img class="kudos-avatar" src="${user.avatar_url}" alt="${safeText(rep.rep)}" />`
+    : `<div class="kudos-avatar letter-fallback">${safeText(String(rep.rep || "?").charAt(0).toUpperCase())}</div>`;
+
+  const rankDisplay = (() => {
+    if (index === 0) return `<div class="kudos-rank first">🥇</div>`;
+    if (index === 1) return `<div class="kudos-rank second">🥈</div>`;
+    if (index === 2) return `<div class="kudos-rank third">🥉</div>`;
+    return `<div class="kudos-rank">${index + 1}</div>`;
+  })();
+
+  const primaryStat = (() => {
+    switch (category) {
+      case "revenue": return formatMoney(rep.revenue_won);
+      case "close":   return (Number(rep.close_rate_pct) || 0).toFixed(1) + "%";
+      case "volume":  return (Number(rep.quotes_total) || 0) + "q";
+      case "breadth": return (Number(rep.brands_worked) || 0) + " brands";
+    }
+  })();
+
+  // Meta line — complementary numbers
+  const metaParts = [];
+  if (category !== "volume") metaParts.push(`${Number(rep.quotes_total) || 0}q`);
+  if (category !== "revenue") metaParts.push(formatMoney(rep.revenue_won));
+  if (category !== "close") metaParts.push(`${(Number(rep.close_rate_pct) || 0).toFixed(0)}% close`);
+  metaParts.push(`${Number(rep.quotes_won) || 0}w / ${Number(rep.quotes_lost) || 0}l / ${Number(rep.quotes_active) || 0}a`);
+
+  const badges = repBadges(rep, category);
+  const badgesHtml = badges.slice(0, 2).map(b =>
+    `<span class="kudos-chip ${b.cls}">${b.text}</span>`
+  ).join("");
+
+  return `
+    <div class="kudos-card tier-${tier}">
+      ${rankDisplay}
+      ${avatar}
+      <div class="kudos-main">
+        <div class="kudos-line1">
+          <span class="kudos-name">${safeText(rep.rep)}</span>
+          <span class="kudos-primary-stat">${primaryStat}</span>
+        </div>
+        <div class="kudos-line2">
+          <span class="kudos-tier-pip tier-${tier}">${tierLabel(tier)}</span>
+          <span>${metaParts.join(" · ")}</span>
+          ${badgesHtml}
+        </div>
+      </div>
+    </div>
+  `;
+}
 
 function pushSystemChatMessage(line1, line2) {
   teamChatMessages.unshift({ type: "system", line1, line2, created_at: new Date().toISOString() });
