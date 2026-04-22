@@ -2211,7 +2211,7 @@ function normalizeEmail(email) {
   return String(email).trim().toLowerCase();
 }
 
-async function queryHistoricalByPhoneOrEmail(tableName, phone, email) {
+async function queryClientHistory(phone, email, recordType) {
   const phoneDigits = normalizePhoneDigits(phone);
   const emailLower = normalizeEmail(email);
 
@@ -2219,14 +2219,18 @@ async function queryHistoricalByPhoneOrEmail(tableName, phone, email) {
 
   const filters = [];
   if (phoneDigits) filters.push(`phone_digits.eq.${phoneDigits}`);
-  if (emailLower) filters.push(`email.ilike.${emailLower}`);
+  if (emailLower) filters.push(`email_norm.eq.${emailLower}`);
 
-  const query = supabaseClient
-    .from(tableName)
+  let query = supabaseClient
+    .from("v_client_history")
     .select("*")
     .or(filters.join(","))
-    .order("order_date", { ascending: false })
+    .order("record_date", { ascending: false, nullsFirst: false })
     .limit(200);
+
+  if (recordType) {
+    query = query.eq("record_type", recordType);
+  }
 
   const result = await query;
   return result;
@@ -2235,15 +2239,14 @@ async function queryHistoricalByPhoneOrEmail(tableName, phone, email) {
 async function preloadExtensionCounts(row) {
   extensionCountsCache = { orders: 0, quotes: 0, delivery: 0 };
 
-  // Set initial loading state
   document.getElementById("extCountOrders").textContent = "...";
   document.getElementById("extCountQuotes").textContent = "...";
   document.getElementById("extCountDelivery").textContent = "...";
 
   try {
     const [ordersRes, quotesRes] = await Promise.all([
-      queryHistoricalByPhoneOrEmail("historical_orders", row.phone, row.email),
-      queryHistoricalByPhoneOrEmail("historical_quotes", row.phone, row.email)
+      queryClientHistory(row.phone, row.email, "order"),
+      queryClientHistory(row.phone, row.email, "quote")
     ]);
 
     const orders = ordersRes.data || [];
@@ -2253,7 +2256,7 @@ async function preloadExtensionCounts(row) {
     extensionCountsCache.quotes = quotes.length;
     extensionCountsCache.delivery = orders.filter(o => {
       const dm = String(o.delivery_method || "").toLowerCase();
-      return dm && dm !== "pickup" && dm !== "will call" && dm !== "customer pickup";
+      return dm && dm !== "pickup" && dm !== "will call" && dm !== "customer pickup" && dm !== "will-call";
     }).length;
 
     updateExtCountBadge("extCountOrders", extensionCountsCache.orders);
@@ -2320,7 +2323,7 @@ async function loadExtensionOrders(row) {
   const body = document.getElementById("extDrawerBody");
   body.innerHTML = `<div class="muted">Loading orders...</div>`;
 
-  const { data, error } = await queryHistoricalByPhoneOrEmail("historical_orders", row.phone, row.email);
+  const { data, error } = await queryClientHistory(row.phone, row.email, "order");
   if (error) { body.innerHTML = `<div class="ext-empty">Error loading orders: ${safeText(error.message)}</div>`; return; }
 
   const orders = data || [];
@@ -2328,8 +2331,8 @@ async function loadExtensionOrders(row) {
 
   const totalSpend = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
   const avgOrder = totalSpend / orders.length;
-  const firstOrder = orders[orders.length - 1]?.order_date;
-  const lastOrder = orders[0]?.order_date;
+  const firstOrder = orders[orders.length - 1]?.record_date;
+  const lastOrder = orders[0]?.record_date;
 
   const summaryHtml = `
     <div class="ext-summary">
@@ -2341,29 +2344,29 @@ async function loadExtensionOrders(row) {
   `;
 
   const rowsHtml = orders.map(o => {
-    const orderNo = o.order_number || o.order_id || o.id || "—";
+    const orderNo = o.record_no || "—";
     const dm = safeText(o.delivery_method || "—");
-    const addr = [o.address, o.city, o.zip_code || o.zip].filter(Boolean).join(", ");
-    const items = safeText(o.items_summary || o.products || o.description || "");
-    const statusLabel = String(o.status || "").toLowerCase();
+    const addr = [o.address, o.city, o.zip].filter(Boolean).join(", ");
+    const items = safeText(o.items_text || "");
+    const statusLabel = String(o.status_raw || "").toLowerCase();
     let statusClass = "open";
-    if (statusLabel.includes("deliver") || statusLabel.includes("complet")) statusClass = "delivered";
+    if (statusLabel.includes("deliver") || statusLabel.includes("complet") || statusLabel.includes("closed") || statusLabel.includes("return")) statusClass = "delivered";
     else if (statusLabel.includes("paid")) statusClass = "paid";
     return `
       <div class="ext-row-card">
         <div class="ext-row-top">
           <div>
             <div class="ext-row-order">Order #${safeText(orderNo)}</div>
-            <div class="ext-row-date">${formatOrderDate(o.order_date)}</div>
+            <div class="ext-row-date">${formatOrderDate(o.record_date)}</div>
           </div>
           <div class="ext-row-total">${formatMoney(o.total)}</div>
         </div>
         <div class="ext-row-meta">
           ${addr ? safeText(addr) + "<br>" : ""}
-          Delivery: ${dm}
+          Delivery: ${dm}${o.company_label ? ` · ${safeText(o.company_label)}` : ""}
         </div>
         ${items ? `<div class="ext-row-items">${items}</div>` : ""}
-        ${statusLabel ? `<div class="ext-row-status-pill ${statusClass}">${safeText(o.status)}</div>` : ""}
+        ${statusLabel ? `<div class="ext-row-status-pill ${statusClass}">${safeText(o.status_raw)}</div>` : ""}
       </div>
     `;
   }).join("");
@@ -2377,13 +2380,17 @@ async function loadExtensionQuotes(row) {
   const body = document.getElementById("extDrawerBody");
   body.innerHTML = `<div class="muted">Loading quotes...</div>`;
 
-  const { data, error } = await queryHistoricalByPhoneOrEmail("historical_quotes", row.phone, row.email);
+  const { data, error } = await queryClientHistory(row.phone, row.email, "quote");
   if (error) { body.innerHTML = `<div class="ext-empty">Error loading quotes: ${safeText(error.message)}</div>`; return; }
 
   const quotes = data || [];
   if (!quotes.length) { body.innerHTML = `<div class="ext-empty">No prior quotes found for this client.</div>`; return; }
 
-  const convertedCount = quotes.filter(q => String(q.status || "").toLowerCase().includes("convert") || String(q.status || "").toLowerCase().includes("order")).length;
+  const convertedCount = quotes.filter(q => {
+    const cls = String(q.status_class || "").toLowerCase();
+    const raw = String(q.status_raw || "").toLowerCase();
+    return cls.includes("convert") || cls.includes("order") || raw.includes("convert") || raw.includes("ordered");
+  }).length;
   const conversionRate = quotes.length > 0 ? Math.round((convertedCount / quotes.length) * 100) : 0;
 
   const summaryHtml = `
@@ -2391,14 +2398,14 @@ async function loadExtensionQuotes(row) {
       <div class="ext-summary-stat"><div class="label">Total Quotes</div><div class="value">${quotes.length}</div></div>
       <div class="ext-summary-stat"><div class="label">Converted</div><div class="value">${convertedCount}</div></div>
       <div class="ext-summary-stat"><div class="label">Conversion Rate</div><div class="value">${conversionRate}%</div></div>
-      <div class="ext-summary-stat"><div class="label">Last Quote</div><div class="value">${formatOrderDate(quotes[0]?.order_date)}</div></div>
+      <div class="ext-summary-stat"><div class="label">Last Quote</div><div class="value">${formatOrderDate(quotes[0]?.record_date)}</div></div>
     </div>
   `;
 
   const rowsHtml = quotes.map(q => {
-    const qNo = q.quote_number || q.order_number || q.order_id || q.id || "—";
-    const items = safeText(q.items_summary || q.products || q.description || "");
-    const statusLabel = String(q.status || "").toLowerCase();
+    const qNo = q.record_no || "—";
+    const items = safeText(q.items_text || "");
+    const statusLabel = String(q.status_raw || q.status_class || "").toLowerCase();
     let statusClass = "open";
     if (statusLabel.includes("convert") || statusLabel.includes("order")) statusClass = "delivered";
     return `
@@ -2406,12 +2413,13 @@ async function loadExtensionQuotes(row) {
         <div class="ext-row-top">
           <div>
             <div class="ext-row-order">Quote #${safeText(qNo)}</div>
-            <div class="ext-row-date">${formatOrderDate(q.order_date)}</div>
+            <div class="ext-row-date">${formatOrderDate(q.record_date)}</div>
           </div>
           <div class="ext-row-total">${formatMoney(q.total)}</div>
         </div>
+        <div class="ext-row-meta">${q.company_label ? safeText(q.company_label) : ""}</div>
         ${items ? `<div class="ext-row-items">${items}</div>` : ""}
-        ${statusLabel ? `<div class="ext-row-status-pill ${statusClass}">${safeText(q.status)}</div>` : ""}
+        ${statusLabel ? `<div class="ext-row-status-pill ${statusClass}">${safeText(q.status_raw || q.status_class)}</div>` : ""}
       </div>
     `;
   }).join("");
@@ -2425,18 +2433,17 @@ async function loadExtensionDelivery(row) {
   const body = document.getElementById("extDrawerBody");
   body.innerHTML = `<div class="muted">Loading delivery history...</div>`;
 
-  const { data, error } = await queryHistoricalByPhoneOrEmail("historical_orders", row.phone, row.email);
+  const { data, error } = await queryClientHistory(row.phone, row.email, "order");
   if (error) { body.innerHTML = `<div class="ext-empty">Error loading delivery history: ${safeText(error.message)}</div>`; return; }
 
   const allOrders = data || [];
   const deliveryOrders = allOrders.filter(o => {
     const dm = String(o.delivery_method || "").toLowerCase();
-    return dm && dm !== "pickup" && dm !== "will call" && dm !== "customer pickup";
+    return dm && dm !== "pickup" && dm !== "will call" && dm !== "customer pickup" && dm !== "will-call";
   });
 
   if (!deliveryOrders.length) { body.innerHTML = `<div class="ext-empty">No delivery history found for this client.</div>`; return; }
 
-  // Group addresses for recurring venues
   const addressCounts = {};
   deliveryOrders.forEach(o => {
     const addr = [o.address, o.city].filter(Boolean).join(", ");
@@ -2444,10 +2451,14 @@ async function loadExtensionDelivery(row) {
   });
   const topAddresses = Object.entries(addressCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
 
+  const totalDeliveryFees = deliveryOrders.reduce((sum, o) => sum + (Number(o.delivery_fee) || 0), 0);
+
   const summaryHtml = `
     <div class="ext-summary">
       <div class="ext-summary-stat"><div class="label">Deliveries</div><div class="value">${deliveryOrders.length}</div></div>
       <div class="ext-summary-stat"><div class="label">Unique Addresses</div><div class="value">${Object.keys(addressCounts).length}</div></div>
+      <div class="ext-summary-stat"><div class="label">Total Delivery Fees</div><div class="value">${formatMoney(totalDeliveryFees)}</div></div>
+      <div class="ext-summary-stat"><div class="label">Last Delivery</div><div class="value">${formatOrderDate(deliveryOrders[0]?.record_date)}</div></div>
     </div>
     ${topAddresses.length ? `
       <div class="intel-section">
@@ -2460,20 +2471,21 @@ async function loadExtensionDelivery(row) {
   `;
 
   const rowsHtml = deliveryOrders.map(o => {
-    const orderNo = o.order_number || o.order_id || o.id || "—";
-    const addr = [o.address, o.city, o.zip_code || o.zip].filter(Boolean).join(", ");
+    const orderNo = o.record_no || "—";
+    const addr = [o.address, o.city, o.zip].filter(Boolean).join(", ");
+    const fee = Number(o.delivery_fee) || 0;
     return `
       <div class="ext-row-card">
         <div class="ext-row-top">
           <div>
             <div class="ext-row-order">Order #${safeText(orderNo)}</div>
-            <div class="ext-row-date">${formatOrderDate(o.order_date)}</div>
+            <div class="ext-row-date">${formatOrderDate(o.record_date)}</div>
           </div>
           <div class="ext-row-total">${formatMoney(o.total)}</div>
         </div>
         <div class="ext-row-meta">
           ${addr ? safeText(addr) + "<br>" : ""}
-          Delivery: ${safeText(o.delivery_method || "—")}
+          ${safeText(o.delivery_method || "—")}${fee > 0 ? ` · Fee ${formatMoney(fee)}` : ""}${o.driver ? ` · Driver: ${safeText(o.driver)}` : ""}
         </div>
       </div>
     `;
@@ -2490,8 +2502,8 @@ async function loadExtensionIntel(row) {
 
   try {
     const [ordersRes, quotesRes] = await Promise.all([
-      queryHistoricalByPhoneOrEmail("historical_orders", row.phone, row.email),
-      queryHistoricalByPhoneOrEmail("historical_quotes", row.phone, row.email)
+      queryClientHistory(row.phone, row.email, "order"),
+      queryClientHistory(row.phone, row.email, "quote")
     ]);
 
     const orders = ordersRes.data || [];
@@ -2499,23 +2511,21 @@ async function loadExtensionIntel(row) {
 
     const totalSpend = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
     const avgOrder = orders.length > 0 ? totalSpend / orders.length : 0;
-    const firstOrder = orders[orders.length - 1]?.order_date;
-    const lastOrder = orders[0]?.order_date;
+    const firstOrder = orders[orders.length - 1]?.record_date;
+    const lastOrder = orders[0]?.record_date;
     const convertedCount = quotes.filter(q => {
-      const s = String(q.status || "").toLowerCase();
-      return s.includes("convert") || s.includes("order");
+      const s = (String(q.status_class || "") + " " + String(q.status_raw || "")).toLowerCase();
+      return s.includes("convert") || s.includes("ordered");
     }).length;
     const conversionRate = quotes.length > 0 ? Math.round((convertedCount / quotes.length) * 100) : 0;
 
-    // Brand breakdown
     const brandCounts = {};
     orders.forEach(o => {
-      const b = o.company_key || o.company || "unknown";
+      const b = o.company_key || "unknown";
       brandCounts[b] = (brandCounts[b] || 0) + 1;
     });
     const brandRows = Object.entries(brandCounts).sort((a, b) => b[1] - a[1]);
 
-    // Signal explanations
     const signalRows = [];
     if (row.vip_client === true) signalRows.push({ k: "👑 VIP Status", v: `${row.repeat_client_count || 10}+ orders in 12mo window` });
     else if (Number(row.repeat_client_count) > 0) signalRows.push({ k: "👑 Repeat Client", v: `${row.repeat_client_count} prior orders (4yr)` });
