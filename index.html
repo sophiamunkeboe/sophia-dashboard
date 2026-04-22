@@ -676,6 +676,321 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 
 @media (max-width: 980px) { .rail-panel { width: min(390px, calc(100vw - 64px)); } }
 
+/* ============================================ */
+/* ROUTING COCKPIT — LEFT-SIDE PANEL (v1.3.9)  */
+/* ============================================ */
+
+/* Left rail button — far left of dashboard */
+.left-rail {
+  position: fixed;
+  top: 128px;
+  left: 0;
+  z-index: 36;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 8px;
+}
+.left-rail-tab {
+  min-width: 52px;
+  padding: 14px 12px;
+  border-radius: 0 16px 16px 0;
+  background: linear-gradient(90deg, rgba(124,236,255,.14), rgba(124,236,255,.06));
+  border: 1px solid rgba(124,236,255,.28);
+  border-left: none;
+  color: #eef7ff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  cursor: pointer;
+  box-shadow: 6px 0 22px rgba(124,236,255,.12), 0 0 18px rgba(124,236,255,.06);
+  transition: all .22s ease;
+}
+.left-rail-tab:hover {
+  transform: rotate(180deg) translateX(-3px);
+  background: linear-gradient(90deg, rgba(124,236,255,.22), rgba(124,236,255,.10));
+  box-shadow: 10px 0 28px rgba(124,236,255,.22), 0 0 32px rgba(124,236,255,.18);
+}
+.left-rail-tab.active {
+  background: linear-gradient(90deg, rgba(124,236,255,.32), rgba(124,236,255,.16));
+  box-shadow: 10px 0 32px rgba(124,236,255,.32), 0 0 40px rgba(124,236,255,.22);
+}
+
+/* Routing Cockpit panel */
+.left-rail-panel {
+  position: fixed;
+  top: 86px;
+  left: -560px;
+  width: 520px;
+  height: calc(100vh - 104px);
+  border-radius: 0 28px 28px 0;
+  background: linear-gradient(180deg, rgba(8,16,30,.96), rgba(10,20,40,.94));
+  border-right: 1px solid rgba(124,236,255,.22);
+  box-shadow: 18px 0 40px rgba(0,0,0,.35), 6px 0 22px rgba(124,236,255,.10);
+  backdrop-filter: blur(16px);
+  z-index: 37;
+  display: flex;
+  flex-direction: column;
+  transition: left .28s cubic-bezier(.4,0,.2,1);
+}
+.left-rail-panel.open { left: 62px; }
+
+@media (max-width: 980px) {
+  .left-rail-panel { width: min(490px, calc(100vw - 64px)); }
+}
+
+.lrp-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(124,236,255,.12);
+}
+.lrp-title-wrap { flex: 1; }
+.lrp-title { margin: 0; font-size: 18px; color: #eef7ff; font-weight: 800; letter-spacing: .03em; }
+.lrp-sub { margin-top: 4px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8fb4c9; }
+.lrp-actions-top { display: flex; gap: 8px; }
+.lrp-btn-icon {
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(124,236,255,.18);
+  background: rgba(255,255,255,.04);
+  color: white; font-size: 16px;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.lrp-btn-icon:hover {
+  border-color: rgba(124,236,255,.45);
+  box-shadow: 0 0 18px rgba(124,236,255,.25);
+}
+.lrp-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Bucket headers */
+.routing-bucket {
+  border-radius: 18px;
+  padding: 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(124,236,255,.12);
+}
+.routing-bucket.today { border-color: rgba(255,120,80,.35); background: linear-gradient(180deg, rgba(255,120,80,.06), rgba(255,255,255,.02)); }
+.routing-bucket.tomorrow { border-color: rgba(255,180,80,.30); background: linear-gradient(180deg, rgba(255,180,80,.05), rgba(255,255,255,.02)); }
+.routing-bucket.imminent { border-color: rgba(255,218,100,.28); }
+.routing-bucket.this_week { border-color: rgba(110,255,180,.22); }
+.routing-bucket.later { border-color: rgba(124,236,255,.18); }
+
+.bucket-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.bucket-label {
+  font-size: 12px; font-weight: 800;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: #eef7ff;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.bucket-count {
+  background: rgba(124,236,255,.18);
+  border: 1px solid rgba(124,236,255,.30);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: #e8f5ff;
+  font-weight: 800;
+}
+.routing-bucket.today .bucket-count { background: rgba(255,120,80,.25); border-color: rgba(255,120,80,.45); color: #ffd7bf; }
+.routing-bucket.tomorrow .bucket-count { background: rgba(255,180,80,.22); border-color: rgba(255,180,80,.40); color: #fff0d0; }
+
+/* Order row */
+.routing-order {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.025);
+  border: 1px solid rgba(124,236,255,.08);
+  transition: all .16s ease;
+  margin-top: 6px;
+  cursor: pointer;
+}
+.routing-order:hover {
+  border-color: rgba(124,236,255,.30);
+  box-shadow: 0 0 18px rgba(124,236,255,.10);
+  transform: translateY(-1px);
+}
+.routing-order.ts { border-left: 3px solid #ff8a50; background: linear-gradient(90deg, rgba(255,138,80,.08), rgba(255,255,255,.02)); }
+.routing-order-day-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+.day-dot-mon { color: #ff6b6b; background: #ff6b6b; }
+.day-dot-tue { color: #ff8c42; background: #ff8c42; }
+.day-dot-wed { color: #ffd166; background: #ffd166; }
+.day-dot-thu { color: #7fe57f; background: #7fe57f; }
+.day-dot-fri { color: #4dabf7; background: #4dabf7; }
+.day-dot-sat { color: #b197fc; background: #b197fc; }
+.day-dot-sun { color: #868e96; background: #868e96; }
+
+.routing-order-main { flex: 1; min-width: 0; }
+.routing-order-top {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 8px;
+}
+.routing-order-title {
+  font-size: 13px; font-weight: 700; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.routing-order-amount { font-size: 12px; color: #8fe0a8; font-weight: 700; }
+.routing-order-sub {
+  margin-top: 4px;
+  font-size: 11px; color: #9fb3c8;
+  display: flex; gap: 6px; align-items: center;
+  flex-wrap: wrap;
+}
+.routing-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px; border-radius: 999px;
+  font-size: 10px; font-weight: 700; letter-spacing: .04em;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(124,236,255,.14);
+  color: #c8d9ef;
+}
+.routing-chip.ts { background: rgba(255,120,80,.15); border-color: rgba(255,120,80,.40); color: #ffd7bf; }
+.routing-chip.workdo { background: rgba(110,255,168,.14); border-color: rgba(110,255,168,.36); color: #d9ffe8; }
+.routing-chip.biz { background: rgba(255,90,120,.16); border-color: rgba(255,90,120,.40); color: #ffd0db; }
+.routing-chip.cluster { background: rgba(124,100,255,.16); border-color: rgba(150,130,255,.40); color: #ded4ff; }
+
+/* Driver picker on row */
+.routing-driver-wrap {
+  flex-shrink: 0;
+  position: relative;
+}
+.routing-driver-btn {
+  min-width: 80px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(124,236,255,.18);
+  color: #eef7ff;
+  font-size: 11px; font-weight: 700;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.routing-driver-btn:hover { border-color: rgba(124,236,255,.40); box-shadow: 0 0 12px rgba(124,236,255,.20); }
+.routing-driver-btn.assigned {
+  background: linear-gradient(180deg, rgba(110,255,168,.15), rgba(255,255,255,.02));
+  border-color: rgba(110,255,168,.36);
+  color: #d9ffe8;
+}
+.routing-driver-btn.unassigned {
+  background: linear-gradient(180deg, rgba(255,180,80,.15), rgba(255,255,255,.02));
+  border-color: rgba(255,180,80,.40);
+  color: #fff0c9;
+}
+.routing-driver-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 180px;
+  border-radius: 12px;
+  background: rgba(10,20,40,.98);
+  border: 1px solid rgba(124,236,255,.28);
+  box-shadow: 0 12px 36px rgba(0,0,0,.50), 0 0 22px rgba(124,236,255,.14);
+  padding: 6px;
+  display: none;
+  z-index: 100;
+}
+.routing-driver-menu.open { display: block; }
+.routing-driver-item {
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px; color: #eef7ff;
+  cursor: pointer;
+}
+.routing-driver-item:hover { background: rgba(124,236,255,.12); }
+.routing-driver-item.current { background: rgba(110,255,168,.12); color: #d9ffe8; }
+.routing-driver-item .dvi-hint { font-size: 10px; color: #8fb4c9; margin-left: 6px; }
+.routing-driver-divider { height: 1px; background: rgba(124,236,255,.12); margin: 4px 2px; }
+
+/* Late-Add section */
+.late-add-section {
+  border-radius: 18px;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(255,90,120,.06), rgba(255,255,255,.02));
+  border: 1px solid rgba(255,138,163,.24);
+}
+.late-add-section .bucket-head { border-bottom-color: rgba(255,138,163,.18); }
+.late-add-section .bucket-label { color: #ffd0db; }
+.late-add-section .bucket-count {
+  background: rgba(255,138,163,.20);
+  border-color: rgba(255,138,163,.40);
+  color: #ffe0e7;
+}
+
+/* Day key legend */
+.day-key {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(124,236,255,.10);
+  display: flex; flex-wrap: wrap; gap: 8px;
+  font-size: 10px; letter-spacing: .06em;
+  color: #a9c3d8;
+}
+.day-key .key-item { display: inline-flex; align-items: center; gap: 4px; }
+.day-key .key-dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 6px currentColor; }
+
+/* Action bar at bottom */
+.lrp-action-bar {
+  padding: 12px 14px;
+  border-top: 1px solid rgba(124,236,255,.12);
+  display: flex; gap: 10px; flex-wrap: wrap;
+  background: rgba(8,16,30,.92);
+}
+.lrp-action-btn {
+  flex: 1;
+  min-width: 120px;
+  height: 42px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(124,236,255,.14), rgba(124,236,255,.05));
+  border: 1px solid rgba(124,236,255,.32);
+  color: white;
+  font-size: 12px; font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.lrp-action-btn:hover {
+  box-shadow: 0 0 24px rgba(124,236,255,.30);
+  transform: translateY(-1px);
+}
+.lrp-action-btn.primary {
+  background: linear-gradient(180deg, rgba(110,255,168,.22), rgba(50,180,100,.08));
+  border-color: rgba(110,255,168,.45);
+}
+
+.lrp-empty {
+  text-align: center;
+  padding: 24px 12px;
+  color: #93aac0;
+  font-size: 13px;
+}
+
 .drawer-textarea { min-height: 90px; resize: vertical; }
 .drawer-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
 .drawer-save-note { margin-top: 10px; font-size: 12px; color: #a9c3df; }
@@ -1534,6 +1849,32 @@ table.slim-table { min-width: 1420px; }
   </div>
   <div id="extDrawerBody" class="ext-body">
     <div class="muted">Loading...</div>
+  </div>
+</aside>
+
+<!-- ROUTING COCKPIT — LEFT RAIL (v1.3.9) -->
+<div class="left-rail">
+  <button id="routingRailTab" class="left-rail-tab" onclick="toggleRoutingCockpit()">🗺️ Routing</button>
+</div>
+
+<aside id="routingCockpitPanel" class="left-rail-panel">
+  <div class="lrp-head">
+    <div class="lrp-title-wrap">
+      <h3 class="lrp-title">🗺️ Routing Cockpit</h3>
+      <div class="lrp-sub" id="routingCockpitSub">Loading deliveries…</div>
+    </div>
+    <div class="lrp-actions-top">
+      <button class="lrp-btn-icon" title="Pop out to new window" onclick="popOutRoutingCockpit()">🗖</button>
+      <button class="lrp-btn-icon" title="Refresh" onclick="loadRoutingCockpit()">↻</button>
+      <button class="lrp-btn-icon" title="Close" onclick="closeRoutingCockpit()">✕</button>
+    </div>
+  </div>
+  <div class="lrp-body" id="routingCockpitBody">
+    <div class="lrp-empty">Loading...</div>
+  </div>
+  <div class="lrp-action-bar">
+    <button class="lrp-action-btn primary" onclick="lockRoutingWeek()">🎯 Lock Week</button>
+    <button class="lrp-action-btn" onclick="openRoutingLegend()">🗝️ Day Key</button>
   </div>
 </aside>
 
@@ -3126,6 +3467,296 @@ function openRailPanel(panelId) {
 function closeRailPanels() {
   document.querySelectorAll(".rail-panel").forEach(panel => panel.classList.remove("open"));
 }
+
+// ============================================
+// ROUTING COCKPIT (v1.3.9)
+// ============================================
+
+// Active driver roster (will expand with "Other..." free text)
+const ROUTING_DRIVERS = ["Dylan", "Nick", "Luis", "Linda", "Carina", "James T"];
+
+// Day-of-week color mapping (must match CSS .day-dot-* classes)
+function dayDotClass(dateStr) {
+  if (!dateStr) return "day-dot-mon";
+  const d = new Date(dateStr + "T12:00:00");
+  const dow = d.getDay(); // 0=Sun, 1=Mon, ...
+  const map = ["day-dot-sun", "day-dot-mon", "day-dot-tue", "day-dot-wed", "day-dot-thu", "day-dot-fri", "day-dot-sat"];
+  return map[dow] || "day-dot-mon";
+}
+
+function dayName(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr + "T12:00:00");
+  const names = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  return names[d.getDay()] || "";
+}
+
+function formatEventDate(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr + "T12:00:00");
+  const opts = { month: "short", day: "numeric" };
+  return d.toLocaleDateString("en-US", opts);
+}
+
+function toggleRoutingCockpit() {
+  const panel = document.getElementById("routingCockpitPanel");
+  const tab = document.getElementById("routingRailTab");
+  if (!panel) return;
+  const isOpen = panel.classList.contains("open");
+  if (isOpen) {
+    closeRoutingCockpit();
+  } else {
+    panel.classList.add("open");
+    if (tab) tab.classList.add("active");
+    loadRoutingCockpit();
+  }
+}
+
+function closeRoutingCockpit() {
+  const panel = document.getElementById("routingCockpitPanel");
+  const tab = document.getElementById("routingRailTab");
+  if (panel) panel.classList.remove("open");
+  if (tab) tab.classList.remove("active");
+  // Close any open driver menus too
+  document.querySelectorAll(".routing-driver-menu.open").forEach(m => m.classList.remove("open"));
+}
+
+async function loadRoutingCockpit() {
+  const body = document.getElementById("routingCockpitBody");
+  const sub = document.getElementById("routingCockpitSub");
+  if (!body) return;
+  body.innerHTML = `<div class="lrp-empty">Loading deliveries…</div>`;
+  if (sub) sub.textContent = "Loading deliveries…";
+
+  try {
+    // Fetch unassigned deliveries for the week
+    const { data: deliveries, error: dErr } = await supabaseClient
+      .from("v_unassigned_deliveries_week")
+      .select("*");
+    if (dErr) throw dErr;
+
+    // Fetch late-add orders
+    const { data: lateAdds, error: lErr } = await supabaseClient
+      .from("v_late_add_deliveries")
+      .select("*")
+      .eq("alert_type", "LATE_ADD");
+    if (lErr) throw lErr;
+
+    renderRoutingCockpit(deliveries || [], lateAdds || []);
+
+    const totalCount = (deliveries?.length || 0) + (lateAdds?.length || 0);
+    if (sub) sub.textContent = `${deliveries?.length || 0} unassigned · ${lateAdds?.length || 0} late-adds · ${new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
+  } catch (err) {
+    console.error("Routing cockpit load error:", err);
+    body.innerHTML = `<div class="lrp-empty">Failed to load: ${safeText(err.message || "Unknown error")}<br><br>Make sure the SQL views are created.</div>`;
+  }
+}
+
+function renderRoutingCockpit(deliveries, lateAdds) {
+  const body = document.getElementById("routingCockpitBody");
+  if (!body) return;
+
+  // Group deliveries by urgency_bucket
+  const buckets = { TODAY: [], TOMORROW: [], IMMINENT: [], THIS_WEEK: [], LATER: [] };
+  deliveries.forEach(d => {
+    const b = d.urgency_bucket || "LATER";
+    if (buckets[b]) buckets[b].push(d);
+  });
+
+  const bucketMeta = [
+    { key: "TODAY",     label: "🚨 Today",       cssClass: "today" },
+    { key: "TOMORROW",  label: "⚡ Tomorrow",    cssClass: "tomorrow" },
+    { key: "IMMINENT",  label: "📅 Imminent (2–3d)", cssClass: "imminent" },
+    { key: "THIS_WEEK", label: "📋 This Week",   cssClass: "this_week" },
+    { key: "LATER",     label: "⏳ Later (8–14d)", cssClass: "later" }
+  ];
+
+  let html = "";
+
+  // Identify zip-clusters inside buckets (same zip on same day → mark as cluster)
+  const zipDayCounts = {};
+  deliveries.forEach(d => {
+    if (d.zip && d.event_start_date) {
+      const key = `${d.zip}|${d.event_start_date}`;
+      zipDayCounts[key] = (zipDayCounts[key] || 0) + 1;
+    }
+  });
+
+  bucketMeta.forEach(bucket => {
+    const items = buckets[bucket.key];
+    if (!items || items.length === 0) return;
+    html += `
+      <div class="routing-bucket ${bucket.cssClass}">
+        <div class="bucket-head">
+          <span class="bucket-label">${bucket.label}</span>
+          <span class="bucket-count">${items.length}</span>
+        </div>
+        ${items.map(item => renderRoutingOrder(item, zipDayCounts)).join("")}
+      </div>
+    `;
+  });
+
+  // Late-add section
+  if (lateAdds && lateAdds.length > 0) {
+    html += `
+      <div class="late-add-section">
+        <div class="bucket-head">
+          <span class="bucket-label">🚨 Sneaky Late-Adds (last 48h)</span>
+          <span class="bucket-count">${lateAdds.length}</span>
+        </div>
+        ${lateAdds.map(item => renderRoutingOrder(item, zipDayCounts, true)).join("")}
+      </div>
+    `;
+  }
+
+  if (!html) {
+    html = `<div class="lrp-empty">🎯 All deliveries assigned.<br><br>Nothing needs attention in the next 14 days.</div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+function renderRoutingOrder(order, zipDayCounts, isLateAdd = false) {
+  const dotCls = dayDotClass(order.event_start_date);
+  const dayNm = dayName(order.event_start_date);
+  const dateShort = formatEventDate(order.event_start_date);
+  const isTS = order.time_sensitivity === "time_sensitive";
+  const isWorkDo = order.workdo_tagged === true;
+  const hasBiz = order.customer_company && String(order.customer_company).trim() !== "";
+  const zipKey = `${order.zip}|${order.event_start_date}`;
+  const isCluster = order.zip && zipDayCounts[zipKey] > 1;
+  const driverAssigned = order.driver && String(order.driver).trim() !== "";
+  const driverName = driverAssigned ? String(order.driver).trim() : "";
+  const orderId = String(order.id || order.order_no || "");
+
+  const chips = [];
+  if (isTS) chips.push(`<span class="routing-chip ts">🕐 ${safeText(order.delivery_time_window || "TIME SENSITIVE")}</span>`);
+  if (isWorkDo) chips.push(`<span class="routing-chip workdo">WorkDo'd</span>`);
+  if (hasBiz) chips.push(`<span class="routing-chip biz">🏢 ${safeText(order.customer_company)}</span>`);
+  if (isCluster) chips.push(`<span class="routing-chip cluster">🎯 Cluster ${zipDayCounts[zipKey]}</span>`);
+  if (isLateAdd) chips.push(`<span class="routing-chip" style="background:rgba(255,138,163,.16); border-color:rgba(255,138,163,.45); color:#ffe0e7;">⚡ Late-Add</span>`);
+
+  const city = order.city || "—";
+  const zip = order.zip || "";
+  const amount = order.total ? `$${Number(order.total).toFixed(0)}` : "";
+
+  return `
+    <div class="routing-order ${isTS ? "ts" : ""}" data-order-id="${safeText(orderId)}" onclick="openOrderFromRouting('${safeText(orderId)}')">
+      <div class="routing-order-day-dot ${dotCls}" title="${dayNm} ${dateShort}"></div>
+      <div class="routing-order-main">
+        <div class="routing-order-top">
+          <div class="routing-order-title">${safeText(order.order_no)} — ${safeText(order.customer_name || "—")}</div>
+          <div class="routing-order-amount">${amount}</div>
+        </div>
+        <div class="routing-order-sub">
+          <span>${dayNm} ${dateShort}</span>
+          <span>•</span>
+          <span>${safeText(city)}${zip ? ` ${safeText(zip)}` : ""}</span>
+          <span>•</span>
+          <span style="opacity:.7;">${safeText(order.company_label || "")}</span>
+          ${chips.join("")}
+        </div>
+      </div>
+      ${renderRoutingDriverPicker(orderId, driverName)}
+    </div>
+  `;
+}
+
+function renderRoutingDriverPicker(orderId, currentDriver) {
+  const btnClass = currentDriver ? "assigned" : "unassigned";
+  const btnLabel = currentDriver ? `🚚 ${safeText(currentDriver)}` : "Assign";
+  const menuId = `routing-driver-menu-${orderId}`;
+
+  const items = ROUTING_DRIVERS.map(name => {
+    const isCurrent = name === currentDriver;
+    return `<div class="routing-driver-item ${isCurrent ? "current" : ""}" onclick="event.stopPropagation(); assignRoutingDriver('${safeText(orderId)}', '${safeText(name)}')">${safeText(name)}${isCurrent ? ' <span class="dvi-hint">✓</span>' : ""}</div>`;
+  }).join("");
+
+  return `
+    <div class="routing-driver-wrap" onclick="event.stopPropagation();">
+      <button class="routing-driver-btn ${btnClass}" onclick="event.stopPropagation(); toggleRoutingDriverMenu('${safeText(orderId)}')">${btnLabel}</button>
+      <div class="routing-driver-menu" id="${menuId}">
+        ${items}
+        <div class="routing-driver-divider"></div>
+        <div class="routing-driver-item" onclick="event.stopPropagation(); assignRoutingDriverOther('${safeText(orderId)}')">✍️ Other…</div>
+        ${currentDriver ? `<div class="routing-driver-item" onclick="event.stopPropagation(); assignRoutingDriver('${safeText(orderId)}', '')" style="color:#ff8aa3;">✕ Unassign</div>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function toggleRoutingDriverMenu(orderId) {
+  const menu = document.getElementById(`routing-driver-menu-${orderId}`);
+  if (!menu) return;
+  const wasOpen = menu.classList.contains("open");
+  document.querySelectorAll(".routing-driver-menu.open").forEach(m => m.classList.remove("open"));
+  if (!wasOpen) menu.classList.add("open");
+}
+
+async function assignRoutingDriver(orderId, driverName) {
+  document.querySelectorAll(".routing-driver-menu.open").forEach(m => m.classList.remove("open"));
+  if (!orderId) return;
+  const trimmed = String(driverName || "").trim();
+  const update = { driver: trimmed || null };
+  const { error } = await supabaseClient.from("historical_orders").update(update).eq("id", orderId);
+  if (error) {
+    showError("Could not assign driver: " + error.message);
+    return;
+  }
+  showSaveBanner(trimmed ? `🚚 Driver set: ${trimmed}` : "Driver unassigned.");
+  // Reload the cockpit to show updated state
+  loadRoutingCockpit();
+}
+
+function assignRoutingDriverOther(orderId) {
+  document.querySelectorAll(".routing-driver-menu.open").forEach(m => m.classList.remove("open"));
+  const name = prompt("Enter driver name:");
+  if (name && name.trim()) {
+    assignRoutingDriver(orderId, name.trim());
+  }
+}
+
+function openOrderFromRouting(orderId) {
+  // Try to find this order in the current lead list first
+  if (!orderId) return;
+  const lead = allRows.find(r => String(r.order_number) === String(orderId) || String(r.id) === String(orderId));
+  if (lead) {
+    openDrawer(lead.id);
+  } else {
+    // Not a lead — show a toast and keep the cockpit open
+    showSaveBanner(`Order ${orderId} has no matching lead in the drawer yet.`);
+  }
+}
+
+function popOutRoutingCockpit() {
+  // Simple pop-out: open the current URL in a narrow window; user can refresh to see the cockpit
+  // Phase 1 limitation — standalone URL comes in Phase 2
+  const w = window.open(window.location.href, "sophia_routing", "width=720,height=900");
+  if (w) {
+    showSaveBanner("Opened routing window. Click the 🗺️ Routing button inside the new window to load.");
+  } else {
+    showError("Pop-out blocked — allow popups for this site.");
+  }
+}
+
+async function lockRoutingWeek() {
+  const confirm = window.confirm("Lock this week's routing? This stamps the current time as your last review.");
+  if (!confirm) return;
+  showSaveBanner("🎯 Week locked at " + new Date().toLocaleString());
+  // Future: write to a routing_locks table or user activity log
+  // For now, just a visual confirmation
+}
+
+function openRoutingLegend() {
+  alert("Day Color Key:\n\n🔴 Monday\n🟠 Tuesday\n🟡 Wednesday\n🟢 Thursday\n🔵 Friday\n🟣 Saturday\n⚫ Sunday\n\nClusters are marked when 2+ orders share the same zip on the same day.");
+}
+
+// Close driver menus when clicking elsewhere in the routing panel
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".routing-driver-wrap")) {
+    document.querySelectorAll(".routing-driver-menu.open").forEach(m => m.classList.remove("open"));
+  }
+});
 
 function getRandomKudos() { return KUDOS_MESSAGES[Math.floor(Math.random() * KUDOS_MESSAGES.length)]; }
 
