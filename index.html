@@ -715,14 +715,21 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   border-left: 1px solid rgba(124,236,255,.22);
   border-right: 1px solid rgba(124,236,255,.08);
   box-shadow: -20px 0 40px rgba(0,0,0,.40), 8px 0 20px rgba(0,0,0,.30);
-  transform: translateX(100%);
-  transition: transform .26s ease;
+  transform: translateX(calc(100% + 600px));
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .26s ease, opacity .22s ease, visibility 0s linear .26s;
   z-index: 49;
   overflow-y: auto;
   padding: 22px;
 }
 .extension-drawer.open {
   transform: translateX(0);
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transition: transform .26s ease, opacity .22s ease, visibility 0s linear 0s;
 }
 .ext-body {
   display: flex;
@@ -2255,8 +2262,9 @@ async function preloadExtensionCounts(row) {
     extensionCountsCache.orders = orders.length;
     extensionCountsCache.quotes = quotes.length;
     extensionCountsCache.delivery = orders.filter(o => {
-      const dm = String(o.delivery_method || "").toLowerCase();
-      return dm && dm !== "pickup" && dm !== "will call" && dm !== "customer pickup" && dm !== "will-call";
+      const dm = String(o.delivery_method || "").toLowerCase().trim();
+      // Only real deliveries (exclude pickup, laundry service, will-call, blank)
+      return dm && (dm.includes("deliver") || dm.includes("driver") || dm.includes("courier") || dm.includes("truck") || dm.includes("drop"));
     }).length;
 
     updateExtCountBadge("extCountOrders", extensionCountsCache.orders);
@@ -2301,8 +2309,24 @@ function openExtensionDrawer(type) {
 
 function closeExtensionDrawer() {
   activeExtension = null;
-  document.getElementById("extensionDrawer").classList.remove("open");
+  const drawer = document.getElementById("extensionDrawer");
+  if (drawer) drawer.classList.remove("open");
   document.querySelectorAll(".drawer-ext-btn").forEach(b => b.classList.remove("active"));
+  // Clear content after transition so old data doesn't flash on next open
+  setTimeout(() => {
+    const body = document.getElementById("extDrawerBody");
+    if (body && !document.getElementById("extensionDrawer").classList.contains("open")) {
+      body.innerHTML = "";
+    }
+    const title = document.getElementById("extDrawerTitle");
+    const sub = document.getElementById("extDrawerSub");
+    if (title && !document.getElementById("extensionDrawer").classList.contains("open")) {
+      title.textContent = "Extension";
+    }
+    if (sub && !document.getElementById("extensionDrawer").classList.contains("open")) {
+      sub.textContent = "Client context";
+    }
+  }, 280);
 }
 
 function formatOrderDate(d) {
@@ -2345,13 +2369,16 @@ async function loadExtensionOrders(row) {
 
   const rowsHtml = orders.map(o => {
     const orderNo = o.record_no || "—";
-    const dm = safeText(o.delivery_method || "—");
+    const dmRaw = String(o.delivery_method || "").trim();
+    const dm = dmRaw || "—";
     const addr = [o.address, o.city, o.zip].filter(Boolean).join(", ");
     const items = safeText(o.items_text || "");
-    const statusLabel = String(o.status_raw || "").toLowerCase();
+    const rawStatus = (o.status_raw || "").toString().trim();
+    const statusLabel = rawStatus.toLowerCase();
     let statusClass = "open";
-    if (statusLabel.includes("deliver") || statusLabel.includes("complet") || statusLabel.includes("closed") || statusLabel.includes("return")) statusClass = "delivered";
+    if (statusLabel.includes("deliver") || statusLabel.includes("complet") || statusLabel.includes("closed") || statusLabel.includes("return") || statusLabel.includes("won")) statusClass = "delivered";
     else if (statusLabel.includes("paid")) statusClass = "paid";
+    const hasRealStatus = rawStatus.length > 0;
     return `
       <div class="ext-row-card">
         <div class="ext-row-top">
@@ -2362,11 +2389,11 @@ async function loadExtensionOrders(row) {
           <div class="ext-row-total">${formatMoney(o.total)}</div>
         </div>
         <div class="ext-row-meta">
-          ${addr ? safeText(addr) + "<br>" : ""}
-          Delivery: ${dm}${o.company_label ? ` · ${safeText(o.company_label)}` : ""}
+          ${addr ? `<div>${safeText(addr)}</div>` : ""}
+          <div>${dmRaw ? `Delivery: ${safeText(dm)}` : ""}${o.company_label ? `${dmRaw ? ' · ' : ''}${safeText(o.company_label)}` : ""}</div>
         </div>
         ${items ? `<div class="ext-row-items">${items}</div>` : ""}
-        ${statusLabel ? `<div class="ext-row-status-pill ${statusClass}">${safeText(o.status_raw)}</div>` : ""}
+        ${hasRealStatus ? `<div class="ext-row-status-pill ${statusClass}">${safeText(rawStatus)}</div>` : ""}
       </div>
     `;
   }).join("");
@@ -2389,7 +2416,8 @@ async function loadExtensionQuotes(row) {
   const convertedCount = quotes.filter(q => {
     const cls = String(q.status_class || "").toLowerCase();
     const raw = String(q.status_raw || "").toLowerCase();
-    return cls.includes("convert") || cls.includes("order") || raw.includes("convert") || raw.includes("ordered");
+    return cls.includes("won") || cls.includes("convert") || cls.includes("ordered") ||
+           raw.includes("won") || raw.includes("convert") || raw.includes("ordered");
   }).length;
   const conversionRate = quotes.length > 0 ? Math.round((convertedCount / quotes.length) * 100) : 0;
 
@@ -2405,9 +2433,12 @@ async function loadExtensionQuotes(row) {
   const rowsHtml = quotes.map(q => {
     const qNo = q.record_no || "—";
     const items = safeText(q.items_text || "");
-    const statusLabel = String(q.status_raw || q.status_class || "").toLowerCase();
+    const rawStatus = (q.status_raw || q.status_class || "").toString().trim();
+    const statusLabel = rawStatus.toLowerCase();
     let statusClass = "open";
-    if (statusLabel.includes("convert") || statusLabel.includes("order")) statusClass = "delivered";
+    if (statusLabel.includes("won") || statusLabel.includes("convert") || statusLabel.includes("ordered")) statusClass = "delivered";
+    else if (statusLabel.includes("lost")) statusClass = "paid";
+    const hasRealStatus = rawStatus.length > 0;
     return `
       <div class="ext-row-card">
         <div class="ext-row-top">
@@ -2419,7 +2450,7 @@ async function loadExtensionQuotes(row) {
         </div>
         <div class="ext-row-meta">${q.company_label ? safeText(q.company_label) : ""}</div>
         ${items ? `<div class="ext-row-items">${items}</div>` : ""}
-        ${statusLabel ? `<div class="ext-row-status-pill ${statusClass}">${safeText(q.status_raw || q.status_class)}</div>` : ""}
+        ${hasRealStatus ? `<div class="ext-row-status-pill ${statusClass}">${safeText(rawStatus)}</div>` : ""}
       </div>
     `;
   }).join("");
@@ -2438,8 +2469,8 @@ async function loadExtensionDelivery(row) {
 
   const allOrders = data || [];
   const deliveryOrders = allOrders.filter(o => {
-    const dm = String(o.delivery_method || "").toLowerCase();
-    return dm && dm !== "pickup" && dm !== "will call" && dm !== "customer pickup" && dm !== "will-call";
+    const dm = String(o.delivery_method || "").toLowerCase().trim();
+    return dm && (dm.includes("deliver") || dm.includes("driver") || dm.includes("courier") || dm.includes("truck") || dm.includes("drop"));
   });
 
   if (!deliveryOrders.length) { body.innerHTML = `<div class="ext-empty">No delivery history found for this client.</div>`; return; }
@@ -2515,7 +2546,7 @@ async function loadExtensionIntel(row) {
     const lastOrder = orders[0]?.record_date;
     const convertedCount = quotes.filter(q => {
       const s = (String(q.status_class || "") + " " + String(q.status_raw || "")).toLowerCase();
-      return s.includes("convert") || s.includes("ordered");
+      return s.includes("won") || s.includes("convert") || s.includes("ordered");
     }).length;
     const conversionRate = quotes.length > 0 ? Math.round((convertedCount / quotes.length) * 100) : 0;
 
@@ -3005,7 +3036,17 @@ async function completeTask(type) {
 }
 
 document.getElementById("searchInput").addEventListener("input", applySearch);
-document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeDrawer(); });
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    // If extension is open, Escape closes it first. Second Escape closes primary drawer.
+    const extDrawer = document.getElementById("extensionDrawer");
+    if (extDrawer && extDrawer.classList.contains("open")) {
+      closeExtensionDrawer();
+    } else {
+      closeDrawer();
+    }
+  }
+});
 
 loadDashboard();
 </script>
