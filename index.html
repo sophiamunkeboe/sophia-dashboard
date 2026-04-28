@@ -2893,12 +2893,13 @@ const SUPABASE_URL = "https://aeonjnohadmbxfuoirqa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf";
 const MAPBOX_TOKEN = "PASTE_YOUR_MAPBOX_TOKEN_HERE";
 
-let supabase = null;
+// Note: window.supabase is the CDN library. Our client is `sb`.
+let sb = null;
 try {
   if (!window.supabase || !window.supabase.createClient) {
     throw new Error('Supabase JS library failed to load from CDN. Check network tab.');
   }
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   console.log('[SUPABASE ✓] Client initialized');
 } catch (initErr) {
   console.error('[SUPABASE ✗] Init failed:', initErr);
@@ -3163,7 +3164,7 @@ function avatarImg(name, sizeClass) {
  *  ============================================================ */
 document.addEventListener('DOMContentLoaded', async () => {
   // If Supabase failed to init, the table already shows an error — bail
-  if (!supabase) {
+  if (!sb) {
     console.warn('[BOOT] skipped — supabase client not initialized');
     return;
   }
@@ -3240,7 +3241,7 @@ function setupSearchHandler() {
  *  LOAD ACTIVE USERS
  *  ============================================================ */
 async function loadActiveUsers() {
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from('users')
     .select('short_name, full_name, rep_color, avatar_url, sort_order')
     .eq('is_active', true)
@@ -3263,7 +3264,7 @@ async function loadActiveUsers() {
 }
 
 async function loadPaymentOverrides() {
-  const { data, error } = await supabase.from('payment_overrides').select('order_no, override_state, set_by, notes');
+  const { data, error } = await sb.from('payment_overrides').select('order_no, override_state, set_by, notes');
   if (error) { console.warn('payment_overrides load:', error); return; }
   paymentOverridesByOrder = {};
   (data || []).forEach(po => { paymentOverridesByOrder[po.order_no] = po; });
@@ -3329,7 +3330,7 @@ function setActiveCompany(key, el) {
  *  LOAD DASHBOARD (leads from `leads` table)
  *  ============================================================ */
 async function loadDashboard() {
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from('leads')
     .select('*')
     .order('created_at', { ascending: false })
@@ -3348,7 +3349,7 @@ async function loadDashboard() {
  *  ============================================================ */
 async function loadPastDueOrders() {
   // Past-due: balance_due > 0 AND status_raw mentions "past due" / "overdue" / etc.
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from('historical_orders')
     .select('id, order_no, customer_name, customer_company, phone, email, total, balance_due, status_raw, payment_status, payment_method, event_start_date, order_date, occasion, address, city, state, surface, location, company_key, company_label, ordered_items, sales_rep, driver, delivery_method')
     .gt('balance_due', 0)
@@ -3638,7 +3639,7 @@ async function cyclePaymentOverride(orderNo, ev) {
   const order = ['real_pastdue', 'paid', 'check_mail', 'po_pending', 'disputed'];
   const cur = (paymentOverridesByOrder[orderNo] && paymentOverridesByOrder[orderNo].override_state) || 'real_pastdue';
   const next = order[(order.indexOf(cur) + 1) % order.length];
-  const { error } = await supabase
+  const { error } = await sb
     .from('payment_overrides')
     .upsert({ order_no: orderNo, override_state: next, updated_at: new Date().toISOString() }, { onConflict: 'order_no' });
   if (error) {
@@ -3672,7 +3673,7 @@ async function assignLeadFromDropdown(rowId, repName, ev) {
     return;
   }
   const newAssignee = repName || null;
-  const { error } = await supabase
+  const { error } = await sb
     .from('leads')
     .update({ assigned_to: newAssignee })
     .eq('id', rowId);
@@ -3698,7 +3699,7 @@ async function assignLeadFromDropdown(rowId, repName, ev) {
 
 async function markFollowedFromTable(rowId, ev) {
   if (ev) ev.stopPropagation();
-  const { error } = await supabase
+  const { error } = await sb
     .from('leads')
     .update({ follow_up_status: true, follow_up_time: new Date().toISOString() })
     .eq('id', rowId);
@@ -3711,7 +3712,7 @@ async function markFollowedFromTable(rowId, ev) {
 
 async function logStaffAction(payload) {
   try {
-    await supabase.from('staff_actions').insert({
+    await sb.from('staff_actions').insert({
       ...payload,
       created_at: new Date().toISOString()
     });
@@ -3852,7 +3853,7 @@ async function saveDrawerChanges() {
     delivery_time_window: tsChecked ? ($('drawerDeliveryTime').value || null) : null,
     time_sensitive_notes: tsChecked ? ($('drawerTimeNotes').value || null) : null
   };
-  const { error } = await supabase
+  const { error } = await sb
     .from('leads')
     .update(payload)
     .eq('id', currentDrawerLead.id);
@@ -3864,7 +3865,7 @@ async function saveDrawerChanges() {
 
 async function markDrawerFollowed() {
   if (!currentDrawerLead) return;
-  await supabase.from('leads')
+  await sb.from('leads')
     .update({ follow_up_status: true, follow_up_time: new Date().toISOString() })
     .eq('id', currentDrawerLead.id);
   currentDrawerLead.follow_up_status = true;
@@ -3904,7 +3905,7 @@ async function preloadExtensionCounts(lead) {
   const orFilter = [];
   if (phone) orFilter.push(`phone_digits.eq.${phone}`);
   if (email) orFilter.push(`email_norm.eq.${email}`);
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from('v_client_history')
     .select('record_type, delivery_method')
     .or(orFilter.join(','))
@@ -4176,7 +4177,7 @@ async function runLookupSearch() {
   const surfaceKey = $('lookupSurface').value;
   const recordTypeKey = $('lookupRecordType').value;
 
-  let q = supabase.from('v_client_history').select('*').limit(150);
+  let q = sb.from('v_client_history').select('*').limit(150);
 
   // Record type filter
   if (recordTypeKey === 'order') q = q.eq('record_type', 'order');
@@ -4350,7 +4351,7 @@ async function openOrderDetailFromPastDue(orderNo) {
 
 function openOrderDetailFromExtension(recordNo, recordType) {
   // Fetch fresh from v_client_history
-  supabase.from('v_client_history')
+  sb.from('v_client_history')
     .select('*')
     .eq('record_no', recordNo)
     .eq('record_type', recordType)
@@ -4455,7 +4456,7 @@ async function openOrderDetailPanel(r) {
     if (r.phone_digits) orFilter.push(`phone_digits.eq.${r.phone_digits}`);
     if (r.email_norm) orFilter.push(`email_norm.eq.${r.email_norm}`);
     if (orFilter.length) {
-      const { data } = await supabase
+      const { data } = await sb
         .from('v_client_history')
         .select('brand')
         .or(orFilter.join(','))
@@ -4496,7 +4497,7 @@ async function loadRoutingCockpit() {
   // Pull next 14 days of orders with delivery_method
   const start = new Date(); start.setHours(0,0,0,0);
   const end = new Date(start); end.setDate(end.getDate() + 14);
-  let q = supabase.from('historical_orders')
+  let q = sb.from('historical_orders')
     .select('id, order_no, customer_name, event_start_date, address, city, surface, ordered_items, total, delivery_method, driver, company_key')
     .gte('event_start_date', start.toISOString().slice(0,10))
     .lte('event_start_date', end.toISOString().slice(0,10))
@@ -4581,13 +4582,13 @@ async function loadActivityTicker() {
   const content = $('liveTickerContent');
   if (!content) return;
   // Pull recent staff actions
-  const { data: actions } = await supabase
+  const { data: actions } = await sb
     .from('staff_actions')
     .select('actor, action_type, target_label, target_id, company_key, created_at')
     .order('created_at', { ascending: false })
     .limit(20);
   // Plus recent leads
-  const { data: leads } = await supabase
+  const { data: leads } = await sb
     .from('leads')
     .select('full_name, company_key, assigned_to, created_at, follow_up_status, follow_up_time')
     .order('created_at', { ascending: false })
@@ -4649,14 +4650,14 @@ async function loadActivityTicker() {
  *  ============================================================ */
 function setupRealtime() {
   try {
-    supabase.channel('leads-changes')
+    sb.channel('leads-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, async () => {
         await loadDashboard();
         renderTable();
         renderTeamPills();
       })
       .subscribe();
-    supabase.channel('staff-actions-changes')
+    sb.channel('staff-actions-changes')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'staff_actions' }, () => {
         loadActivityTicker();
       })
@@ -4716,7 +4717,7 @@ async function loadKudosData() {
   const days = range === 'week' ? 7 : range === 'month' ? 30 : 365;
   const since = new Date(); since.setDate(since.getDate() - days);
 
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from('historical_orders')
     .select('sales_rep, total, order_no, customer_name, order_date, company_key')
     .gte('order_date', since.toISOString().slice(0,10))
@@ -4891,7 +4892,7 @@ async function loadBridgeData() {
   // 2. Linen audit count (this week, linens-needed)
   try {
     const range = dateRangeBounds('this_week');
-    const { data } = await supabase.from('v_client_history')
+    const { data } = await sb.from('v_client_history')
       .select('occasion')
       .gte('event_start_date', range.from.toISOString().slice(0,10))
       .lte('event_start_date', range.to.toISOString().slice(0,10))
@@ -4906,7 +4907,7 @@ async function loadBridgeData() {
   // 3. Cross-store flow count (last 30d)
   try {
     const since = new Date(); since.setDate(since.getDate() - 30);
-    const { data } = await supabase.from('v_client_history')
+    const { data } = await sb.from('v_client_history')
       .select('phone_digits, brand')
       .gte('record_date', since.toISOString().slice(0,10))
       .not('phone_digits', 'is', null)
@@ -4935,7 +4936,7 @@ let sophiaThoughtIndex = 0;
 async function startSophiaThoughtCycle() {
   // Load thoughts from DB
   try {
-    const { data } = await supabase.from('sophia_thoughts')
+    const { data } = await sb.from('sophia_thoughts')
       .select('thought, emoji')
       .eq('is_active', true)
       .limit(20);
