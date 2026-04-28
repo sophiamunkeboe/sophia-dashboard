@@ -429,7 +429,7 @@ z-index: 5;
   width: 1px;
   height: 26px;
   background: linear-gradient(180deg, transparent, rgba(124,236,255,.35), transparent);
-  margin: 0 6px 0 auto;
+  margin: 0 14px 0 28px;
   flex-shrink: 0;
 }
 
@@ -1025,8 +1025,16 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(184,156,255,.12);
+  padding: 12px 0 14px;
+  border-bottom: 1px solid rgba(184,156,255,.20);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: linear-gradient(180deg, rgba(8,16,30,.98) 0%, rgba(8,16,30,.98) 88%, rgba(8,16,30,0) 100%);
+  backdrop-filter: blur(8px);
+  margin: -14px -14px 6px;
+  padding-left: 14px;
+  padding-right: 14px;
 }
 .lookup-search-input {
   width: 100%;
@@ -1053,12 +1061,25 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   height: 38px;
   border-radius: 10px;
   background: rgba(10,18,30,.96);
-  border: 1px solid rgba(124,236,255,.18);
+  border: 1px solid rgba(124,236,255,.30);
   color: #eef7ff;
-  padding: 0 12px;
+  padding: 0 32px 0 12px;
   font-size: 12px;
+  font-weight: 600;
   outline: none;
+  cursor: pointer;
+  /* Custom chevron arrow */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%237cecff'><path d='M8 11L3 6h10z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  transition: all .15s ease;
 }
+.lookup-select:hover { border-color: rgba(124,236,255,.55); box-shadow: 0 0 12px rgba(124,236,255,.18); }
+.lookup-select:focus { border-color: rgba(124,236,255,.75); box-shadow: 0 0 16px rgba(124,236,255,.30); }
 
 .lookup-multi-store {
   display: flex; gap: 6px; flex-wrap: wrap;
@@ -2477,7 +2498,7 @@ table.slim-table { min-width: 1540px; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.5.4</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.5.5</span></div>
 </div>
 </div>
 </div>
@@ -3024,7 +3045,7 @@ table.slim-table { min-width: 1540px; }
 
 <script>
 /* ============================================================
- *  SOPHIA SYSTEMS DASHBOARD v1.5.4 — JavaScript
+ *  SOPHIA SYSTEMS DASHBOARD v1.5.5 — JavaScript
  *  ============================================================ */
 
 // Surface ANY uncaught error as a visible banner — never let JS die silently
@@ -3585,10 +3606,16 @@ function getVisibleRows() {
 
 function getVisiblePastDues() {
   // Past-dues only show on Master + when no rep filter (since they're not assigned to leads.assigned_to)
+  let rows = allPastDueOrders;
+  // Exclude rows that have been manager-marked as Paid (override hides them entirely)
+  rows = rows.filter(o => {
+    const ov = paymentOverridesByOrder[o.order_no];
+    return !ov || ov.override_state !== 'paid';
+  });
   if (activeCompany !== 'master') {
-    return allPastDueOrders.filter(o => lc(o.company_key) === activeCompany);
+    return rows.filter(o => lc(o.company_key) === activeCompany);
   }
-  return allPastDueOrders;
+  return rows;
 }
 
 function renderTable() {
