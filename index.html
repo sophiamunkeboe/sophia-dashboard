@@ -1197,8 +1197,8 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 .order-detail-panel {
   position: fixed;
   top: 86px;
-  left: 600px;
-  width: min(560px, calc(100vw - 660px));
+  left: 620px;
+  width: min(680px, calc(100vw - 700px));
   height: calc(100vh - 104px);
   border-radius: 28px;
   background: linear-gradient(180deg, rgba(6,12,24,.98), rgba(8,16,30,.97));
@@ -1221,8 +1221,8 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   pointer-events: auto;
   transition: transform .26s ease, opacity .22s ease, visibility 0s linear 0s;
 }
-@media (max-width: 1100px) {
-  .order-detail-panel { left: 60px; width: min(540px, calc(100vw - 80px)); }
+@media (max-width: 1200px) {
+  .order-detail-panel { left: 80px; width: min(620px, calc(100vw - 100px)); }
 }
 
 .odp-head {
@@ -1733,8 +1733,8 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   50%      { box-shadow: 0 0 28px rgba(255,215,0,.35), 0 0 48px rgba(255,180,0,.18); }
 }
 
-.kudos-panel { width: 480px !important; }
-@media (max-width: 980px) { .kudos-panel { width: min(440px, calc(100vw - 64px)) !important; } }
+.kudos-panel { width: 380px !important; }
+@media (max-width: 980px) { .kudos-panel { width: min(360px, calc(100vw - 64px)) !important; } }
 
 .kudos-champion-wrap {
   padding: 12px 16px 14px;
@@ -1963,7 +1963,7 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   position: fixed;
   top: 86px;
   right: -640px;
-  width: 540px;
+  width: 480px;
   height: calc(100vh - 104px);
   border-radius: 28px 0 0 28px;
   background: linear-gradient(180deg, rgba(8,16,30,.98), rgba(10,20,40,.96));
@@ -1976,8 +1976,8 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   transition: right .28s cubic-bezier(.4,0,.2,1);
 }
 /* When kudos panel is open at right:62px and 480px wide → deep panel sits at right:542px */
-.rep-deep-panel.open { right: 542px; }
-@media (max-width: 1300px) { .rep-deep-panel { width: 460px; } .rep-deep-panel.open { right: 502px; } }
+.rep-deep-panel.open { right: 442px; }
+@media (max-width: 1300px) { .rep-deep-panel { width: 420px; } .rep-deep-panel.open { right: 422px; } }
 
 .rdp-head {
   padding: 16px 18px;
@@ -2498,7 +2498,7 @@ table.slim-table { min-width: 1540px; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.5.5</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.5.6</span></div>
 </div>
 </div>
 </div>
@@ -2735,11 +2735,11 @@ table.slim-table { min-width: 1540px; }
       <div>
         <div style="font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:#a9c3d8; margin-bottom:6px;">Locations · Click to filter (multi)</div>
         <div class="lookup-multi-store">
-          <div class="lookup-store-pill active" data-loc="munkeboe" onclick="toggleLookupStore('munkeboe', this)">MB</div>
-          <div class="lookup-store-pill active" data-loc="taylor" onclick="toggleLookupStore('taylor', this)">Taylor</div>
-          <div class="lookup-store-pill active" data-loc="aer" onclick="toggleLookupStore('aer', this)">AER</div>
-          <div class="lookup-store-pill active" data-loc="thankq" onclick="toggleLookupStore('thankq', this)">TQ</div>
-          <div class="lookup-store-pill active" data-loc="sel" onclick="toggleLookupStore('sel', this)">SEL</div>
+          <div class="lookup-store-pill" data-loc="munkeboe" onclick="toggleLookupStore('munkeboe', this)">MB</div>
+          <div class="lookup-store-pill" data-loc="taylor" onclick="toggleLookupStore('taylor', this)">Taylor</div>
+          <div class="lookup-store-pill" data-loc="aer" onclick="toggleLookupStore('aer', this)">AER</div>
+          <div class="lookup-store-pill" data-loc="thankq" onclick="toggleLookupStore('thankq', this)">TQ</div>
+          <div class="lookup-store-pill" data-loc="sel" onclick="toggleLookupStore('sel', this)">SEL</div>
         </div>
       </div>
 
@@ -3045,7 +3045,7 @@ table.slim-table { min-width: 1540px; }
 
 <script>
 /* ============================================================
- *  SOPHIA SYSTEMS DASHBOARD v1.5.5 — JavaScript
+ *  SOPHIA SYSTEMS DASHBOARD v1.5.6 — JavaScript
  *  ============================================================ */
 
 // Surface ANY uncaught error as a visible banner — never let JS die silently
@@ -3098,7 +3098,7 @@ let currentDrawerLead = null;
 let currentExtension = null;
 let extCounts = { orders: 0, quotes: 0, delivery: 0 };
 let lookupSearchDebounce = null;
-let lookupActiveStores = new Set(['munkeboe','taylor','aer','thankq','sel']);
+let lookupActiveStores = new Set();
 let lookupLinenAuditOn = false;
 let lookupQuickFilter = null;
 let vaultClickCount = 0;
@@ -3146,7 +3146,14 @@ function fmtMoney(n) {
 function fmtDate(d) {
   if (!d) return '—';
   try {
-    const dt = new Date(d);
+    let dt;
+    // If it's a bare YYYY-MM-DD (date-only, no time), parse as LOCAL midnight to avoid timezone shift
+    if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
+      const [y, m, day] = d.split('-').map(Number);
+      dt = new Date(y, m - 1, day);  // local-time constructor
+    } else {
+      dt = new Date(d);
+    }
     if (isNaN(dt.getTime())) return safeText(d);
     return dt.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
   } catch(e) { return safeText(d); }
@@ -3613,7 +3620,15 @@ function getVisiblePastDues() {
     return !ov || ov.override_state !== 'paid';
   });
   if (activeCompany !== 'master') {
-    return rows.filter(o => lc(o.company_key) === activeCompany);
+    rows = rows.filter(o => lc(o.company_key) === activeCompany);
+  }
+  // Apply same search filter as live leads
+  const q = lc(($('searchInput') || {}).value);
+  if (q) {
+    rows = rows.filter(o => {
+      return [o.customer_name, o.customer_company, o.phone, o.email, o.order_no, o.ordered_items, o.address, o.city]
+        .some(v => lc(v).includes(q));
+    });
   }
   return rows;
 }
@@ -4303,8 +4318,8 @@ function resetLookupFilters() {
   $('lookupDelivery').value = 'all';
   $('lookupSurface').value = 'all';
   $('lookupRecordType').value = 'all';
-  lookupActiveStores = new Set(['munkeboe','taylor','aer','thankq','sel']);
-  document.querySelectorAll('.lookup-store-pill').forEach(p => p.classList.add('active'));
+  lookupActiveStores = new Set();
+  document.querySelectorAll('.lookup-store-pill').forEach(p => p.classList.remove('active'));
   lookupLinenAuditOn = false;
   $('lookupLinenAuditBtn').classList.remove('active');
   lookupQuickFilter = null;
@@ -4385,13 +4400,11 @@ async function runLookupSearch() {
   let rows = data || [];
 
   // CLIENT-SIDE filters (multi-store, surface case normalization, search query, linen audit, cross-store)
-  if (lookupActiveStores.size < 5) {
+  // Empty set = no filter (show all stores). Any selected = filter to those only.
+  if (lookupActiveStores.size > 0 && lookupActiveStores.size < 5) {
     rows = rows.filter(r => {
       const brand = lc(r.brand);
-      const map = { munkeboe: 'munkeboe', taylor: 'taylor', aer: 'aer', thankq: 'thankq', sel: 'sel' };
-      // brand may be 'Munkeboe', 'Taylor', etc.
-      const k = brand.replace('thankq', 'thankq');
-      return lookupActiveStores.has(k);
+      return lookupActiveStores.has(brand);
     });
   }
 
