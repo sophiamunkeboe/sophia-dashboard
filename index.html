@@ -356,8 +356,8 @@ border-radius: 18px;
 background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
 border: 1px solid rgba(124,236,255,.14);
 box-shadow: var(--glow);
-margin-top: -52px;
-margin-bottom: 2px;
+margin-top: 6px;
+margin-bottom: 8px;
 overflow-x: auto;
 white-space: nowrap;
 position: relative;
@@ -824,20 +824,25 @@ width: 100%; border-radius: 12px; border: 1px solid rgba(124,236,255,.16); backg
 /* ============================================ */
 /* RIGHT UTILITY RAIL                           */
 /* ============================================ */
-.utility-rail { position: fixed; top: 128px; right: 0; z-index: 36; display: flex; flex-direction: column; gap: 10px; padding-right: 8px; }
+.utility-rail { position: fixed; top: 128px; right: 0; z-index: 36; display: flex; flex-direction: column; gap: 10px; padding-right: 0; }
 
 .rail-tab {
 writing-mode: vertical-rl; transform: rotate(180deg);
-padding: 16px 10px; border-radius: 999px;
+padding: 16px 10px;
+/* Source 0 16px 16px 0 (top-right + bottom-right rounded).
+   After 180° rotation, those flip to top-left + bottom-left visually
+   = rounded INNER edge (facing dashboard), flat OUTER edge (screen). */
+border-radius: 0 16px 16px 0;
 border: 1px solid rgba(124,236,255,.18);
-background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+border-right: none;
+background: linear-gradient(270deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
 color: #dff5ff; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
 cursor: pointer;
-box-shadow: inset 0 0 10px rgba(255,255,255,.02), 0 0 18px rgba(124,236,255,.08);
+box-shadow: inset 0 0 10px rgba(255,255,255,.02), -6px 0 22px rgba(124,236,255,.08);
 transition: all 0.22s ease;
 }
 
-.rail-tab:hover { transform: rotate(180deg) translateX(-3px); border-color: rgba(124,236,255,.45); box-shadow: 0 0 22px rgba(124,236,255,.22), 0 0 40px rgba(124,236,255,.12); }
+.rail-tab:hover { transform: rotate(180deg) translateX(-3px); border-color: rgba(124,236,255,.45); box-shadow: -10px 0 28px rgba(124,236,255,.22), -16px 0 40px rgba(124,236,255,.12); }
 .rail-tab-alerts { border-color: rgba(255,138,163,.35); color: #ffe1e8; }
 .blinking { animation: railBlink 1.25s infinite; }
 
@@ -916,10 +921,13 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 .left-rail-tab {
   min-width: 52px;
   padding: 14px 12px;
-  border-radius: 0 16px 16px 0;
-  background: linear-gradient(90deg, rgba(124,236,255,.14), rgba(124,236,255,.06));
+  /* After 180° rotation, "0 16px 16px 0" visually becomes "16px 0 0 16px".
+     We want visual: flat-left (screen), rounded-right (toward dashboard).
+     So we set the inverse: 16px 0 0 16px → which rotates to 0 16px 16px 0 visually. */
+  border-radius: 16px 0 0 16px;
+  background: linear-gradient(270deg, rgba(124,236,255,.14), rgba(124,236,255,.06));
   border: 1px solid rgba(124,236,255,.28);
-  border-left: none;
+  border-right: none;
   color: #eef7ff;
   font-size: 12px;
   font-weight: 800;
@@ -3127,28 +3135,31 @@ function avatarImg(name, sizeClass) {
  *  BOOT
  *  ============================================================ */
 document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    await loadActiveUsers();
-    await loadPaymentOverrides();
-    renderTeamPills();
-    await loadDashboard();
-    await loadPastDueOrders();
-    renderTable();
-    setupRealtime();
-    loadActivityTicker();
-    loadKudosData();
-    loadRoutingCockpit();
-    setupGlobalKeyHandlers();
-    setupSearchHandler();
-    setupLookupSearchHandler();
-    // Refresh ticker every 60s
-    tickerRefreshTimer = setInterval(loadActivityTicker, 60000);
-    // Refresh past-dues every 5 min
-    setInterval(loadPastDueOrders, 5 * 60 * 1000);
-  } catch (err) {
-    console.error('Boot error:', err);
-    showSaveBanner('Boot error: ' + (err.message || err), true);
-  }
+  // Armored boot — each step is independent; one failure can't kill the rest.
+  const safe = async (label, fn) => {
+    try { await fn(); }
+    catch (err) {
+      console.error(`[BOOT] ${label} failed:`, err);
+      showSaveBanner(`${label}: ${err.message || err}`, true);
+    }
+  };
+  await safe('loadActiveUsers',     loadActiveUsers);
+  await safe('loadPaymentOverrides', loadPaymentOverrides);
+  await safe('renderTeamPills',     async () => renderTeamPills());
+  await safe('loadDashboard',       loadDashboard);
+  await safe('loadPastDueOrders',   loadPastDueOrders);
+  await safe('renderTable',         async () => renderTable());
+  await safe('setupRealtime',       async () => setupRealtime());
+  await safe('loadActivityTicker',  loadActivityTicker);
+  await safe('loadKudosData',       loadKudosData);
+  await safe('loadRoutingCockpit',  loadRoutingCockpit);
+  setupGlobalKeyHandlers();
+  setupSearchHandler();
+  setupLookupSearchHandler();
+  // Refresh ticker every 60s
+  tickerRefreshTimer = setInterval(loadActivityTicker, 60000);
+  // Refresh past-dues every 5 min
+  setInterval(loadPastDueOrders, 5 * 60 * 1000);
 });
 
 function setupGlobalKeyHandlers() {
