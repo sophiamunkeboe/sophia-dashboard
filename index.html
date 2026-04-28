@@ -2570,19 +2570,18 @@ th.signals-col, td.signals-col { width: 140px; }
 .assign-trigger.unassigned { color: #9fb3c8; border-style: dashed; padding: 4px 12px; }
 
 .assign-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  min-width: 180px;
-  max-height: 320px;
+  position: fixed;
+  min-width: 200px;
+  max-width: 240px;
+  max-height: 360px;
   overflow-y: auto;
   background: linear-gradient(180deg, rgba(10,20,40,.98), rgba(8,16,30,.98));
-  border: 1px solid rgba(124,236,255,.28);
+  border: 1px solid rgba(124,236,255,.32);
   border-radius: 14px;
-  box-shadow: 0 18px 40px rgba(0,0,0,.45);
-  backdrop-filter: blur(12px);
+  box-shadow: 0 22px 50px rgba(0,0,0,.6), 0 0 18px rgba(124,236,255,.18);
+  backdrop-filter: blur(14px);
   padding: 6px;
-  z-index: 100;
+  z-index: 200;
   display: none;
 }
 .assign-menu.open { display: block; }
@@ -2672,7 +2671,7 @@ table.slim-table { min-width: 1540px; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.5.8</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.5.9</span></div>
 </div>
 </div>
 </div>
@@ -3251,7 +3250,7 @@ table.slim-table { min-width: 1540px; }
 
 <script>
 /* ============================================================
- *  SOPHIA SYSTEMS DASHBOARD v1.5.8 — JavaScript
+ *  SOPHIA SYSTEMS DASHBOARD v1.5.9 — JavaScript
  *  ============================================================ */
 
 // Surface ANY uncaught error as a visible banner — never let JS die silently
@@ -3576,6 +3575,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
   await safe('loadActiveUsers',     loadActiveUsers);
   await safe('loadPaymentOverrides', loadPaymentOverrides);
+  await safe('loadPastdueClaims',   loadPastdueClaims);
   await safe('renderTeamPills',     async () => renderTeamPills());
   await safe('loadDashboard',       loadDashboard);
   await safe('loadPastDueOrders',   loadPastDueOrders);
@@ -3600,7 +3600,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Leads + past-dues: every 30s. Refresh badges + open panels live.
   setInterval(async () => {
     try {
-      await Promise.all([loadDashboard(), loadPastDueOrders(), loadPaymentOverrides()]);
+      await Promise.all([loadDashboard(), loadPastDueOrders(), loadPaymentOverrides(), loadPastdueClaims()]);
       renderTable();
       renderTeamPills();
       if ($('tasksRailPanel').classList.contains('open')) loadTasksPanel();
@@ -3668,6 +3668,14 @@ async function loadPaymentOverrides() {
   (data || []).forEach(po => { paymentOverridesByOrder[po.order_no] = po; });
 }
 
+let pastdueClaimsByOrder = {};
+async function loadPastdueClaims() {
+  const { data, error } = await sb.from('pastdue_claims').select('order_no, assigned_to, done_at, done_by, note');
+  if (error) { console.warn('pastdue_claims load:', error); return; }
+  pastdueClaimsByOrder = {};
+  (data || []).forEach(c => { pastdueClaimsByOrder[c.order_no] = c; });
+}
+
 /* ============================================================
  *  TEAM PILLS (filter lens — right of company tabs)
  *  ============================================================ */
@@ -3695,7 +3703,11 @@ function renderTeamPills() {
 }
 
 function countLeadsForRep(repName) {
-  return allLeads.filter(l => lc(l.assigned_to) === lc(repName)).length;
+  const leadCount = allLeads.filter(l => lc(l.assigned_to) === lc(repName)).length;
+  const pastdueCount = Object.values(pastdueClaimsByOrder).filter(c =>
+    c && lc(c.assigned_to) === lc(repName) && !c.done_at
+  ).length;
+  return leadCount + pastdueCount;
 }
 
 function toggleTeamPill(repName, el) {
@@ -3830,16 +3842,30 @@ function getVisibleRows() {
   return rows;
 }
 
-function getVisiblePastDues() {
-  // Past-dues only show on Master + when no rep filter (since they're not assigned to leads.assigned_to)
+function getVisiblePastDues(opts = {}) {
+  const { includeDone = false, ignoreRepFilter = false } = opts;
   let rows = allPastDueOrders;
   // Exclude rows that have been manager-marked as Paid (override hides them entirely)
   rows = rows.filter(o => {
     const ov = paymentOverridesByOrder[o.order_no];
     return !ov || ov.override_state !== 'paid';
   });
+  // Hide Done items by default
+  if (!includeDone) {
+    rows = rows.filter(o => {
+      const c = pastdueClaimsByOrder[o.order_no];
+      return !(c && c.done_at);
+    });
+  }
   if (activeCompany !== 'master') {
     rows = rows.filter(o => lc(o.company_key) === activeCompany);
+  }
+  // If a rep filter is active, only show past-dues claimed by that rep
+  if (activeRepFilter && !ignoreRepFilter) {
+    rows = rows.filter(o => {
+      const c = pastdueClaimsByOrder[o.order_no];
+      return c && lc(c.assigned_to) === lc(activeRepFilter);
+    });
   }
   // Apply same search filter as live leads
   const q = lc(($('searchInput') || {}).value);
@@ -4072,10 +4098,45 @@ function toggleAssignMenu(triggerEl, ev) {
     if (m !== triggerEl.nextElementSibling) m.classList.remove('open');
   });
   const menu = triggerEl.nextElementSibling;
-  if (menu) menu.classList.toggle('open');
+  if (!menu) return;
+  if (menu.classList.contains('open')) {
+    menu.classList.remove('open');
+    return;
+  }
+  // Position with fixed coords so it can escape table overflow
+  const rect = triggerEl.getBoundingClientRect();
+  const vw = window.innerWidth, vh = window.innerHeight;
+  // Show first to measure, then adjust
+  menu.style.visibility = 'hidden';
+  menu.classList.add('open');
+  const mh = menu.offsetHeight;
+  const mw = menu.offsetWidth || 220;
+
+  // Default: drop below trigger
+  let top = rect.bottom + 6;
+  let left = rect.right - mw;  // right-aligned to trigger
+
+  // Flip up if no room below
+  if (top + mh > vh - 12) {
+    top = rect.top - mh - 6;
+    if (top < 12) top = 12;  // clamp to viewport
+  }
+  // Clamp horizontally
+  if (left < 12) left = 12;
+  if (left + mw > vw - 12) left = vw - mw - 12;
+
+  menu.style.top = top + 'px';
+  menu.style.left = left + 'px';
+  menu.style.visibility = '';
 }
 
 document.addEventListener('click', () => {
+  document.querySelectorAll('.assign-menu.open').forEach(m => m.classList.remove('open'));
+});
+window.addEventListener('scroll', () => {
+  document.querySelectorAll('.assign-menu.open').forEach(m => m.classList.remove('open'));
+}, true);
+window.addEventListener('resize', () => {
   document.querySelectorAll('.assign-menu.open').forEach(m => m.classList.remove('open'));
 });
 
