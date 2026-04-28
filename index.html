@@ -429,7 +429,7 @@ z-index: 5;
   width: 1px;
   height: 26px;
   background: linear-gradient(180deg, transparent, rgba(124,236,255,.35), transparent);
-  margin: 0 6px;
+  margin: 0 6px 0 auto;
   flex-shrink: 0;
 }
 
@@ -1712,11 +1712,11 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   50%      { box-shadow: 0 0 28px rgba(255,215,0,.35), 0 0 48px rgba(255,180,0,.18); }
 }
 
-.kudos-panel { width: 460px !important; }
-@media (max-width: 980px) { .kudos-panel { width: min(430px, calc(100vw - 64px)) !important; } }
+.kudos-panel { width: 480px !important; }
+@media (max-width: 980px) { .kudos-panel { width: min(440px, calc(100vw - 64px)) !important; } }
 
 .kudos-champion-wrap {
-  padding: 18px 16px;
+  padding: 12px 16px 14px;
   text-align: center;
   background: radial-gradient(circle at center, rgba(255,215,0,.14), rgba(255,140,0,.04) 60%, transparent 80%);
   border-bottom: 1px solid rgba(255,215,0,.22);
@@ -1728,18 +1728,18 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   background: linear-gradient(90deg, transparent 0%, rgba(255,215,0,.20) 15%, rgba(255,215,0,.35) 50%, rgba(255,215,0,.20) 85%, transparent 100%);
   border-top: 1px solid rgba(255,215,0,.40);
   border-bottom: 1px solid rgba(255,215,0,.40);
-  padding: 6px 8px;
-  margin: 0 -16px 14px;
-  font-size: 11px; font-weight: 800;
-  letter-spacing: .28em;
+  padding: 5px 8px;
+  margin: 0 -16px 10px;
+  font-size: 10px; font-weight: 800;
+  letter-spacing: .26em;
   color: #fff;
   text-shadow: 0 0 10px rgba(255,215,0,.8);
   overflow: hidden;
 }
-.kudos-champion-avatar-wrap { position: relative; display: inline-block; margin-bottom: 12px; }
+.kudos-champion-avatar-wrap { position: relative; display: inline-block; margin-bottom: 6px; }
 .kudos-champion-crown {
-  position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
-  font-size: 36px;
+  position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+  font-size: 28px;
   animation: crownFloat 2.2s ease-in-out infinite;
   filter: drop-shadow(0 0 10px rgba(255,215,0,.8));
   z-index: 2;
@@ -1749,12 +1749,13 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   50%     { transform: translateX(-50%) translateY(-6px); }
 }
 .kudos-champion-avatar {
-  width: 130px; height: 130px;
+  width: 88px; height: 88px;
   border-radius: 50%;
-  border: 4px solid gold;
-  box-shadow: 0 0 32px rgba(255,215,0,.80), inset 0 0 0 2px rgba(255,255,255,.30);
+  border: 3px solid gold;
+  box-shadow: 0 0 24px rgba(255,215,0,.80), inset 0 0 0 2px rgba(255,255,255,.30);
   animation: championRotate 12s linear infinite, championGlow 2.2s ease-in-out infinite;
   object-fit: cover;
+  cursor: pointer;
 }
 .kudos-champion-avatar.no-avatar {
   display: inline-flex; align-items: center; justify-content: center;
@@ -1769,40 +1770,40 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 }
 
 .kudos-champion-name {
-  font-size: 28px; font-weight: 800; color: #fff;
-  text-shadow: 0 0 16px rgba(255,215,0,.70);
+  font-size: 18px; font-weight: 800; color: #fff;
+  text-shadow: 0 0 14px rgba(255,215,0,.70);
   letter-spacing: .06em; text-transform: uppercase;
 }
 .kudos-champion-score {
-  margin: 10px auto 0;
-  padding: 8px 20px;
+  margin: 6px auto 0;
+  padding: 5px 18px;
   display: inline-block;
   border-top: 2px solid rgba(124,236,255,.60);
   border-bottom: 2px solid rgba(124,236,255,.60);
   font-family: "Courier New", monospace;
-  font-size: 34px; font-weight: 800;
-  letter-spacing: .1em;
+  font-size: 22px; font-weight: 800;
+  letter-spacing: .08em;
   color: #7cecff;
   text-shadow: 0 0 8px rgba(124,236,255,.9);
   font-variant-numeric: tabular-nums;
 }
 .kudos-champion-category {
-  margin-top: 8px;
-  font-size: 10px; font-weight: 800;
+  margin-top: 5px;
+  font-size: 9px; font-weight: 800;
   color: #ffe8a3;
   letter-spacing: .22em;
   text-transform: uppercase;
 }
 .kudos-champion-ticker {
-  margin-top: 14px;
-  padding: 8px 12px;
+  margin-top: 8px;
+  padding: 5px 10px;
   background: rgba(0,0,0,.35);
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid rgba(124,236,255,.20);
   font-family: "Courier New", monospace;
-  font-size: 11px;
+  font-size: 10px;
   color: #b9ffcf;
-  letter-spacing: .08em;
+  letter-spacing: .06em;
   font-variant-numeric: tabular-nums;
 }
 .kudos-champion-ticker .sep { margin: 0 10px; color: rgba(124,236,255,.5); }
@@ -1865,13 +1866,20 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 .kudos-body { padding: 12px !important; gap: 8px !important; }
 
 .kudos-card {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px;
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px;
   border-radius: 14px;
   background: linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
   border: 1px solid rgba(124,236,255,.14);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.kudos-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(124,236,255,.45);
+  box-shadow: 0 0 18px rgba(124,236,255,.20);
 }
 .kudos-card.tier-legend {
   background: linear-gradient(90deg, rgba(255,215,0,.14), rgba(255,140,0,.04));
@@ -1883,31 +1891,31 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 .kudos-card.tier-rising { border-color: rgba(124,236,255,.22); }
 .kudos-card.tier-steady { border-color: rgba(180,200,220,.18); }
 
-.kudos-rank { width: 28px; font-size: 14px; font-weight: 800; text-align: center; color: #eef7ff; }
-.kudos-rank.first  { color: gold; text-shadow: 0 0 10px rgba(255,215,0,.8); font-size: 18px; }
-.kudos-rank.second { color: silver; font-size: 16px; }
-.kudos-rank.third  { color: #cd7f32; font-size: 16px; }
+.kudos-rank { width: 32px; font-size: 16px; font-weight: 800; text-align: center; color: #eef7ff; }
+.kudos-rank.first  { color: gold; text-shadow: 0 0 10px rgba(255,215,0,.8); font-size: 22px; }
+.kudos-rank.second { color: silver; font-size: 20px; }
+.kudos-rank.third  { color: #cd7f32; font-size: 20px; }
 
-.kudos-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,.14); flex-shrink: 0; }
+.kudos-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,.14); flex-shrink: 0; }
 .kudos-avatar.letter-fallback {
   display: inline-flex; align-items: center; justify-content: center;
   background: linear-gradient(135deg, #2d4a7a, #1a2f4d);
-  color: #e8f3ff; font-size: 18px; font-weight: 800;
+  color: #e8f3ff; font-size: 22px; font-weight: 800;
 }
 .kudos-main { flex: 1; min-width: 0; }
 .kudos-line1 { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.kudos-name { font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.kudos-primary-stat { font-size: 14px; font-weight: 800; color: #7fe5a6; flex-shrink: 0; }
-.kudos-line2 { margin-top: 4px; font-size: 11px; color: #9fb3c8; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.kudos-name { font-size: 17px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kudos-primary-stat { font-size: 17px; font-weight: 800; color: #7fe5a6; flex-shrink: 0; }
+.kudos-line2 { margin-top: 5px; font-size: 12px; color: #9fb3c8; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .kudos-chip {
   display: inline-flex; align-items: center; gap: 3px;
-  padding: 2px 6px; border-radius: 999px;
-  font-size: 9px; font-weight: 700;
+  padding: 3px 8px; border-radius: 999px;
+  font-size: 10px; font-weight: 700;
   background: rgba(255,255,255,.05);
   border: 1px solid rgba(124,236,255,.18);
   color: #c8d9ef;
 }
-.kudos-tier-pip { padding: 2px 7px; border-radius: 999px; font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.kudos-tier-pip { padding: 3px 9px; border-radius: 999px; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .kudos-tier-pip.tier-legend { color: #1a1a2e; background: linear-gradient(135deg, #ffd700, #ffa500); }
 .kudos-tier-pip.tier-elite { color: #1a1a2e; background: linear-gradient(135deg, #e8e8ff, #b8b8e8); }
 .kudos-tier-pip.tier-advanced { color: #001826; background: linear-gradient(135deg, #7cecff, #4dabf7); }
@@ -1926,6 +1934,128 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 }
 .kudos-summary .num { color: #fff; font-weight: 800; font-size: 13px; }
 .kudos-empty-placeholder { padding: 30px 16px; text-align: center; color: #8fb4c9; font-size: 13px; }
+
+/* ============================================ */
+/* REP DEEP-DIVE PANEL (cascade from Kudos)    */
+/* ============================================ */
+.rep-deep-panel {
+  position: fixed;
+  top: 86px;
+  right: -640px;
+  width: 540px;
+  height: calc(100vh - 104px);
+  border-radius: 28px 0 0 28px;
+  background: linear-gradient(180deg, rgba(8,16,30,.98), rgba(10,20,40,.96));
+  border-left: 1px solid rgba(255,215,0,.30);
+  box-shadow: -22px 0 50px rgba(0,0,0,.45), -8px 0 28px rgba(255,215,0,.12);
+  backdrop-filter: blur(16px);
+  z-index: 39;
+  display: flex;
+  flex-direction: column;
+  transition: right .28s cubic-bezier(.4,0,.2,1);
+}
+/* When kudos panel is open at right:62px and 480px wide → deep panel sits at right:542px */
+.rep-deep-panel.open { right: 542px; }
+@media (max-width: 1300px) { .rep-deep-panel { width: 460px; } .rep-deep-panel.open { right: 502px; } }
+
+.rdp-head {
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255,215,0,.18);
+  display: flex; gap: 14px; align-items: center;
+  background: linear-gradient(180deg, rgba(255,215,0,.08), transparent);
+}
+.rdp-avatar {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 3px solid currentColor;
+  object-fit: cover;
+  box-shadow: 0 0 18px currentColor;
+  flex-shrink: 0;
+}
+.rdp-avatar.letter-fallback {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #2d4a7a, #1a2f4d);
+  color: #e8f3ff; font-size: 26px; font-weight: 800;
+}
+.rdp-title-wrap { flex: 1; min-width: 0; }
+.rdp-name { margin: 0; font-size: 22px; font-weight: 800; color: #fff; letter-spacing: .03em; }
+.rdp-sub { margin-top: 4px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #ffd46a; }
+.rdp-close {
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,215,0,.30);
+  background: rgba(255,255,255,.04);
+  color: white; font-size: 18px; cursor: pointer;
+  flex-shrink: 0;
+}
+.rdp-close:hover { box-shadow: 0 0 16px rgba(255,215,0,.35); }
+
+.rdp-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(124,236,255,.10);
+}
+.rdp-stat {
+  text-align: center;
+  padding: 10px 8px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(124,236,255,.14);
+}
+.rdp-stat .label { font-size: 9px; color: #8fb4c9; letter-spacing: .14em; text-transform: uppercase; }
+.rdp-stat .value { margin-top: 4px; font-size: 18px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+.rdp-stat.revenue .value { color: #6effa8; }
+.rdp-stat.orders .value { color: #7cecff; }
+.rdp-stat.brands .value { color: #b89cff; }
+
+.rdp-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rdp-section-title {
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #c8d9ef;
+  font-weight: 800;
+  margin: 4px 0 4px;
+}
+.rdp-order-card {
+  display: flex; gap: 10px; align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.025);
+  border: 1px solid rgba(124,236,255,.12);
+  cursor: pointer;
+  transition: all .16s ease;
+}
+.rdp-order-card:hover {
+  border-color: rgba(124,236,255,.40);
+  box-shadow: 0 0 14px rgba(124,236,255,.18);
+}
+.rdp-order-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+.rdp-order-main { flex: 1; min-width: 0; }
+.rdp-order-top { display: flex; justify-content: space-between; gap: 8px; }
+.rdp-order-customer { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rdp-order-amount { font-size: 13px; font-weight: 800; color: #6effa8; flex-shrink: 0; }
+.rdp-order-meta {
+  margin-top: 3px;
+  font-size: 10px; color: #9fb3c8;
+  display: flex; gap: 6px; align-items: center;
+  flex-wrap: wrap;
+}
+.rdp-order-no { font-family: monospace; color: #7cecff; opacity: .85; }
 
 .lrp-empty { text-align: center; padding: 24px 12px; color: #93aac0; font-size: 13px; }
 
@@ -2770,6 +2900,26 @@ table.slim-table { min-width: 1540px; }
   </div>
 </aside>
 
+<!-- REP DEEP-DIVE PANEL (cascade left from Kudos) -->
+<aside id="repDeepPanel" class="rep-deep-panel">
+  <div class="rdp-head">
+    <div id="rdpAvatarSlot"></div>
+    <div class="rdp-title-wrap">
+      <h3 class="rdp-name" id="rdpName">—</h3>
+      <div class="rdp-sub" id="rdpSub">REP DEEP DIVE</div>
+    </div>
+    <button class="rdp-close" onclick="closeRepDeepPanel()">✕</button>
+  </div>
+  <div class="rdp-stats-row">
+    <div class="rdp-stat revenue"><div class="label">Revenue</div><div class="value" id="rdpRevenue">$0</div></div>
+    <div class="rdp-stat orders"><div class="label">Orders</div><div class="value" id="rdpOrders">0</div></div>
+    <div class="rdp-stat brands"><div class="label">Brands</div><div class="value" id="rdpBrands">0</div></div>
+  </div>
+  <div class="rdp-body" id="rdpBody">
+    <div class="lrp-empty">Click a rep to see their orders</div>
+  </div>
+</aside>
+
 <!-- VAULT DOOR OVERLAY (theatrical entry to Manager Bridge) -->
 <div id="vaultOverlay" class="vault-overlay">
   <div class="vault-spotlight"></div>
@@ -3221,6 +3371,7 @@ function setupGlobalKeyHandlers() {
       // Close in priority order
       if ($('vaultOverlay').classList.contains('active')) { skipVault(); return; }
       if (bridgeOpen) { closeBridge(); return; }
+      if ($('repDeepPanel').classList.contains('open')) { closeRepDeepPanel(); return; }
       if ($('orderDetailPanel').classList.contains('open')) { closeOrderDetailPanel(); return; }
       if ($('extensionDrawer').classList.contains('open')) { closeExtensionDrawer(); return; }
       if ($('leadDrawer').classList.contains('open')) { closeDrawer(); return; }
@@ -4676,6 +4827,7 @@ function openRailPanel(id) {
 }
 function closeRailPanels() {
   document.querySelectorAll('.rail-panel.open').forEach(p => p.classList.remove('open'));
+  closeRepDeepPanel();
 }
 async function loadRailAlerts() {
   const list = $('railAlertsList');
@@ -4771,7 +4923,7 @@ async function loadKudosData() {
 
   $('kudosChampionSpotlight').innerHTML = `
     <div class="kudos-champion-marquee">⭐ CHAMPION OF THE ${range.toUpperCase()} ⭐</div>
-    <div class="kudos-champion-avatar-wrap">
+    <div class="kudos-champion-avatar-wrap" onclick="openRepDeepPanel('${escapeHtml(champ.name)}')" style="cursor:pointer;">
       <span class="kudos-champion-crown">👑</span>
       ${champAvatar}
     </div>
@@ -4793,7 +4945,7 @@ async function loadKudosData() {
       : `<span class="kudos-avatar letter-fallback">${escapeHtml((s.name || '?')[0])}</span>`;
     const rankCls = i === 0 ? 'first' : i === 1 ? 'second' : i === 2 ? 'third' : '';
     return `
-      <div class="kudos-card tier-${tier}">
+      <div class="kudos-card tier-${tier}" onclick="openRepDeepPanel('${escapeHtml(s.name)}')">
         <div class="kudos-rank ${rankCls}">#${i+1}</div>
         ${av}
         <div class="kudos-main">
@@ -4819,6 +4971,89 @@ function kudosTier(rank, total) {
 }
 
 function openKudosPanel() { openRailPanel('leaderboardRailPanel'); loadKudosData(); }
+
+/* ============================================================
+ *  REP DEEP-DIVE PANEL
+ *  ============================================================ */
+async function openRepDeepPanel(repName) {
+  if (!repName) return;
+  const panel = document.getElementById('repDeepPanel');
+  panel.classList.add('open');
+
+  const u = userByName(repName);
+  const color = (u && u.rep_color) || '#ffd46a';
+
+  // Header
+  const avatarSlot = document.getElementById('rdpAvatarSlot');
+  if (u && u.avatar_url) {
+    avatarSlot.innerHTML = `<img class="rdp-avatar" src="${escapeHtml(u.avatar_url)}" style="color:${color};" onerror="this.outerHTML='<span class=&quot;rdp-avatar letter-fallback&quot; style=&quot;color:${color};&quot;>${escapeHtml(repName[0])}</span>'"/>`;
+  } else {
+    avatarSlot.innerHTML = `<span class="rdp-avatar letter-fallback" style="color:${color};">${escapeHtml((repName||'?')[0].toUpperCase())}</span>`;
+  }
+  document.getElementById('rdpName').textContent = repName;
+  document.getElementById('rdpSub').textContent = `REP DEEP DIVE · LAST ${kudosState.range === 'week' ? '7 DAYS' : kudosState.range === 'month' ? '30 DAYS' : 'ALL TIME'}`;
+  document.getElementById('rdpBody').innerHTML = '<div class="lrp-empty">Loading orders…</div>';
+  document.getElementById('rdpRevenue').textContent = '—';
+  document.getElementById('rdpOrders').textContent = '—';
+  document.getElementById('rdpBrands').textContent = '—';
+
+  // Pull rep's orders for the current kudos range
+  const days = kudosState.range === 'week' ? 7 : kudosState.range === 'month' ? 30 : 365;
+  const since = new Date(); since.setDate(since.getDate() - days);
+  const { data, error } = await sb
+    .from('historical_orders')
+    .select('order_no, customer_name, customer_company, total, balance_due, status_raw, event_start_date, order_date, surface, company_key, ordered_items, sales_rep')
+    .ilike('sales_rep', repName)
+    .gte('order_date', since.toISOString().slice(0,10))
+    .order('order_date', { ascending: false })
+    .limit(200);
+
+  if (error) {
+    document.getElementById('rdpBody').innerHTML = `<div class="lrp-empty" style="color:#ffd0db;">Error: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+  const orders = data || [];
+
+  // Stats
+  const totalRev = orders.reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
+  const brands = new Set(orders.map(o => lc(o.company_key)).filter(Boolean));
+  document.getElementById('rdpRevenue').textContent = fmtMoney(totalRev);
+  document.getElementById('rdpOrders').textContent = orders.length;
+  document.getElementById('rdpBrands').textContent = brands.size;
+
+  if (!orders.length) {
+    document.getElementById('rdpBody').innerHTML = '<div class="lrp-empty">No orders in this range.</div>';
+    return;
+  }
+
+  // Render orders list
+  const rows = orders.map(o => {
+    const brand = lc(o.company_key) || detectBrand(o.order_no, o.company_key);
+    const dotColor = COMPANY_COLORS[brand] || '#7cecff';
+    return `
+      <div class="rdp-order-card" onclick='openOrderDetailFromLookup(${JSON.stringify(JSON.stringify({...o, record_no: o.order_no, record_type: 'order', items_text: o.ordered_items, brand: brand}))})'>
+        <span class="rdp-order-dot" style="background:${dotColor};color:${dotColor};"></span>
+        <div class="rdp-order-main">
+          <div class="rdp-order-top">
+            <div class="rdp-order-customer">${escapeHtml(safeText(o.customer_name))}</div>
+            <div class="rdp-order-amount">${fmtMoney(o.total)}</div>
+          </div>
+          <div class="rdp-order-meta">
+            <span class="rdp-order-no">${escapeHtml(o.order_no || '')}</span>
+            <span>·</span>
+            <span>${fmtDate(o.event_start_date || o.order_date)}</span>
+            ${o.surface ? `<span>· ${escapeHtml(surfaceLabel(o.surface))}</span>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('rdpBody').innerHTML = `<div class="rdp-section-title">${orders.length} orders</div>` + rows;
+}
+
+function closeRepDeepPanel() {
+  document.getElementById('repDeepPanel').classList.remove('open');
+}
 function switchKudosRange(r, ev) {
   kudosState.range = r;
   document.querySelectorAll('.kudos-range-btn').forEach(b => b.classList.remove('active'));
