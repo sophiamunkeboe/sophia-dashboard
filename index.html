@@ -2347,7 +2347,7 @@ table.slim-table { min-width: 1540px; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.5.2</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.5.3</span></div>
 </div>
 </div>
 </div>
@@ -2874,14 +2874,41 @@ table.slim-table { min-width: 1540px; }
 
 <script>
 /* ============================================================
- *  SOPHIA SYSTEMS DASHBOARD v1.5.0 — JavaScript
+ *  SOPHIA SYSTEMS DASHBOARD v1.5.3 — JavaScript
  *  ============================================================ */
+
+// Surface ANY uncaught error as a visible banner — never let JS die silently
+window.addEventListener('error', function(ev) {
+  try {
+    var b = document.getElementById('errorBox');
+    if (b) {
+      b.style.display = 'block';
+      b.textContent = '⚠ JS Error: ' + (ev.message || 'unknown') + ' [' + (ev.filename || '').split('/').pop() + ':' + (ev.lineno || '?') + ']';
+    }
+  } catch(e) {}
+  console.error('[GLOBAL ERROR]', ev);
+});
 
 const SUPABASE_URL = "https://aeonjnohadmbxfuoirqa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_Hua7OwdofLmGXgTapILwBA_XHnbyyxf";
 const MAPBOX_TOKEN = "PASTE_YOUR_MAPBOX_TOKEN_HERE";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let supabase = null;
+try {
+  if (!window.supabase || !window.supabase.createClient) {
+    throw new Error('Supabase JS library failed to load from CDN. Check network tab.');
+  }
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log('[SUPABASE ✓] Client initialized');
+} catch (initErr) {
+  console.error('[SUPABASE ✗] Init failed:', initErr);
+  document.addEventListener('DOMContentLoaded', function() {
+    var tb = document.getElementById('tableBody');
+    if (tb) {
+      tb.innerHTML = '<tr><td colspan="13" style="color:#ffd0db;font-family:monospace;font-size:12px;padding:20px;">❌ Supabase failed to initialize: ' + initErr.message + '<br/>Check browser DevTools (F12) → Network tab for blocked CDN requests.</td></tr>';
+    }
+  });
+}
 if (window.mapboxgl) { mapboxgl.accessToken = MAPBOX_TOKEN; }
 
 /* ============================================================
@@ -3135,12 +3162,31 @@ function avatarImg(name, sizeClass) {
  *  BOOT
  *  ============================================================ */
 document.addEventListener('DOMContentLoaded', async () => {
+  // If Supabase failed to init, the table already shows an error — bail
+  if (!supabase) {
+    console.warn('[BOOT] skipped — supabase client not initialized');
+    return;
+  }
+
   // Armored boot — each step is independent; one failure can't kill the rest.
+  // Boot status is shown in the table area until renderTable runs successfully.
+  const setBootStatus = (txt) => {
+    const tb = document.getElementById('tableBody');
+    if (tb && tb.querySelector('td.muted')) {
+      tb.innerHTML = `<tr><td colspan="13" class="muted" style="font-family:monospace;font-size:12px;">⏳ ${txt}</td></tr>`;
+    }
+  };
+
   const safe = async (label, fn) => {
-    try { await fn(); }
+    setBootStatus(label + '...');
+    try {
+      await fn();
+      console.log(`[BOOT ✓] ${label}`);
+    }
     catch (err) {
-      console.error(`[BOOT] ${label} failed:`, err);
+      console.error(`[BOOT ✗] ${label} failed:`, err);
       showSaveBanner(`${label}: ${err.message || err}`, true);
+      // Don't overwrite tbody — let later steps continue and possibly fix the view
     }
   };
   await safe('loadActiveUsers',     loadActiveUsers);
@@ -3156,6 +3202,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupGlobalKeyHandlers();
   setupSearchHandler();
   setupLookupSearchHandler();
+  console.log('[BOOT] Sequence complete. allLeads:', allLeads.length, '· allPastDueOrders:', allPastDueOrders.length, '· activeUsers:', activeUsers.length);
+  // If table still shows the boot status placeholder, re-render with whatever we have
+  const tb = document.getElementById('tableBody');
+  if (tb && tb.innerHTML.includes('⏳')) {
+    renderTable();
+  }
   // Refresh ticker every 60s
   tickerRefreshTimer = setInterval(loadActivityTicker, 60000);
   // Refresh past-dues every 5 min
