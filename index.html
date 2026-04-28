@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Sophia Systems Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.css" rel="stylesheet" />
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.js"></script>
 
@@ -1957,6 +1958,132 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 .kudos-empty-placeholder { padding: 30px 16px; text-align: center; color: #8fb4c9; font-size: 13px; }
 
 /* ============================================ */
+/* PAYMENT SYNC UPLOAD PANEL                    */
+/* ============================================ */
+.rail-tab-sync {
+  border-color: rgba(110,255,168,.40) !important;
+  color: #d9ffe8 !important;
+  background: linear-gradient(270deg, rgba(110,255,168,.18), rgba(110,255,168,.04)) !important;
+  box-shadow: -6px 0 22px rgba(110,255,168,.18) !important;
+}
+.rail-tab-sync:hover {
+  border-color: rgba(110,255,168,.70) !important;
+  box-shadow: -10px 0 28px rgba(110,255,168,.40), -16px 0 40px rgba(110,255,168,.20) !important;
+}
+
+.sync-panel { width: 540px !important; }
+@media (max-width: 980px) { .sync-panel { width: min(490px, calc(100vw - 64px)) !important; } }
+
+.sync-dropzone {
+  margin: 14px;
+  padding: 28px 18px;
+  border-radius: 16px;
+  border: 2px dashed rgba(110,255,168,.40);
+  background: linear-gradient(180deg, rgba(110,255,168,.06), rgba(110,255,168,.01));
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.sync-dropzone:hover, .sync-dropzone.drag-over {
+  border-color: rgba(110,255,168,.85);
+  background: linear-gradient(180deg, rgba(110,255,168,.14), rgba(110,255,168,.04));
+  box-shadow: 0 0 24px rgba(110,255,168,.25), inset 0 0 18px rgba(110,255,168,.08);
+}
+.sync-dropzone-icon { font-size: 36px; margin-bottom: 8px; }
+.sync-dropzone-title { font-size: 14px; font-weight: 800; color: #d9ffe8; letter-spacing: .04em; }
+.sync-dropzone-sub { margin-top: 4px; font-size: 11px; color: #9fb3c8; }
+.sync-dropzone-hint { margin-top: 10px; font-size: 10px; color: #8fb4c9; letter-spacing: .08em; text-transform: uppercase; }
+
+.sync-summary {
+  margin: 0 14px 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(124,236,255,.18);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  font-size: 11px;
+}
+.sync-summary-stat { text-align: center; }
+.sync-summary-stat .label { color: #8fb4c9; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+.sync-summary-stat .value { margin-top: 3px; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.sync-summary-stat.matched .value { color: #6effa8; }
+.sync-summary-stat.changed .value { color: #ffd46a; }
+.sync-summary-stat.unchanged .value { color: #9fb3c8; }
+.sync-summary-stat.rejected .value { color: #ff8aa3; }
+
+.sync-preview {
+  margin: 0 14px 12px;
+  max-height: 360px;
+  overflow-y: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(124,236,255,.14);
+  background: rgba(0,0,0,.20);
+}
+.sync-preview-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 90px 70px;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  align-items: center;
+}
+.sync-preview-row:last-child { border-bottom: none; }
+.sync-preview-row .o { font-family: monospace; color: #7cecff; font-weight: 700; }
+.sync-preview-row .n { color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sync-preview-row .b { color: #ffd46a; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.sync-preview-row .s { font-size: 10px; padding: 2px 6px; border-radius: 999px; text-align: center; font-weight: 700; }
+.sync-preview-row .s.match    { background: rgba(110,255,168,.18); color: #d9ffe8; }
+.sync-preview-row .s.change   { background: rgba(255,212,106,.18); color: #fff1c9; }
+.sync-preview-row .s.same     { background: rgba(255,255,255,.04); color: #8fb4c9; }
+.sync-preview-row .s.reject   { background: rgba(255,138,163,.20); color: #ffd0db; }
+.sync-preview-row .s.notfound { background: rgba(255,138,163,.20); color: #ffd0db; }
+
+.sync-confirm-bar {
+  padding: 12px 14px;
+  border-top: 1px solid rgba(124,236,255,.14);
+  display: flex; gap: 10px;
+  background: rgba(8,16,30,.95);
+}
+.sync-confirm-btn {
+  flex: 1;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(110,255,168,.55);
+  background: linear-gradient(180deg, rgba(110,255,168,.22), rgba(40,130,76,.12));
+  color: white;
+  font-size: 13px; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.sync-confirm-btn:hover { box-shadow: 0 0 22px rgba(110,255,168,.40); transform: translateY(-1px); }
+.sync-confirm-btn:disabled { opacity: .4; cursor: not-allowed; }
+.sync-cancel-btn {
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.04);
+  color: #c8d9ef;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer;
+}
+.sync-history-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 11px;
+  color: #9fb3c8;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.sync-history-row .when { font-family: monospace; }
+.sync-history-row .nums { color: #7cecff; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ============================================ */
 /* REP DEEP-DIVE PANEL (cascade from Kudos)    */
 /* ============================================ */
 .rep-deep-panel {
@@ -2498,7 +2625,7 @@ table.slim-table { min-width: 1540px; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.5.6</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.5.7</span></div>
 </div>
 </div>
 </div>
@@ -2817,7 +2944,7 @@ table.slim-table { min-width: 1540px; }
   <button class="rail-tab" onclick="openRailPanel('chatRailPanel')">Chat</button>
   <button class="rail-tab" onclick="openRailPanel('notesRailPanel')">Notes</button>
   <button class="rail-tab rail-tab-kudos" onclick="openKudosPanel()">🏆 KUDOS</button>
-  <button class="rail-tab" onclick="openRailPanel('inventoryRailPanel')">Inventory</button>
+  <button class="rail-tab rail-tab-sync" onclick="openSyncPanel()">📥 SYNC</button>
   <button class="rail-tab" onclick="openRailPanel('logisticsRailPanel')">Logistics</button>
 </div>
 
@@ -2882,9 +3009,39 @@ table.slim-table { min-width: 1540px; }
 <div class="rail-panel-body"><div class="rail-shell-card">Coming soon: personal notes and shared team notes.</div></div>
 </aside>
 
-<aside id="inventoryRailPanel" class="rail-panel">
-<div class="rail-panel-head"><div><h3 class="rail-panel-title">Inventory Tight</h3><div class="rail-panel-sub">Reserved module</div></div><button class="rail-close" onclick="closeRailPanels()">×</button></div>
-<div class="rail-panel-body"><div class="rail-shell-card">Coming soon: push list, substitutions, and inventory pressure notes.</div></div>
+<aside id="syncRailPanel" class="rail-panel sync-panel">
+  <div class="rail-panel-head">
+    <div>
+      <h3 class="rail-panel-title">📥 Payment Sync</h3>
+      <div class="rail-panel-sub" id="syncSub">Drop a Munkeboe export · M-prefix orders only</div>
+    </div>
+    <button class="rail-close" onclick="closeSyncPanel()">×</button>
+  </div>
+
+  <!-- Stage 1: Drop zone (visible by default) -->
+  <div id="syncDropzone" class="sync-dropzone">
+    <div class="sync-dropzone-icon">📊</div>
+    <div class="sync-dropzone-title">Drop Munkeboe XLSX or CSV here</div>
+    <div class="sync-dropzone-sub">…or click to browse</div>
+    <div class="sync-dropzone-hint">Required: OrderNo · Balance Due — Optional: Payment Status, Total, Surface, Name, Company, LastModified, LastModifiedBy</div>
+  </div>
+  <input type="file" id="syncFileInput" accept=".xlsx,.xls,.csv" style="display:none;" />
+
+  <!-- Stage 2: Preview (hidden until file parsed) -->
+  <div id="syncPreviewWrap" style="display:none; flex:1; overflow-y:auto;">
+    <div class="sync-summary" id="syncSummary"></div>
+    <div class="sync-preview" id="syncPreview"></div>
+  </div>
+  <div id="syncConfirmBar" class="sync-confirm-bar" style="display:none;">
+    <button class="sync-cancel-btn" onclick="cancelSync()">Cancel</button>
+    <button class="sync-confirm-btn" id="syncConfirmBtn" onclick="commitSync()">Apply Updates</button>
+  </div>
+
+  <!-- Stage 3: Recent uploads history -->
+  <div id="syncHistoryWrap" style="padding: 0 0 14px;">
+    <div style="padding: 12px 14px 6px; font-size: 10px; color: #8fb4c9; letter-spacing: .14em; text-transform: uppercase; font-weight: 800;">Recent Uploads</div>
+    <div id="syncHistoryList"><div class="lrp-empty" style="padding: 12px;">No uploads yet.</div></div>
+  </div>
 </aside>
 
 <aside id="logisticsRailPanel" class="rail-panel">
@@ -3045,7 +3202,7 @@ table.slim-table { min-width: 1540px; }
 
 <script>
 /* ============================================================
- *  SOPHIA SYSTEMS DASHBOARD v1.5.6 — JavaScript
+ *  SOPHIA SYSTEMS DASHBOARD v1.5.7 — JavaScript
  *  ============================================================ */
 
 // Surface ANY uncaught error as a visible banner — never let JS die silently
@@ -3381,6 +3538,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupGlobalKeyHandlers();
   setupSearchHandler();
   setupLookupSearchHandler();
+  setupSyncDropzone();
   console.log('[BOOT] Sequence complete. allLeads:', allLeads.length, '· allPastDueOrders:', allPastDueOrders.length, '· activeUsers:', activeUsers.length);
   // If table still shows the boot status placeholder, re-render with whatever we have
   const tb = document.getElementById('tableBody');
@@ -5141,6 +5299,260 @@ function triggerVault() {
 function skipVault() {
   $('vaultOverlay').classList.remove('active');
   openBridge();
+}
+
+/* ============================================================
+ *  PAYMENT SYNC (Munkeboe spreadsheet upload)
+ *  ============================================================ */
+let syncParsedRows = [];   // parsed rows from spreadsheet, ready to apply
+let syncDbRows = {};       // current DB state by order_no for diff comparison
+
+function openSyncPanel() {
+  closeRailPanels();
+  $('syncRailPanel').classList.add('open');
+  resetSyncUI();
+  loadSyncHistory();
+}
+function closeSyncPanel() {
+  $('syncRailPanel').classList.remove('open');
+  resetSyncUI();
+}
+function resetSyncUI() {
+  syncParsedRows = [];
+  syncDbRows = {};
+  $('syncDropzone').style.display = '';
+  $('syncPreviewWrap').style.display = 'none';
+  $('syncConfirmBar').style.display = 'none';
+  $('syncHistoryWrap').style.display = '';
+  $('syncFileInput').value = '';
+}
+function cancelSync() { resetSyncUI(); }
+
+// Wire up the dropzone
+function setupSyncDropzone() {
+  const dz = document.getElementById('syncDropzone');
+  const input = document.getElementById('syncFileInput');
+  if (!dz || !input) return;
+  dz.addEventListener('click', () => input.click());
+  input.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files[0]) handleSyncFile(e.target.files[0]);
+  });
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, (e) => {
+    e.preventDefault(); e.stopPropagation(); dz.classList.add('drag-over');
+  }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, (e) => {
+    e.preventDefault(); e.stopPropagation(); dz.classList.remove('drag-over');
+  }));
+  dz.addEventListener('drop', (e) => {
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) handleSyncFile(e.dataTransfer.files[0]);
+  });
+}
+
+async function handleSyncFile(file) {
+  if (typeof XLSX === 'undefined') {
+    showSaveBanner('SheetJS library not loaded — refresh page', true);
+    return;
+  }
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(ws, { defval: null });
+    if (!json.length) { showSaveBanner('Spreadsheet is empty', true); return; }
+
+    // Normalize column names: case-insensitive, strip spaces
+    const colMap = {};
+    Object.keys(json[0]).forEach(k => {
+      const norm = k.toString().trim().toLowerCase().replace(/\s+/g, '');
+      colMap[norm] = k;
+    });
+    const c = (key) => colMap[key.toLowerCase().replace(/\s+/g,'')] || null;
+
+    // Build normalized rows
+    const orderCol = c('orderno') || c('order_no') || c('ordernumber');
+    const balCol = c('balancedue') || c('balance_due') || c('balance');
+    if (!orderCol || !balCol) {
+      showSaveBanner('Required columns missing: OrderNo and Balance Due', true);
+      return;
+    }
+    const statusCol = c('paymentstatus') || c('payment_status') || c('status');
+    const totalCol = c('total');
+    const nameCol = c('name') || c('customername') || c('customer_name');
+    const companyCol = c('company') || c('customercompany') || c('customer_company');
+    const surfaceCol = c('surface');
+    const modCol = c('lastmodified') || c('last_modified');
+    const modByCol = c('lastmodifiedby') || c('last_modified_by') || c('username');
+
+    // Parse + filter
+    const parsed = [];
+    for (const row of json) {
+      const orderNo = (row[orderCol] || '').toString().trim();
+      if (!orderNo) continue;  // skip blank rows (and totals row)
+      const isMunkeboe = /^M[0-9]/i.test(orderNo);
+      const r = {
+        order_no: orderNo,
+        balance_due: parseFloat(row[balCol]) || 0,
+        payment_status: statusCol ? (row[statusCol] || null) : null,
+        total: totalCol ? (parseFloat(row[totalCol]) || null) : null,
+        customer_name: nameCol ? (row[nameCol] || null) : null,
+        customer_company: companyCol ? (row[companyCol] || null) : null,
+        surface: surfaceCol ? (row[surfaceCol] || null) : null,
+        last_modified: modCol ? (row[modCol] || null) : null,
+        last_modified_by: modByCol ? (row[modByCol] || null) : null,
+        is_munkeboe: isMunkeboe,
+        will_apply: isMunkeboe
+      };
+      parsed.push(r);
+    }
+    if (!parsed.length) { showSaveBanner('No valid rows found', true); return; }
+
+    // Look up current DB state for matched order_nos
+    const munkeOrderNos = parsed.filter(p => p.is_munkeboe).map(p => p.order_no);
+    syncDbRows = {};
+    if (munkeOrderNos.length) {
+      const { data, error } = await sb
+        .from('historical_orders')
+        .select('order_no, customer_name, customer_company, balance_due, total, payment_status, surface')
+        .in('order_no', munkeOrderNos);
+      if (error) { showSaveBanner('DB lookup failed: ' + error.message, true); return; }
+      (data || []).forEach(d => { syncDbRows[d.order_no] = d; });
+    }
+
+    syncParsedRows = parsed;
+    renderSyncPreview();
+  } catch (e) {
+    console.error('handleSyncFile:', e);
+    showSaveBanner('File parse error: ' + e.message, true);
+  }
+}
+
+function renderSyncPreview() {
+  $('syncDropzone').style.display = 'none';
+  $('syncHistoryWrap').style.display = 'none';
+  $('syncPreviewWrap').style.display = '';
+  $('syncConfirmBar').style.display = '';
+
+  // Classify each row
+  let matched = 0, willChange = 0, unchanged = 0, rejected = 0, notFound = 0;
+  const rows = syncParsedRows.map(p => {
+    if (!p.is_munkeboe) {
+      rejected++;
+      return { ...p, status: 'reject', label: 'Not M-prefix' };
+    }
+    const db = syncDbRows[p.order_no];
+    if (!db) {
+      notFound++;
+      return { ...p, status: 'notfound', label: 'Not in DB' };
+    }
+    matched++;
+    // Compare balance_due (account for floating point)
+    const dbBal = parseFloat(db.balance_due) || 0;
+    const newBal = p.balance_due || 0;
+    const balChanged = Math.abs(dbBal - newBal) > 0.005;
+    const statusChanged = p.payment_status && lc(p.payment_status) !== lc(db.payment_status || '');
+    if (balChanged || statusChanged) {
+      willChange++;
+      return { ...p, status: 'change', label: balChanged ? `${fmtMoney(dbBal)} → ${fmtMoney(newBal)}` : 'Status' };
+    }
+    unchanged++;
+    return { ...p, status: 'same', label: 'No change' };
+  });
+
+  $('syncSummary').innerHTML = `
+    <div class="sync-summary-stat matched"><div class="label">Matched</div><div class="value">${matched}</div></div>
+    <div class="sync-summary-stat changed"><div class="label">Will Update</div><div class="value">${willChange}</div></div>
+    <div class="sync-summary-stat unchanged"><div class="label">No Change</div><div class="value">${unchanged}</div></div>
+    <div class="sync-summary-stat rejected"><div class="label">Skipped</div><div class="value">${rejected + notFound}</div></div>
+  `;
+  $('syncPreview').innerHTML = rows.map(r => `
+    <div class="sync-preview-row">
+      <span class="o">${escapeHtml(r.order_no)}</span>
+      <span class="n">${escapeHtml(r.customer_name || r.customer_company || '—')}</span>
+      <span class="b">${fmtMoney(r.balance_due)}</span>
+      <span class="s ${r.status}">${escapeHtml(r.label)}</span>
+    </div>
+  `).join('');
+  $('syncSub').textContent = `${syncParsedRows.length} rows · ${willChange} updates pending · ${rejected + notFound} skipped`;
+  const btn = $('syncConfirmBtn');
+  btn.disabled = willChange === 0;
+  btn.textContent = willChange > 0 ? `Apply ${willChange} update${willChange === 1 ? '' : 's'}` : 'Nothing to apply';
+}
+
+async function commitSync() {
+  const btn = $('syncConfirmBtn');
+  btn.disabled = true;
+  btn.textContent = 'Applying...';
+
+  let updated = 0, skipped = 0, errors = 0;
+  for (const p of syncParsedRows) {
+    if (!p.is_munkeboe) { skipped++; continue; }
+    const db = syncDbRows[p.order_no];
+    if (!db) { skipped++; continue; }
+    const dbBal = parseFloat(db.balance_due) || 0;
+    const balChanged = Math.abs(dbBal - p.balance_due) > 0.005;
+    const statusChanged = p.payment_status && lc(p.payment_status) !== lc(db.payment_status || '');
+    if (!balChanged && !statusChanged) { skipped++; continue; }
+
+    // Build update payload — only set fields that have values
+    const payload = {
+      balance_due: p.balance_due,
+      rentmaster_synced_at: new Date().toISOString()
+    };
+    if (p.payment_status) payload.payment_status = p.payment_status;
+    if (p.total != null) payload.total = p.total;
+    if (p.surface) payload.surface = p.surface;
+    // Only fill missing customer info — never overwrite good data
+    if (p.customer_name && !db.customer_name) payload.customer_name = p.customer_name;
+    if (p.customer_company && !db.customer_company) payload.customer_company = p.customer_company;
+    if (p.last_modified) {
+      try { payload.rentmaster_last_modified = new Date(p.last_modified).toISOString(); } catch(e) {}
+    }
+    if (p.last_modified_by) payload.rentmaster_last_modified_by = p.last_modified_by;
+
+    const { error } = await sb
+      .from('historical_orders')
+      .update(payload)
+      .eq('order_no', p.order_no);
+    if (error) { console.error('Sync update', p.order_no, error); errors++; }
+    else { updated++; }
+  }
+
+  // Log the upload session
+  await sb.from('payment_sync_log').insert({
+    source: 'munkeboe_xlsx',
+    uploaded_by: 'manager',
+    rows_processed: syncParsedRows.length,
+    rows_updated: updated,
+    rows_skipped: skipped,
+    rows_rejected: syncParsedRows.filter(p => !p.is_munkeboe).length,
+    notes: errors ? `${errors} errors during apply` : null
+  });
+
+  showSaveBanner(`✓ Sync complete: ${updated} updated · ${skipped} skipped${errors ? ` · ${errors} errors` : ''}`);
+  resetSyncUI();
+  loadSyncHistory();
+  // Refresh past-due rows so changes show up immediately
+  await loadPastDueOrders();
+  renderTable();
+}
+
+async function loadSyncHistory() {
+  const { data, error } = await sb
+    .from('payment_sync_log')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(8);
+  const list = $('syncHistoryList');
+  if (error || !data || !data.length) {
+    list.innerHTML = '<div class="lrp-empty" style="padding: 12px;">No uploads yet.</div>';
+    return;
+  }
+  list.innerHTML = data.map(r => `
+    <div class="sync-history-row">
+      <span class="when">${fmtRelativeTime(r.created_at)} · ${escapeHtml(r.source)}</span>
+      <span class="nums">${r.rows_updated || 0}/${r.rows_processed || 0} applied</span>
+    </div>
+  `).join('');
 }
 
 /* ============================================================
