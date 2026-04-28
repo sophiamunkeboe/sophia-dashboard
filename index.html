@@ -127,7 +127,7 @@ background: rgba(110, 231, 255, 0.38);
 /* WIDENED — was 1540px */
 .app {
 position: relative;
-max-width: 1820px;
+max-width: 1720px;
 margin: 0 auto;
 padding: 0px 22px 16px;
 z-index: 1;
@@ -143,9 +143,9 @@ margin-bottom: 12px;
 
 .header {
 display: flex;
-align-items: flex-start;
+align-items: center;
 justify-content: space-between;
-margin-bottom: -40px;
+margin-bottom: 8px;
 gap: 12px;
 }
 
@@ -271,9 +271,9 @@ font-weight: 700;
 /* LIVE ACTIVITY TICKER (v1.5.0)               */
 /* ============================================ */
 .live-ticker-bar {
-margin-top: 10px;
-margin-bottom: 6px;
-height: 32px;
+flex: 1 1 280px;
+min-width: 220px;
+height: 40px;
 border-radius: 10px;
 background: linear-gradient(90deg, rgba(124,236,255,.05), rgba(124,236,255,.02));
 border: 1px solid rgba(124,236,255,.18);
@@ -589,7 +589,7 @@ font-size: 14px;
 .table-wrap { overflow-x: auto; }
 
 /* WIDENED — was 1420px */
-table { width: 100%; min-width: 1620px; border-collapse: collapse; }
+table { width: 100%; min-width: 1540px; border-collapse: collapse; }
 
 thead th {
 text-align: left;
@@ -824,10 +824,11 @@ width: 100%; border-radius: 12px; border: 1px solid rgba(124,236,255,.16); backg
 /* ============================================ */
 /* RIGHT UTILITY RAIL                           */
 /* ============================================ */
-.utility-rail { position: fixed; top: 128px; right: 0; z-index: 36; display: flex; flex-direction: column; gap: 10px; padding-right: 0; }
+.utility-rail { position: fixed; top: 110px; right: 0; z-index: 36; display: flex; flex-direction: column; gap: 10px; padding-right: 0; }
 
 .rail-tab {
 writing-mode: vertical-rl; transform: rotate(180deg);
+min-width: 44px;
 padding: 16px 10px;
 /* Source 0 16px 16px 0 (top-right + bottom-right rounded).
    After 180° rotation, those flip to top-left + bottom-left visually
@@ -910,13 +911,13 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 /* ============================================ */
 .left-rail {
   position: fixed;
-  top: 128px;
+  top: 110px;
   left: 0;
   z-index: 36;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-left: 8px;
+  padding-left: 0;
 }
 .left-rail-tab {
   min-width: 52px;
@@ -2278,7 +2279,7 @@ th.signals-col, td.signals-col { width: 140px; }
 .assign-menu-item .avatar { width: 22px; height: 22px; border-radius: 999px; object-fit: cover; flex-shrink: 0; }
 
 tbody tr.slim-row .employee-buttons { display: none; }
-table.slim-table { min-width: 1620px; }
+table.slim-table { min-width: 1540px; }
 
 @media (max-width: 1220px) {
   .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -2323,6 +2324,15 @@ table.slim-table { min-width: 1620px; }
 </div>
 
 <div class="header-right">
+<!-- LIVE ACTIVITY TICKER (now sitting alongside mini-stats) -->
+<div class="live-ticker-bar" id="liveTickerBar">
+  <div class="live-ticker-label">LIVE</div>
+  <div class="live-ticker-track">
+    <div class="live-ticker-content" id="liveTickerContent">
+      <span class="ticker-item"><span class="icon">⚡</span><span class="who">Sophia</span><span class="what"> is online — feeding RentMaster every 2 min</span><span class="when"> · just now</span></span>
+    </div>
+  </div>
+</div>
 <div class="mini-stat">
 <div class="mini-label">Calls Today</div>
 <div class="mini-value" id="callsToday">0</div>
@@ -2337,19 +2347,9 @@ table.slim-table { min-width: 1620px; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch</div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.5.2</span></div>
 </div>
 </div>
-</div>
-
-<!-- LIVE ACTIVITY TICKER -->
-<div class="live-ticker-bar" id="liveTickerBar">
-  <div class="live-ticker-label">LIVE</div>
-  <div class="live-ticker-track">
-    <div class="live-ticker-content" id="liveTickerContent">
-      <span class="ticker-item"><span class="icon">⚡</span><span class="who">Sophia</span><span class="what"> is online — feeding RentMaster every 2 min</span><span class="when"> · just now</span></span>
-    </div>
-  </div>
 </div>
 
 <!-- COMPANY TABS + TEAM PILLS -->
