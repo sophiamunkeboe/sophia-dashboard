@@ -1921,6 +1921,448 @@ tbody tr.slim-row .employee-buttons { display: none; }
   .mini-stat { min-width: 0; flex: 1 1 auto; }
 }
 </style>
+<style>
+/* ============================================================
+ *  PHASE 2 MODAL SYSTEM
+ *  ============================================================ */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 9000;
+  background: radial-gradient(ellipse at center, rgba(8,21,45,.45), rgba(2,6,17,.85));
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s ease;
+}
+.modal-backdrop.active { opacity: 1; pointer-events: auto; }
+
+.phase2-modal {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -48%) scale(.96);
+  width: min(560px, 92vw); max-height: 88vh;
+  z-index: 9100;
+  background: linear-gradient(180deg, rgba(8,21,45,.95), rgba(5,12,29,.96));
+  border: 1px solid rgba(124,236,255,.32);
+  border-radius: 14px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.7), 0 0 1px rgba(124,236,255,.4) inset, 0 0 40px rgba(124,236,255,.12);
+  display: flex; flex-direction: column;
+  opacity: 0; pointer-events: none;
+  transition: all .28s cubic-bezier(.2,.8,.4,1);
+  color: #eef7ff;
+}
+.phase2-modal.open {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1; pointer-events: auto;
+}
+.phase2-modal-wide { width: min(960px, 94vw); }
+
+.phase2-modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(124,236,255,.16);
+}
+.phase2-modal-title {
+  font-size: 16px; font-weight: 800;
+  color: #eef7ff;
+  letter-spacing: .04em;
+}
+.phase2-modal-sub {
+  font-size: 11px; color: #9fb3c8;
+  margin-top: 4px; font-weight: 500;
+}
+.phase2-modal-close {
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(124,236,255,.18);
+  border-radius: 8px;
+  color: #c8d9ef; cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s ease;
+}
+.phase2-modal-close:hover {
+  background: rgba(255,138,163,.15);
+  border-color: rgba(255,138,163,.4);
+  color: #ff8aa3;
+}
+
+.phase2-modal-body {
+  padding: 18px 22px;
+  overflow-y: auto;
+  flex: 1;
+}
+.phase2-modal-body-grid {
+  display: grid; grid-template-columns: 1fr 1.4fr; gap: 18px;
+  padding: 18px 22px;
+}
+
+.phase2-modal-footer {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 14px 22px;
+  border-top: 1px solid rgba(124,236,255,.16);
+  background: rgba(2,6,17,.4);
+  border-radius: 0 0 14px 14px;
+}
+
+.phase2-btn {
+  padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  border: 1px solid rgba(124,236,255,.25);
+  background: rgba(255,255,255,.05);
+  color: #eef7ff; font-weight: 700; font-size: 12px;
+  letter-spacing: .04em;
+  transition: all .15s ease;
+}
+.phase2-btn:hover:not(:disabled) {
+  background: rgba(124,236,255,.12);
+  border-color: rgba(124,236,255,.5);
+  transform: translateY(-1px);
+}
+.phase2-btn:disabled { opacity: .4; cursor: not-allowed; }
+.phase2-btn.primary {
+  background: linear-gradient(180deg, rgba(124,236,255,.30), rgba(100,168,255,.20));
+  border-color: rgba(124,236,255,.55);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(124,236,255,.25);
+}
+.phase2-btn.primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, rgba(124,236,255,.45), rgba(100,168,255,.30));
+  box-shadow: 0 0 22px rgba(124,236,255,.4);
+}
+.phase2-btn.ghost {
+  background: transparent;
+  border-color: rgba(159,179,200,.28);
+  color: #9fb3c8;
+}
+.phase2-btn.danger {
+  background: linear-gradient(180deg, rgba(255,138,163,.25), rgba(255,90,120,.18));
+  border-color: rgba(255,138,163,.5);
+  color: #fff;
+}
+
+.phase2-field { margin-bottom: 14px; display: flex; flex-direction: column; }
+.phase2-field label {
+  font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  color: #8fb4c9; font-weight: 800;
+  margin-bottom: 6px;
+}
+.phase2-field input,
+.phase2-field select,
+.phase2-field textarea {
+  width: 100%; box-sizing: border-box;
+  padding: 9px 12px;
+  background: rgba(2,6,17,.55);
+  border: 1px solid rgba(124,236,255,.25);
+  border-radius: 8px;
+  color: #eef7ff; font-size: 13px;
+  font-family: inherit;
+  transition: border .15s ease;
+}
+.phase2-field textarea { resize: vertical; min-height: 60px; }
+.phase2-field input:focus,
+.phase2-field select:focus,
+.phase2-field textarea:focus {
+  outline: none;
+  border-color: rgba(124,236,255,.6);
+  box-shadow: 0 0 0 3px rgba(124,236,255,.12);
+}
+
+.phase2-row-2 {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+
+.phase2-checkbox {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 8px 0;
+  font-size: 13px; color: #c8d9ef;
+}
+.phase2-checkbox input { width: 16px; height: 16px; cursor: pointer; }
+
+.phase2-history {
+  margin-top: 16px;
+  border-top: 1px solid rgba(124,236,255,.12);
+  padding-top: 12px;
+  max-height: 220px; overflow-y: auto;
+}
+.phase2-history-row {
+  padding: 8px 10px; margin-bottom: 6px;
+  background: rgba(255,255,255,.03);
+  border-left: 2px solid rgba(124,236,255,.4);
+  border-radius: 0 8px 8px 0;
+  font-size: 12px;
+}
+.phase2-history-row.pinned {
+  background: rgba(255,212,106,.08);
+  border-left-color: #ffd46a;
+}
+.phase2-history-row .meta {
+  color: #8fb4c9; font-size: 10px; margin-top: 4px;
+  letter-spacing: .04em;
+}
+
+/* Rep grid for reassign */
+.phase2-rep-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+.phase2-rep-pick {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 6px;
+  border: 1px solid rgba(124,236,255,.22);
+  border-radius: 10px;
+  background: rgba(255,255,255,.03);
+  cursor: pointer; transition: all .15s ease;
+}
+.phase2-rep-pick:hover { background: rgba(124,236,255,.10); transform: translateY(-2px); }
+.phase2-rep-pick.selected {
+  background: linear-gradient(180deg, rgba(124,236,255,.18), rgba(100,168,255,.10));
+  border-color: rgba(124,236,255,.7);
+  box-shadow: 0 0 14px rgba(124,236,255,.3);
+}
+.phase2-rep-pick img,
+.phase2-rep-pick .letter {
+  width: 32px; height: 32px; border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255,255,255,.08);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; color: var(--rep-color, #fff);
+}
+.phase2-rep-pick .name { font-size: 11px; font-weight: 700; color: #eef7ff; }
+
+/* KB Composer specifics */
+.phase2-kb-list {
+  max-height: 380px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.phase2-kb-template {
+  padding: 10px 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(124,236,255,.16);
+  border-radius: 8px; cursor: pointer;
+  transition: all .15s ease;
+}
+.phase2-kb-template:hover { background: rgba(124,236,255,.10); border-color: rgba(124,236,255,.4); }
+.phase2-kb-template.selected {
+  background: linear-gradient(180deg, rgba(124,236,255,.18), rgba(100,168,255,.10));
+  border-color: rgba(124,236,255,.6);
+}
+.phase2-kb-template .ttl {
+  font-size: 12px; font-weight: 700; color: #eef7ff;
+}
+.phase2-kb-template .cat {
+  font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+  color: #8fb4c9; margin-top: 4px;
+}
+.phase2-kb-mergehint {
+  margin-top: 8px;
+  font-size: 10px; color: #8fb4c9;
+}
+.phase2-kb-mergehint code {
+  padding: 1px 5px; border-radius: 4px;
+  background: rgba(124,236,255,.10); color: #7cecff;
+  font-size: 9px;
+}
+
+.phase2-segment {
+  display: flex; gap: 6px;
+}
+.phase2-seg-btn {
+  flex: 1;
+  padding: 7px 10px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(124,236,255,.20);
+  border-radius: 8px;
+  color: #c8d9ef; cursor: pointer; font-size: 11px; font-weight: 700;
+  transition: all .15s ease;
+}
+.phase2-seg-btn:hover { background: rgba(124,236,255,.10); }
+.phase2-seg-btn.active {
+  background: linear-gradient(180deg, rgba(124,236,255,.25), rgba(100,168,255,.15));
+  border-color: rgba(124,236,255,.55);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(124,236,255,.25);
+}
+
+/* Huddle styles */
+.phase2-section-title {
+  font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  color: #c8d9ef; font-weight: 800;
+  margin: 12px 0 6px;
+}
+.phase2-huddle-refs {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 12px;
+}
+.phase2-huddle-ref-chip {
+  padding: 4px 9px; border-radius: 6px;
+  background: rgba(124,236,255,.10);
+  border: 1px solid rgba(124,236,255,.3);
+  font-size: 10px; font-weight: 700;
+  color: #7cecff;
+  font-family: monospace;
+}
+.phase2-huddle-reps {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;
+}
+.phase2-huddle-rep {
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 8px 3px 3px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(124,236,255,.22);
+  border-radius: 999px;
+  font-size: 11px; font-weight: 700;
+}
+.phase2-huddle-rep img, .phase2-huddle-rep .letter {
+  width: 22px; height: 22px; border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255,255,255,.08);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 11px;
+  color: var(--rep-color, #fff);
+}
+
+.phase2-chat-thread {
+  flex: 1;
+  background: rgba(2,6,17,.55);
+  border: 1px solid rgba(124,236,255,.18);
+  border-radius: 10px;
+  padding: 14px;
+  height: 380px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.phase2-chat-msg {
+  max-width: 82%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 12.5px; line-height: 1.5;
+}
+.phase2-chat-msg .author {
+  font-size: 10px; font-weight: 800; letter-spacing: .04em;
+  margin-bottom: 3px;
+  color: var(--author-color, #7cecff);
+}
+.phase2-chat-msg .when {
+  font-size: 9px; color: #8fb4c9;
+  margin-top: 4px; letter-spacing: .04em;
+}
+.phase2-chat-msg.theirs {
+  align-self: flex-start;
+  background: rgba(124,236,255,.08);
+  border: 1px solid rgba(124,236,255,.20);
+}
+.phase2-chat-msg.mine {
+  align-self: flex-end;
+  background: linear-gradient(180deg, rgba(124,236,255,.18), rgba(100,168,255,.12));
+  border: 1px solid rgba(124,236,255,.4);
+  color: #fff;
+}
+.phase2-chat-msg.system {
+  align-self: center;
+  background: rgba(184,156,255,.08);
+  border: 1px dashed rgba(184,156,255,.4);
+  color: #efe2ff; font-size: 11px;
+  text-align: center; max-width: 70%;
+}
+.phase2-chat-msg.proposal {
+  align-self: stretch; max-width: 100%;
+  background: linear-gradient(180deg, rgba(255,212,106,.10), rgba(255,150,60,.06));
+  border: 1px solid rgba(255,212,106,.4);
+  color: #fff;
+}
+.phase2-chat-compose {
+  display: flex; gap: 6px; margin-top: 10px;
+}
+.phase2-chat-compose input {
+  flex: 1;
+  padding: 9px 12px;
+  background: rgba(2,6,17,.6);
+  border: 1px solid rgba(124,236,255,.25);
+  border-radius: 8px;
+  color: #eef7ff; font-size: 13px;
+}
+.phase2-chat-compose input:focus { outline: none; border-color: rgba(124,236,255,.6); }
+
+/* Reference photos gallery (rendered inline in drawer) */
+.phase2-photo-gallery {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 6px; margin-top: 8px;
+}
+.phase2-photo-tile {
+  aspect-ratio: 1;
+  border-radius: 8px; overflow: hidden;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(124,236,255,.16);
+  cursor: pointer;
+  transition: all .15s ease;
+  position: relative;
+}
+.phase2-photo-tile:hover {
+  border-color: rgba(124,236,255,.5);
+  transform: scale(1.04);
+}
+.phase2-photo-tile img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.phase2-photo-tile .caption {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 4px 6px; font-size: 9px;
+  background: linear-gradient(0deg, rgba(0,0,0,.85), transparent);
+  color: #fff;
+}
+.phase2-photo-upload-btn {
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  aspect-ratio: 1; gap: 4px;
+  padding: 8px;
+  border: 2px dashed rgba(124,236,255,.35);
+  border-radius: 8px;
+  background: rgba(124,236,255,.04);
+  cursor: pointer;
+  font-size: 10px; color: #7cecff;
+  font-weight: 700; text-align: center;
+  transition: all .15s ease;
+}
+.phase2-photo-upload-btn:hover {
+  background: rgba(124,236,255,.10);
+  border-color: rgba(124,236,255,.6);
+}
+.phase2-photo-upload-btn .ico { font-size: 22px; }
+
+/* Lightbox for clicked photos */
+.phase2-lightbox {
+  position: fixed; inset: 0; z-index: 9500;
+  background: rgba(2,6,17,.95);
+  display: none; align-items: center; justify-content: center;
+  cursor: zoom-out;
+}
+.phase2-lightbox.open { display: flex; }
+.phase2-lightbox img {
+  max-width: 92vw; max-height: 92vh;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.6);
+}
+
+/* Drawer KB / Photo button row */
+.drawer-kb-btn-row, .drawer-photo-btn-row {
+  display: flex; gap: 6px; margin: 8px 0;
+}
+.drawer-kb-btn, .drawer-photo-btn {
+  padding: 7px 10px;
+  background: linear-gradient(180deg, rgba(184,156,255,.18), rgba(140,120,200,.10));
+  border: 1px solid rgba(184,156,255,.4);
+  border-radius: 8px;
+  color: #efe2ff; cursor: pointer;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .04em;
+  transition: all .15s ease;
+}
+.drawer-kb-btn:hover, .drawer-photo-btn:hover {
+  background: linear-gradient(180deg, rgba(184,156,255,.32), rgba(140,120,200,.18));
+  border-color: rgba(184,156,255,.7);
+  transform: translateY(-1px);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 720px) {
+  .phase2-modal-body-grid { grid-template-columns: 1fr; }
+  .phase2-row-2 { grid-template-columns: 1fr; }
+  .phase2-rep-grid { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
 </head>
 <body>
 <img src="/logo-bg.png" class="background-logo" alt="Sophia background logo" />
@@ -2228,6 +2670,7 @@ tbody tr.slim-row .employee-buttons { display: none; }
 <div class="left-rail">
   <button id="routingRailTab" class="left-rail-tab" onclick="toggleRoutingCockpit()">🗺️ Routing</button>
   <button id="lookupRailTab" class="left-rail-tab lookup-tab" onclick="toggleLookupPanel()">🔍 Lookup</button>
+  <button id="huddleRailTab" class="left-rail-tab" onclick="openHuddleListModal()" title="Cluster Huddles">🤝 Huddle</button>
 </div>
 
 <aside id="routingCockpitPanel" class="left-rail-panel">
@@ -2702,6 +3145,258 @@ tbody tr.slim-row .employee-buttons { display: none; }
   </div>
 </div>
 
+<!-- ============================================================ -->
+<!-- PHASE 2 MODALS — appended just before </body>                -->
+<!-- ============================================================ -->
+
+<!-- Generic modal backdrop (shared) -->
+<div id="modalBackdrop" class="modal-backdrop" onclick="closeAnyModal(event)"></div>
+
+<!-- ALERT COMPOSER MODAL -->
+<aside id="alertComposerModal" class="phase2-modal">
+  <div class="phase2-modal-header">
+    <div>
+      <div class="phase2-modal-title">⚠ Create Internal Alert</div>
+      <div class="phase2-modal-sub">Pings the team in the alerts rail</div>
+    </div>
+    <button class="phase2-modal-close" onclick="closeAlertComposer()">×</button>
+  </div>
+  <div class="phase2-modal-body">
+    <div class="phase2-field">
+      <label>Alert text</label>
+      <textarea id="alertComposerText" rows="3" placeholder="What's happening? (e.g. 'Truck #2 broke down, need to reroute Saturday deliveries')"></textarea>
+    </div>
+    <div class="phase2-row-2">
+      <div class="phase2-field">
+        <label>Priority</label>
+        <select id="alertComposerPriority">
+          <option value="high">🔥 HIGH</option>
+          <option value="medium" selected>! MEDIUM</option>
+          <option value="low">i LOW</option>
+        </select>
+      </div>
+      <div class="phase2-field">
+        <label>Company</label>
+        <select id="alertComposerCompany">
+          <option value="master">All companies</option>
+          <option value="aer">AER</option>
+          <option value="taylor">Taylor</option>
+          <option value="munkeboe">Munkeboe</option>
+          <option value="thankq">Thank Q</option>
+          <option value="sel">SEL</option>
+        </select>
+      </div>
+    </div>
+    <div class="phase2-row-2">
+      <div class="phase2-field">
+        <label>Assign to (optional)</label>
+        <select id="alertComposerAssignee">
+          <option value="">Unassigned</option>
+        </select>
+      </div>
+      <div class="phase2-field">
+        <label>Due</label>
+        <input type="text" id="alertComposerDue" placeholder="e.g. EOD today, Friday 3pm" value="ASAP" />
+      </div>
+    </div>
+  </div>
+  <div class="phase2-modal-footer">
+    <button class="phase2-btn ghost" onclick="closeAlertComposer()">Cancel</button>
+    <button class="phase2-btn primary" onclick="saveAlertComposer()">Create Alert</button>
+  </div>
+</aside>
+
+<!-- ORDER NOTE COMPOSER -->
+<aside id="orderNoteModal" class="phase2-modal">
+  <div class="phase2-modal-header">
+    <div>
+      <div class="phase2-modal-title">📝 Add Internal Note</div>
+      <div class="phase2-modal-sub" id="orderNoteSubtitle">Order: —</div>
+    </div>
+    <button class="phase2-modal-close" onclick="closeOrderNote()">×</button>
+  </div>
+  <div class="phase2-modal-body">
+    <div class="phase2-field">
+      <label>Note (visible to all reps)</label>
+      <textarea id="orderNoteText" rows="5" placeholder="What does the team need to know about this order?"></textarea>
+    </div>
+    <label class="phase2-checkbox">
+      <input type="checkbox" id="orderNotePin" />
+      <span>📌 Pin this note to the top</span>
+    </label>
+    <div id="orderNoteHistory" class="phase2-history"></div>
+  </div>
+  <div class="phase2-modal-footer">
+    <button class="phase2-btn ghost" onclick="closeOrderNote()">Cancel</button>
+    <button class="phase2-btn primary" onclick="saveOrderNote()">Save Note</button>
+  </div>
+</aside>
+
+<!-- LINEN ORDER MODAL -->
+<aside id="linenOrderModal" class="phase2-modal">
+  <div class="phase2-modal-header">
+    <div>
+      <div class="phase2-modal-title">🛏️ Mark Linens Ordered</div>
+      <div class="phase2-modal-sub" id="linenOrderSubtitle">Order: —</div>
+    </div>
+    <button class="phase2-modal-close" onclick="closeLinenOrder()">×</button>
+  </div>
+  <div class="phase2-modal-body">
+    <div class="phase2-row-2">
+      <div class="phase2-field">
+        <label>Vendor</label>
+        <select id="linenOrderVendor">
+          <option value="sel" selected>SEL (Special Event Linens)</option>
+          <option value="other">Other vendor</option>
+        </select>
+      </div>
+      <div class="phase2-field">
+        <label>Quantity</label>
+        <input type="number" id="linenOrderQty" min="1" placeholder="e.g. 25" />
+      </div>
+    </div>
+    <div class="phase2-field">
+      <label>Vendor Invoice # (optional)</label>
+      <input type="text" id="linenOrderInvoice" placeholder="INV-..." />
+    </div>
+    <div class="phase2-field">
+      <label>Notes</label>
+      <textarea id="linenOrderNotes" rows="3" placeholder="Color, sizing, delivery date..."></textarea>
+    </div>
+  </div>
+  <div class="phase2-modal-footer">
+    <button class="phase2-btn ghost" onclick="closeLinenOrder()">Cancel</button>
+    <button class="phase2-btn primary" onclick="saveLinenOrder()">✓ Mark Ordered</button>
+  </div>
+</aside>
+
+<!-- REASSIGN MODAL -->
+<aside id="reassignModal" class="phase2-modal">
+  <div class="phase2-modal-header">
+    <div>
+      <div class="phase2-modal-title">↻ Reassign Order</div>
+      <div class="phase2-modal-sub" id="reassignSubtitle">Order: —</div>
+    </div>
+    <button class="phase2-modal-close" onclick="closeReassign()">×</button>
+  </div>
+  <div class="phase2-modal-body">
+    <div class="phase2-field">
+      <label>Reassign to</label>
+      <div id="reassignRepGrid" class="phase2-rep-grid"></div>
+    </div>
+    <div class="phase2-field">
+      <label>Reason (optional)</label>
+      <input type="text" id="reassignReason" placeholder="Why the change?" />
+    </div>
+  </div>
+  <div class="phase2-modal-footer">
+    <button class="phase2-btn ghost" onclick="closeReassign()">Cancel</button>
+    <button class="phase2-btn primary" id="reassignSubmitBtn" onclick="saveReassign()" disabled>Pick a rep first</button>
+  </div>
+</aside>
+
+<!-- KB COMPOSER MODAL -->
+<aside id="kbComposerModal" class="phase2-modal phase2-modal-wide">
+  <div class="phase2-modal-header">
+    <div>
+      <div class="phase2-modal-title">📨 Send from Knowledge Base</div>
+      <div class="phase2-modal-sub" id="kbComposerSubtitle">Pick a template, fill in the blanks, send</div>
+    </div>
+    <button class="phase2-modal-close" onclick="closeKbComposer()">×</button>
+  </div>
+  <div class="phase2-modal-body phase2-modal-body-grid">
+    <div class="phase2-kb-left">
+      <div class="phase2-field">
+        <label>Filter by category</label>
+        <select id="kbComposerCategoryFilter" onchange="renderKbTemplateList()">
+          <option value="all">All templates</option>
+        </select>
+      </div>
+      <div id="kbTemplateList" class="phase2-kb-list"></div>
+    </div>
+    <div class="phase2-kb-right">
+      <div class="phase2-field">
+        <label>Channel</label>
+        <div class="phase2-segment">
+          <button class="phase2-seg-btn active" data-ch="email" onclick="setKbChannel('email')">📧 Email</button>
+          <button class="phase2-seg-btn" data-ch="sms" onclick="setKbChannel('sms')">💬 SMS</button>
+          <button class="phase2-seg-btn" data-ch="copy" onclick="setKbChannel('copy')">📋 Copy</button>
+        </div>
+      </div>
+      <div class="phase2-row-2" id="kbRecipientRow">
+        <div class="phase2-field">
+          <label id="kbRecipientLabel">To (email)</label>
+          <input type="text" id="kbRecipient" placeholder="customer@example.com" />
+        </div>
+        <div class="phase2-field">
+          <label>Subject</label>
+          <input type="text" id="kbSubject" placeholder="(filled from template)" />
+        </div>
+      </div>
+      <div class="phase2-field">
+        <label>Message body</label>
+        <textarea id="kbBody" rows="14" placeholder="Pick a template on the left..."></textarea>
+      </div>
+      <div class="phase2-kb-mergehint" id="kbMergeHint">Merge fields auto-filled: <code>{customer_name}</code>, <code>{order_no}</code>, <code>{event_date}</code>, <code>{balance_due}</code>, <code>{total}</code>, <code>{rep_name}</code></div>
+    </div>
+  </div>
+  <div class="phase2-modal-footer">
+    <button class="phase2-btn ghost" onclick="closeKbComposer()">Cancel</button>
+    <button class="phase2-btn primary" id="kbSendBtn" onclick="sendKbMessage()">Send →</button>
+  </div>
+</aside>
+
+<!-- CLUSTER HUDDLE MODAL -->
+<aside id="huddleModal" class="phase2-modal phase2-modal-wide">
+  <div class="phase2-modal-header">
+    <div>
+      <div class="phase2-modal-title">🤝 Cluster Huddle</div>
+      <div class="phase2-modal-sub" id="huddleSubtitle">—</div>
+    </div>
+    <button class="phase2-modal-close" onclick="closeHuddleModal()">×</button>
+  </div>
+  <div class="phase2-modal-body phase2-modal-body-grid">
+    <div class="phase2-huddle-left">
+      <div class="phase2-section-title">📋 Quote refs</div>
+      <div id="huddleQuoteRefs" class="phase2-huddle-refs"></div>
+      <div class="phase2-section-title">👥 Reps in huddle</div>
+      <div id="huddleReps" class="phase2-huddle-reps"></div>
+      <div class="phase2-section-title">📝 Summary / Outcome</div>
+      <textarea id="huddleSummary" rows="3" placeholder="What was decided?"></textarea>
+      <div class="phase2-row-2">
+        <button class="phase2-btn" onclick="proposeRate()">💰 Propose rate</button>
+        <button class="phase2-btn" onclick="closeHuddle()">✓ Close huddle</button>
+      </div>
+    </div>
+    <div class="phase2-huddle-right">
+      <div id="huddleChatThread" class="phase2-chat-thread"></div>
+      <div class="phase2-chat-compose">
+        <input type="text" id="huddleChatInput" placeholder="Message the team..." onkeydown="if(event.key==='Enter')postHuddleMessage()" />
+        <button class="phase2-btn primary" onclick="postHuddleMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- HUDDLE LIST MODAL (browse all open huddles) -->
+<aside id="huddleListModal" class="phase2-modal">
+  <div class="phase2-modal-header">
+    <div>
+      <div class="phase2-modal-title">🤝 Cluster Huddles</div>
+      <div class="phase2-modal-sub">Multi-rep coordination on overlapping quotes</div>
+    </div>
+    <button class="phase2-modal-close" onclick="closeHuddleListModal()">×</button>
+  </div>
+  <div class="phase2-modal-body">
+    <div class="phase2-row-2" style="margin-bottom:10px;">
+      <button class="phase2-btn primary" onclick="newHuddle()">＋ New huddle</button>
+      <button class="phase2-btn" onclick="loadHuddleList()">↻ Refresh</button>
+    </div>
+    <div id="huddleListBody"></div>
+  </div>
+</aside>
+
+<!-- PHOTO UPLOAD INLINE WIDGET (gets injected into drawer/order panels by JS) -->
 <script>
 /* ============================================================
  *  SOPHIA SYSTEMS DASHBOARD v1.6.0 — JavaScript (CORE)
@@ -5345,6 +6040,854 @@ function setupRealtime() {
       .subscribe();
   } catch(e) { console.warn('Realtime setup:', e); }
 }
+</script>
+<script>
+/* ================================================================
+ *  PHASE 2 FEATURES — v1.6.1
+ *  Modal lifecycle, alert composer, order notes, linen ordering,
+ *  reassign, photo upload, KB compose/send, cluster huddle chat
+ *  ================================================================ */
+
+let activeModal = null;
+let kbTemplatesCache = [];
+let kbSelectedTemplate = null;
+let kbActiveChannel = 'email';
+let kbContext = null;        // {customer_name, order_no, event_date, ...}
+let reassignContext = null;
+let reassignSelectedRep = null;
+let orderNoteContext = null;
+let linenOrderContext = null;
+let huddleContext = null;
+let photoUploadContext = null;
+
+function openPhase2Modal(id) {
+  if (activeModal) closePhase2Modal();
+  $('modalBackdrop').classList.add('active');
+  const m = $(id);
+  if (!m) return;
+  m.classList.add('open');
+  activeModal = id;
+}
+function closePhase2Modal() {
+  if (!activeModal) return;
+  const m = $(activeModal);
+  if (m) m.classList.remove('open');
+  activeModal = null;
+  $('modalBackdrop').classList.remove('active');
+}
+function closeAnyModal(ev) {
+  if (ev && ev.target && ev.target.id !== 'modalBackdrop') return;
+  closePhase2Modal();
+}
+
+/* =========================================================
+ *  CUSTOM INTERNAL ALERTS (replaces addRailAlert stub)
+ *  ========================================================= */
+function addRailAlert() {
+  // Populate assignee dropdown
+  const sel = $('alertComposerAssignee');
+  if (sel) {
+    sel.innerHTML = '<option value="">Unassigned</option>' +
+      activeUsers.map(u => `<option value="${escapeHtml(u.short_name)}">${escapeHtml(u.short_name)}</option>`).join('');
+  }
+  // Reset
+  $('alertComposerText').value = '';
+  $('alertComposerPriority').value = 'medium';
+  $('alertComposerCompany').value = activeCompany || 'master';
+  $('alertComposerDue').value = 'ASAP';
+  openPhase2Modal('alertComposerModal');
+  setTimeout(() => $('alertComposerText').focus(), 100);
+}
+function closeAlertComposer() { closePhase2Modal(); }
+async function saveAlertComposer() {
+  const text = $('alertComposerText').value.trim();
+  if (!text) { showSaveBanner('Alert text cannot be empty', true); return; }
+  const priority = $('alertComposerPriority').value;
+  const company = $('alertComposerCompany').value;
+  const assignee = $('alertComposerAssignee').value || null;
+  const due = $('alertComposerDue').value || 'ASAP';
+
+  const { error } = await sb.from('operations_alerts').insert({
+    company: company,
+    assigned_to: assignee,
+    text: text,
+    priority: priority,
+    due: due,
+    done: false
+  });
+  if (error) { showSaveBanner('Failed to create alert: ' + error.message, true); return; }
+  await logStaffAction({
+    actor: 'manager',
+    action_type: 'alert_created',
+    target_label: text.slice(0, 60),
+    company_key: company === 'master' ? null : company
+  });
+  closePhase2Modal();
+  showSaveBanner('✓ Alert created');
+  loadRailAlerts();
+  updateAlertsBadge();
+}
+
+/* =========================================================
+ *  ORDER NOTES (replaces addOrderNote stub)
+ *  ========================================================= */
+async function addOrderNote(orderNo, recordType) {
+  if (!orderNo) return;
+  orderNoteContext = { orderNo, recordType: recordType || 'order' };
+  $('orderNoteSubtitle').textContent = `${(recordType === 'quote' ? 'Quote' : 'Order')}: ${orderNo}`;
+  $('orderNoteText').value = '';
+  $('orderNotePin').checked = false;
+  // Load history
+  await loadOrderNoteHistory(orderNo);
+  openPhase2Modal('orderNoteModal');
+  setTimeout(() => $('orderNoteText').focus(), 100);
+}
+function closeOrderNote() { closePhase2Modal(); orderNoteContext = null; }
+
+async function loadOrderNoteHistory(orderNo) {
+  const wrap = $('orderNoteHistory');
+  wrap.innerHTML = '<div style="font-size:11px;color:#8fb4c9;padding:8px;">Loading history…</div>';
+  const { data, error } = await sb
+    .from('order_notes')
+    .select('author, body, pin, created_at')
+    .eq('order_no', orderNo)
+    .order('pin', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(20);
+  if (error || !data || !data.length) {
+    wrap.innerHTML = '<div style="font-size:11px;color:#8fb4c9;padding:8px;">No notes yet.</div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="phase2-section-title" style="margin:0 0 6px;">📜 History</div>' +
+    data.map(n => `
+      <div class="phase2-history-row ${n.pin ? 'pinned' : ''}">
+        ${n.pin ? '<span style="color:#ffd46a;">📌</span> ' : ''}${escapeHtml(n.body)}
+        <div class="meta">${escapeHtml(n.author || 'unknown')} · ${fmtRelativeTime(n.created_at)}</div>
+      </div>
+    `).join('');
+}
+
+async function saveOrderNote() {
+  if (!orderNoteContext) return;
+  const body = $('orderNoteText').value.trim();
+  if (!body) { showSaveBanner('Note cannot be empty', true); return; }
+  const pin = $('orderNotePin').checked;
+  const { error } = await sb.from('order_notes').insert({
+    order_no: orderNoteContext.orderNo,
+    record_type: orderNoteContext.recordType,
+    author: 'manager',
+    body: body,
+    pin: pin
+  });
+  if (error) { showSaveBanner('Failed to save note: ' + error.message, true); return; }
+  await logStaffAction({
+    actor: 'manager',
+    action_type: 'note_added',
+    target_label: orderNoteContext.orderNo,
+    detail: { pin: pin, body: body.slice(0, 200) }
+  });
+  showSaveBanner('✓ Note saved');
+  closePhase2Modal();
+  orderNoteContext = null;
+}
+
+/* =========================================================
+ *  MARK LINENS ORDERED (replaces stub)
+ *  ========================================================= */
+function markLinensOrdered(orderNo) {
+  if (!orderNo) return;
+  linenOrderContext = { orderNo };
+  $('linenOrderSubtitle').textContent = `Order: ${orderNo}`;
+  $('linenOrderQty').value = '';
+  $('linenOrderInvoice').value = '';
+  $('linenOrderNotes').value = '';
+  $('linenOrderVendor').value = 'sel';
+  openPhase2Modal('linenOrderModal');
+  setTimeout(() => $('linenOrderQty').focus(), 100);
+}
+function closeLinenOrder() { closePhase2Modal(); linenOrderContext = null; }
+
+async function saveLinenOrder() {
+  if (!linenOrderContext) return;
+  const vendor = $('linenOrderVendor').value;
+  const qty = parseInt($('linenOrderQty').value) || null;
+  const invoice = $('linenOrderInvoice').value.trim() || null;
+  const notes = $('linenOrderNotes').value.trim() || null;
+  const { error } = await sb.from('linen_audit_log').insert({
+    order_no: linenOrderContext.orderNo,
+    action: 'ordered_from_' + vendor,
+    vendor: vendor,
+    qty: qty,
+    invoice_no: invoice,
+    performed_by: 'manager',
+    notes: notes
+  });
+  if (error) { showSaveBanner('Failed to log linen order: ' + error.message, true); return; }
+  // Also drop a pinned note onto the order
+  await sb.from('order_notes').insert({
+    order_no: linenOrderContext.orderNo,
+    record_type: 'order',
+    author: 'manager',
+    body: `🛏️ Linens ordered from ${vendor.toUpperCase()}${qty ? ' · qty ' + qty : ''}${invoice ? ' · INV ' + invoice : ''}${notes ? ' · ' + notes : ''}`,
+    pin: true
+  });
+  await logStaffAction({
+    actor: 'manager',
+    action_type: 'linens_ordered',
+    target_label: linenOrderContext.orderNo,
+    detail: { vendor, qty, invoice }
+  });
+  showSaveBanner(`✓ Linens marked ordered for ${linenOrderContext.orderNo}`);
+  closePhase2Modal();
+  linenOrderContext = null;
+}
+
+/* =========================================================
+ *  REASSIGN ORDER (replaces stub)
+ *  ========================================================= */
+function reassignOrder(orderNo) {
+  if (!orderNo) return;
+  reassignContext = { orderNo };
+  reassignSelectedRep = null;
+  $('reassignSubtitle').textContent = `Order: ${orderNo}`;
+  $('reassignReason').value = '';
+  // Build rep grid
+  const grid = $('reassignRepGrid');
+  grid.innerHTML = activeUsers.map(u => {
+    const av = u.avatar_url
+      ? `<img src="${escapeHtml(u.avatar_url)}" onerror="this.outerHTML='<div class=&quot;letter&quot; style=&quot;color:${u.rep_color || '#fff'};&quot;>${escapeHtml((u.short_name||'?')[0])}</div>'"/>`
+      : `<div class="letter" style="color:${u.rep_color || '#fff'};">${escapeHtml((u.short_name||'?')[0])}</div>`;
+    return `
+      <div class="phase2-rep-pick" data-rep="${escapeHtml(u.short_name)}" style="--rep-color:${u.rep_color || '#fff'};" onclick="pickReassignRep('${escapeHtml(u.short_name)}')">
+        ${av}
+        <span class="name">${escapeHtml(u.short_name)}</span>
+      </div>
+    `;
+  }).join('');
+  $('reassignSubmitBtn').disabled = true;
+  $('reassignSubmitBtn').textContent = 'Pick a rep first';
+  openPhase2Modal('reassignModal');
+}
+function closeReassign() { closePhase2Modal(); reassignContext = null; reassignSelectedRep = null; }
+
+function pickReassignRep(name) {
+  reassignSelectedRep = name;
+  document.querySelectorAll('.phase2-rep-pick').forEach(el => el.classList.remove('selected'));
+  const el = document.querySelector(`.phase2-rep-pick[data-rep="${name}"]`);
+  if (el) el.classList.add('selected');
+  $('reassignSubmitBtn').disabled = false;
+  $('reassignSubmitBtn').textContent = `Reassign to ${name}`;
+}
+
+async function saveReassign() {
+  if (!reassignContext || !reassignSelectedRep) return;
+  const reason = $('reassignReason').value.trim();
+  // Update the historical_orders.sales_rep field
+  const { error } = await sb
+    .from('historical_orders')
+    .update({ sales_rep: reassignSelectedRep })
+    .eq('order_no', reassignContext.orderNo);
+  if (error) { showSaveBanner('Reassign failed: ' + error.message, true); return; }
+  // Drop a pinned note
+  await sb.from('order_notes').insert({
+    order_no: reassignContext.orderNo,
+    record_type: 'order',
+    author: 'manager',
+    body: `↻ Reassigned to ${reassignSelectedRep}${reason ? ' · ' + reason : ''}`,
+    pin: false
+  });
+  await logStaffAction({
+    actor: 'manager',
+    action_type: 'order_reassigned',
+    target_label: reassignContext.orderNo,
+    detail: { new_rep: reassignSelectedRep, reason: reason }
+  });
+  showSaveBanner(`✓ ${reassignContext.orderNo} reassigned to ${reassignSelectedRep}`);
+  closePhase2Modal();
+  reassignContext = null;
+  reassignSelectedRep = null;
+}
+
+/* =========================================================
+ *  REFERENCE PHOTO UPLOAD (replaces saveReferencePhoto stub)
+ *  ========================================================= */
+function attachPhotoButtonToDrawer() {
+  // Inject into drawer extend content if not already there
+  const extendContent = $('drawerExtendContent');
+  if (!extendContent || $('drawerPhotoSection')) return;
+  const section = document.createElement('div');
+  section.id = 'drawerPhotoSection';
+  section.className = 'drawer-card';
+  section.style.gridColumn = '1 / -1';
+  section.innerHTML = `
+    <div class="drawer-label">📸 Reference Photos</div>
+    <div id="drawerPhotoGallery" class="phase2-photo-gallery"></div>
+    <input type="file" id="drawerPhotoInput" accept="image/*" multiple style="display:none;" onchange="handleReferencePhotoUpload(event)" />
+  `;
+  extendContent.appendChild(section);
+}
+
+async function loadDrawerPhotos(leadId) {
+  attachPhotoButtonToDrawer();
+  const gallery = $('drawerPhotoGallery');
+  if (!gallery) return;
+  const { data, error } = await sb
+    .from('reference_photos')
+    .select('id, public_url, caption, created_at')
+    .eq('reference_type', 'lead')
+    .eq('reference_id', leadId)
+    .order('created_at', { ascending: false })
+    .limit(12);
+  let html = '';
+  if (data && data.length) {
+    html = data.map(p => `
+      <div class="phase2-photo-tile" onclick="openLightbox('${escapeHtml(p.public_url)}', '${escapeHtml(p.caption || '')}')">
+        <img src="${escapeHtml(p.public_url)}" alt="${escapeHtml(p.caption || 'reference')}" loading="lazy" />
+        ${p.caption ? `<div class="caption">${escapeHtml(p.caption)}</div>` : ''}
+      </div>
+    `).join('');
+  }
+  html += `
+    <div class="phase2-photo-upload-btn" onclick="$('drawerPhotoInput').click()">
+      <span class="ico">＋</span>
+      <span>Add Photo</span>
+    </div>
+  `;
+  gallery.innerHTML = html;
+}
+
+async function handleReferencePhotoUpload(ev) {
+  const files = ev.target.files;
+  if (!files || !files.length) return;
+  if (!currentDrawerLead) { showSaveBanner('No lead loaded', true); return; }
+  const leadId = currentDrawerLead.id;
+  showSaveBanner(`Uploading ${files.length} photo${files.length === 1 ? '' : 's'}...`);
+  let success = 0, failed = 0;
+  for (const file of files) {
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `lead/${leadId}/${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`;
+      const { error: upErr } = await sb.storage.from('reference-photos').upload(path, file, {
+        contentType: file.type,
+        upsert: false
+      });
+      if (upErr) { console.error(upErr); failed++; continue; }
+      const { data: urlData } = sb.storage.from('reference-photos').getPublicUrl(path);
+      const publicUrl = urlData && urlData.publicUrl;
+      await sb.from('reference_photos').insert({
+        reference_type: 'lead',
+        reference_id: leadId,
+        storage_path: path,
+        public_url: publicUrl,
+        caption: file.name.length > 60 ? file.name.slice(0, 57) + '...' : file.name,
+        uploaded_by: 'manager'
+      });
+      success++;
+    } catch(e) { console.error(e); failed++; }
+  }
+  showSaveBanner(`✓ ${success} uploaded${failed ? ' · ' + failed + ' failed' : ''}`);
+  ev.target.value = '';
+  loadDrawerPhotos(leadId);
+}
+
+// Stub overwritten: the old saveReferencePhoto button now triggers the file input
+function saveReferencePhoto() {
+  if (!currentDrawerLead) { showSaveBanner('No lead loaded', true); return; }
+  attachPhotoButtonToDrawer();
+  const inp = $('drawerPhotoInput');
+  if (inp) inp.click();
+}
+
+function openLightbox(url, caption) {
+  let lb = $('phase2Lightbox');
+  if (!lb) {
+    lb = document.createElement('div');
+    lb.id = 'phase2Lightbox';
+    lb.className = 'phase2-lightbox';
+    lb.onclick = () => lb.classList.remove('open');
+    document.body.appendChild(lb);
+  }
+  lb.innerHTML = `<img src="${escapeHtml(url)}" alt="${escapeHtml(caption || '')}" />`;
+  lb.classList.add('open');
+}
+
+/* =========================================================
+ *  KB COMPOSE / SEND
+ *  ========================================================= */
+async function openKbComposer(ctx) {
+  // ctx: { customer_name, customer_email, customer_phone, order_no, event_date, balance_due, total, rep_name, reference_type, reference_id }
+  kbContext = ctx || {};
+  $('kbComposerSubtitle').textContent = ctx && ctx.customer_name
+    ? `For: ${ctx.customer_name}${ctx.order_no ? ' · ' + ctx.order_no : ''}`
+    : 'Pick a template, fill in the blanks, send';
+  $('kbRecipient').value = ctx && ctx.customer_email ? ctx.customer_email : '';
+  $('kbSubject').value = '';
+  $('kbBody').value = '';
+  kbSelectedTemplate = null;
+  kbActiveChannel = 'email';
+  document.querySelectorAll('.phase2-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.ch === 'email'));
+  $('kbRecipientLabel').textContent = 'To (email)';
+  // Load templates
+  if (!kbTemplatesCache.length) {
+    const { data } = await sb.from('kb_templates').select('*').eq('is_active', true).order('category').order('title');
+    kbTemplatesCache = data || [];
+  }
+  // Populate category dropdown dynamically
+  const filterSel = $('kbComposerCategoryFilter');
+  const cats = [...new Set(kbTemplatesCache.map(t => t.category).filter(Boolean))].sort();
+  filterSel.innerHTML = '<option value="all">All templates</option>' +
+    cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c.charAt(0).toUpperCase() + c.slice(1))}</option>`).join('');
+  renderKbTemplateList();
+  openPhase2Modal('kbComposerModal');
+}
+function closeKbComposer() { closePhase2Modal(); kbSelectedTemplate = null; }
+
+function renderKbTemplateList() {
+  const filter = $('kbComposerCategoryFilter').value;
+  const list = $('kbTemplateList');
+  let templates = kbTemplatesCache;
+  if (filter !== 'all') templates = templates.filter(t => lc(t.category) === filter);
+  if (!templates.length) {
+    list.innerHTML = '<div style="font-size:11px;color:#8fb4c9;padding:12px;text-align:center;">No templates in this category.</div>';
+    return;
+  }
+  list.innerHTML = templates.map(t => `
+    <div class="phase2-kb-template ${kbSelectedTemplate && kbSelectedTemplate.id === t.id ? 'selected' : ''}" onclick="pickKbTemplate('${t.id}')">
+      <div class="ttl">${escapeHtml(t.title)}</div>
+      <div class="cat">${escapeHtml(t.category || 'general')}</div>
+    </div>
+  `).join('');
+}
+
+function pickKbTemplate(id) {
+  const t = kbTemplatesCache.find(x => x.id === id);
+  if (!t) return;
+  kbSelectedTemplate = t;
+  renderKbTemplateList();
+  // Render with merge fields
+  const merged = renderKbMerge(t.body || '');
+  // First line of template = subject
+  const lines = merged.split('\n');
+  let subject = '';
+  let body = merged;
+  // If first line starts with "Subject:" or looks like a subject (short, no period), use it
+  if (lines[0] && /^Subject:\s*/i.test(lines[0])) {
+    subject = lines[0].replace(/^Subject:\s*/i, '').trim();
+    body = lines.slice(1).join('\n').trim();
+  } else {
+    subject = t.title;
+  }
+  $('kbSubject').value = subject;
+  $('kbBody').value = body;
+}
+
+function renderKbMerge(text) {
+  if (!text || !kbContext) return text || '';
+  const fmtDateLocal = (d) => {
+    if (!d) return '';
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return d;
+    return dt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  };
+  const fmt = {
+    customer_name: kbContext.customer_name || 'Valued Customer',
+    customer_email: kbContext.customer_email || '',
+    customer_phone: kbContext.customer_phone || '',
+    order_no: kbContext.order_no || '',
+    quote_no: kbContext.quote_no || kbContext.order_no || '',
+    event_date: fmtDateLocal(kbContext.event_date) || '',
+    balance_due: kbContext.balance_due != null ? fmtMoney(kbContext.balance_due) : '',
+    total: kbContext.total != null ? fmtMoney(kbContext.total) : '',
+    rep_name: kbContext.rep_name || 'the team',
+    company_name: kbContext.company_name || 'Sophia Systems',
+    location: kbContext.location || '',
+    delivery_method: kbContext.delivery_method || ''
+  };
+  return text.replace(/\{(\w+)\}/g, (m, k) => fmt[k] != null ? fmt[k] : m);
+}
+
+function setKbChannel(ch) {
+  kbActiveChannel = ch;
+  document.querySelectorAll('.phase2-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.ch === ch));
+  const label = $('kbRecipientLabel');
+  const input = $('kbRecipient');
+  if (ch === 'email') { label.textContent = 'To (email)'; input.value = (kbContext && kbContext.customer_email) || ''; input.placeholder = 'customer@example.com'; }
+  else if (ch === 'sms') { label.textContent = 'To (phone)'; input.value = (kbContext && kbContext.customer_phone) || ''; input.placeholder = '+1 555 555 5555'; }
+  else if (ch === 'copy') { label.textContent = 'Recipient name'; input.value = (kbContext && kbContext.customer_name) || ''; input.placeholder = 'For your records'; }
+}
+
+async function sendKbMessage() {
+  if (!kbSelectedTemplate) { showSaveBanner('Pick a template first', true); return; }
+  const recipient = $('kbRecipient').value.trim();
+  const subject = $('kbSubject').value.trim();
+  const body = $('kbBody').value.trim();
+  if (!body) { showSaveBanner('Body is empty', true); return; }
+  if (kbActiveChannel === 'email' && !recipient) { showSaveBanner('Enter a recipient email', true); return; }
+  if (kbActiveChannel === 'sms' && !recipient) { showSaveBanner('Enter a recipient phone number', true); return; }
+
+  // Log it
+  await sb.from('kb_send_log').insert({
+    template_id: kbSelectedTemplate.id,
+    template_title: kbSelectedTemplate.title,
+    recipient_name: kbContext && kbContext.customer_name,
+    recipient_email: kbActiveChannel === 'email' ? recipient : null,
+    recipient_phone: kbActiveChannel === 'sms' ? recipient : null,
+    channel: kbActiveChannel === 'copy' ? 'manual_copy' : kbActiveChannel,
+    reference_type: kbContext && kbContext.reference_type,
+    reference_id: kbContext && kbContext.reference_id,
+    rendered_body: body,
+    sent_by: 'manager',
+    status: kbActiveChannel === 'copy' ? 'manual_copy' : 'queued'
+  });
+  await logStaffAction({
+    actor: 'manager',
+    action_type: 'kb_sent',
+    target_label: kbSelectedTemplate.title,
+    detail: { channel: kbActiveChannel, template_id: kbSelectedTemplate.id }
+  });
+
+  // Trigger the appropriate native action
+  if (kbActiveChannel === 'email') {
+    const url = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = url;
+    showSaveBanner('✓ Opened email client');
+  } else if (kbActiveChannel === 'sms') {
+    const url = `sms:${encodeURIComponent(recipient)}?&body=${encodeURIComponent(body)}`;
+    window.location.href = url;
+    showSaveBanner('✓ Opened messages app');
+  } else {
+    // Copy to clipboard
+    try {
+      await navigator.clipboard.writeText((subject ? subject + '\n\n' : '') + body);
+      showSaveBanner('✓ Copied to clipboard');
+    } catch(e) {
+      showSaveBanner('Copy failed — selecting text', true);
+    }
+  }
+  closePhase2Modal();
+}
+
+// Convenience helpers to open KB from drawer or order detail
+function openKbFromDrawer() {
+  if (!currentDrawerLead) return;
+  const l = currentDrawerLead;
+  openKbComposer({
+    customer_name: l.full_name,
+    customer_email: l.email,
+    customer_phone: l.phone_number,
+    event_date: l.event_date,
+    rep_name: l.assigned_to,
+    company_name: COMPANY_LABELS[lc(l.company_key)] || l.company_key,
+    delivery_method: l.delivery_method,
+    reference_type: 'lead',
+    reference_id: l.id
+  });
+}
+function openKbFromOrder(record) {
+  if (!record) return;
+  openKbComposer({
+    customer_name: record.customer_name,
+    customer_email: record.email,
+    customer_phone: record.phone,
+    order_no: record.record_no,
+    quote_no: record.record_type === 'quote' ? record.record_no : null,
+    event_date: record.event_start_date,
+    balance_due: record.balance_due,
+    total: record.total,
+    rep_name: record.sales_rep,
+    company_name: COMPANY_LABELS[lc(record.brand)] || record.company_label,
+    location: [record.address, record.city, record.state].filter(Boolean).join(', '),
+    delivery_method: record.delivery_method,
+    reference_type: record.record_type || 'order',
+    reference_id: record.record_no
+  });
+}
+
+/* =========================================================
+ *  CLUSTER HUDDLE — list + detail + chat
+ *  ========================================================= */
+function openHuddleListModal() {
+  openPhase2Modal('huddleListModal');
+  loadHuddleList();
+}
+function closeHuddleListModal() { closePhase2Modal(); }
+
+async function loadHuddleList() {
+  const body = $('huddleListBody');
+  body.innerHTML = '<div style="font-size:11px;color:#8fb4c9;padding:12px;">Loading huddles…</div>';
+  const { data, error } = await sb
+    .from('cluster_huddles')
+    .select('id, initiated_by, rep_list, quote_refs, area_summary, status, opened_at, closed_at, summary')
+    .order('opened_at', { ascending: false })
+    .limit(20);
+  if (error) { body.innerHTML = `<div style="color:#ff8aa3;">Error: ${escapeHtml(error.message)}</div>`; return; }
+  if (!data || !data.length) {
+    body.innerHTML = '<div style="font-size:12px;color:#8fb4c9;padding:14px;text-align:center;">No huddles yet. Click <strong style="color:#7cecff;">＋ New huddle</strong> to start one.</div>';
+    return;
+  }
+  body.innerHTML = data.map(h => {
+    const repTags = (h.rep_list || []).map(r => `<span class="phase2-huddle-rep"><span class="letter" style="color:${(userByName(r) && userByName(r).rep_color) || '#fff'};">${escapeHtml((r||'?')[0])}</span>${escapeHtml(r)}</span>`).join('');
+    const refs = (h.quote_refs || []).slice(0, 4).map(r => `<span class="phase2-huddle-ref-chip">${escapeHtml(r)}</span>`).join('');
+    const statusColor = h.status === 'open' ? '#6effa8' : h.status === 'closed' ? '#9fb3c8' : '#ffd46a';
+    return `
+      <div class="rail-alert-card clickable-alert" style="margin-bottom:8px;" onclick="openHuddleDetail('${h.id}')">
+        <div class="rail-alert-top">
+          <span class="rail-alert-company">${escapeHtml(h.area_summary || 'Unnamed huddle')}</span>
+          <span style="color:${statusColor};font-weight:800;font-size:10px;">${escapeHtml((h.status || 'open').toUpperCase())}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;">${repTags}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">${refs}</div>
+        <div class="rail-alert-meta">Started: ${fmtRelativeTime(h.opened_at)}${h.closed_at ? ' · Closed: ' + fmtRelativeTime(h.closed_at) : ''}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function newHuddle() {
+  // Minimal flow: ask for area summary, list of reps, list of quote refs
+  const areaSummary = prompt('What\'s the cluster about? (e.g. "Saturday Scottsdale chairs")');
+  if (!areaSummary) return;
+  const repsStr = prompt('Reps to include (comma-separated, e.g. Stefani, Chris):', activeUsers.map(u => u.short_name).slice(0,2).join(', '));
+  const reps = (repsStr || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (!reps.length) { showSaveBanner('At least one rep required', true); return; }
+  const refsStr = prompt('Quote/Order #s (comma-separated, optional):', '');
+  const refs = (refsStr || '').split(',').map(s => s.trim()).filter(Boolean);
+  const { data, error } = await sb.from('cluster_huddles').insert({
+    initiated_by: 'manager',
+    rep_list: reps,
+    quote_refs: refs,
+    area_summary: areaSummary,
+    status: 'open',
+    opened_at: new Date().toISOString()
+  }).select().single();
+  if (error) { showSaveBanner('Failed to create huddle: ' + error.message, true); return; }
+  // Seed system message
+  await sb.from('cluster_huddle_messages').insert({
+    huddle_id: data.id,
+    author: 'system',
+    body: `Huddle started by manager · ${reps.length} rep${reps.length === 1 ? '' : 's'}: ${reps.join(', ')}`,
+    message_type: 'system'
+  });
+  await logStaffAction({ actor: 'manager', action_type: 'huddle_created', target_label: areaSummary });
+  showSaveBanner('✓ Huddle started');
+  closePhase2Modal();
+  setTimeout(() => openHuddleDetail(data.id), 200);
+}
+
+async function openHuddleDetail(huddleId) {
+  const { data, error } = await sb.from('cluster_huddles').select('*').eq('id', huddleId).single();
+  if (error || !data) { showSaveBanner('Huddle not found', true); return; }
+  huddleContext = data;
+  $('huddleSubtitle').textContent = data.area_summary || 'Cluster huddle';
+  $('huddleQuoteRefs').innerHTML = (data.quote_refs || []).length
+    ? (data.quote_refs || []).map(r => `<span class="phase2-huddle-ref-chip">${escapeHtml(r)}</span>`).join('')
+    : '<span style="font-size:11px;color:#8fb4c9;">No quote refs attached</span>';
+  $('huddleReps').innerHTML = (data.rep_list || []).map(name => {
+    const u = userByName(name) || {};
+    const av = u.avatar_url
+      ? `<img src="${escapeHtml(u.avatar_url)}" />`
+      : `<span class="letter" style="color:${u.rep_color || '#fff'};">${escapeHtml((name||'?')[0])}</span>`;
+    return `<span class="phase2-huddle-rep">${av}${escapeHtml(name)}</span>`;
+  }).join('');
+  $('huddleSummary').value = data.summary || '';
+  await loadHuddleMessages(huddleId);
+  closePhase2Modal();
+  openPhase2Modal('huddleModal');
+  // Subscribe to realtime
+  if (window._huddleChannel) {
+    try { sb.removeChannel(window._huddleChannel); } catch(e) {}
+  }
+  window._huddleChannel = sb.channel(`huddle-${huddleId}`)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'cluster_huddle_messages', filter: `huddle_id=eq.${huddleId}` },
+      () => loadHuddleMessages(huddleId))
+    .subscribe();
+}
+
+async function loadHuddleMessages(huddleId) {
+  const thread = $('huddleChatThread');
+  const { data, error } = await sb
+    .from('cluster_huddle_messages')
+    .select('author, body, message_type, metadata, created_at')
+    .eq('huddle_id', huddleId)
+    .order('created_at', { ascending: true })
+    .limit(200);
+  if (error) { thread.innerHTML = `<div style="color:#ff8aa3;font-size:11px;">${escapeHtml(error.message)}</div>`; return; }
+  if (!data || !data.length) {
+    thread.innerHTML = '<div style="text-align:center;color:#8fb4c9;font-size:11px;padding:20px;">No messages yet. Say something!</div>';
+    return;
+  }
+  thread.innerHTML = data.map(m => {
+    const cls = m.message_type === 'system' ? 'system' : m.message_type === 'rate_proposal' ? 'proposal' : (m.author === 'manager' ? 'mine' : 'theirs');
+    const u = userByName(m.author);
+    const color = (u && u.rep_color) || '#7cecff';
+    const time = m.created_at ? fmtRelativeTime(m.created_at) : '';
+    if (m.message_type === 'system') {
+      return `<div class="phase2-chat-msg system">${escapeHtml(m.body)} · ${time}</div>`;
+    }
+    if (m.message_type === 'rate_proposal') {
+      return `<div class="phase2-chat-msg proposal">
+        <div class="author" style="--author-color:#ffd46a;">💰 ${escapeHtml(m.author)} proposed</div>
+        ${escapeHtml(m.body)}
+        <div class="when">${time}</div>
+      </div>`;
+    }
+    return `
+      <div class="phase2-chat-msg ${cls}">
+        <div class="author" style="--author-color:${color};">${escapeHtml(m.author)}</div>
+        ${escapeHtml(m.body)}
+        <div class="when">${time}</div>
+      </div>
+    `;
+  }).join('');
+  thread.scrollTop = thread.scrollHeight;
+}
+
+async function postHuddleMessage() {
+  if (!huddleContext) return;
+  const input = $('huddleChatInput');
+  const body = input.value.trim();
+  if (!body) return;
+  input.value = '';
+  const { error } = await sb.from('cluster_huddle_messages').insert({
+    huddle_id: huddleContext.id,
+    author: 'manager',
+    body: body,
+    message_type: 'chat'
+  });
+  if (error) { showSaveBanner('Failed to post: ' + error.message, true); input.value = body; return; }
+  // Realtime subscription will refresh, but trigger a manual reload as backup
+  setTimeout(() => loadHuddleMessages(huddleContext.id), 300);
+}
+
+async function proposeRate() {
+  if (!huddleContext) return;
+  const rate = prompt('Propose a rate (e.g. "$3.50/chair flat for cluster of 8"):');
+  if (!rate || !rate.trim()) return;
+  await sb.from('cluster_huddle_messages').insert({
+    huddle_id: huddleContext.id,
+    author: 'manager',
+    body: rate.trim(),
+    message_type: 'rate_proposal',
+    metadata: { rate_text: rate.trim() }
+  });
+  setTimeout(() => loadHuddleMessages(huddleContext.id), 300);
+}
+
+async function closeHuddle() {
+  if (!huddleContext) return;
+  const summary = $('huddleSummary').value.trim();
+  if (!confirm('Close this huddle? It will be archived.')) return;
+  await sb.from('cluster_huddles').update({
+    status: 'closed',
+    closed_at: new Date().toISOString(),
+    summary: summary || null
+  }).eq('id', huddleContext.id);
+  // System message
+  await sb.from('cluster_huddle_messages').insert({
+    huddle_id: huddleContext.id,
+    author: 'system',
+    body: `Huddle closed by manager${summary ? ': ' + summary : ''}`,
+    message_type: 'system'
+  });
+  await logStaffAction({ actor: 'manager', action_type: 'huddle_closed', target_label: huddleContext.area_summary });
+  if (window._huddleChannel) { try { sb.removeChannel(window._huddleChannel); } catch(e) {} window._huddleChannel = null; }
+  showSaveBanner('✓ Huddle closed');
+  closePhase2Modal();
+  huddleContext = null;
+}
+
+function closeHuddleModal() {
+  if (window._huddleChannel) { try { sb.removeChannel(window._huddleChannel); } catch(e) {} window._huddleChannel = null; }
+  closePhase2Modal();
+  huddleContext = null;
+}
+
+/* =========================================================
+ *  QUOTE LIFECYCLE MARQUEE
+ *  Triggered when staff_actions has lifecycle_advanced events
+ *  ========================================================= */
+function broadcastLifecycleEvent(actor, eventType, label) {
+  const messages = {
+    closed_won: ['🎉 BOOM!', '🔥 Got one!', '🎊 Big closer alert!', '💸 Cha-ching!'],
+    closed_lost: ['😩 Wamp wamp', '💀 RIP that one', '👋 Onto the next'],
+    sertifi_sent: ['📝 Contract out the door', '✉️ Sertifi sent'],
+    sertifi_returned: ['✅ Sertifi back!', '📥 Returned signed'],
+    deposit_run: ['💳 Deposit ran', '💰 Money down'],
+    quote_sent: ['📤 Proposal in flight'],
+    order_confirmed: ['✓ Confirmed']
+  };
+  const variants = messages[eventType] || ['⚡ Update'];
+  const msg = variants[Math.floor(Math.random() * variants.length)];
+  const ticker = $('liveTickerContent');
+  if (!ticker) return;
+  const html = `
+    <span class="ticker-item" style="background:linear-gradient(90deg,rgba(255,212,106,.15),rgba(255,150,60,.10));padding:2px 10px;border-radius:8px;">
+      <span class="icon">${msg.split(' ')[0]}</span>
+      <span class="who">${escapeHtml(actor)}</span>
+      <span class="what"> ${escapeHtml(msg.split(' ').slice(1).join(' '))} ${escapeHtml(label || '')}</span>
+      <span class="when"> · just now</span>
+    </span>
+    <span class="ticker-divider">·</span>
+  `;
+  ticker.insertAdjacentHTML('afterbegin', html);
+}
+
+/* =========================================================
+ *  HOOK INTO EXISTING DRAWER & ORDER DETAIL
+ *  ========================================================= */
+// Wrap openDrawer to also load photos
+const _origOpenDrawer = window.openDrawer;
+window.openDrawer = async function(id) {
+  await _origOpenDrawer.call(this, id);
+  if (currentDrawerLead) {
+    setTimeout(() => loadDrawerPhotos(currentDrawerLead.id), 50);
+  }
+};
+
+// Inject KB button + Huddle button into drawer
+function injectDrawerActionButtons() {
+  const drawer = $('leadDrawer');
+  if (!drawer || $('drawerKbBtn')) return;
+  // Find a good place — after drawer-meta-strip
+  const metaStrip = drawer.querySelector('.drawer-meta-strip');
+  const target = metaStrip || drawer.querySelector('.drawer-extend-toggle');
+  if (!target) return;
+  const btnRow = document.createElement('div');
+  btnRow.className = 'drawer-kb-btn-row';
+  btnRow.innerHTML = `
+    <button id="drawerKbBtn" class="drawer-kb-btn" onclick="openKbFromDrawer()">📨 Send from KB</button>
+    <button id="drawerHuddleBtn" class="drawer-kb-btn" onclick="openHuddleListModal()">🤝 Huddle</button>
+  `;
+  target.parentNode.insertBefore(btnRow, target);
+}
+// Also inject into order detail panel actions
+const _origOpenOrderDetailPanel = window.openOrderDetailPanel;
+if (typeof _origOpenOrderDetailPanel === 'function') {
+  window.openOrderDetailPanel = async function(r) {
+    await _origOpenOrderDetailPanel.call(this, r);
+    // Append KB button to action bar
+    const actions = $('odpActions');
+    if (actions && !actions.querySelector('.odp-kb-btn')) {
+      const kbBtn = document.createElement('button');
+      kbBtn.className = 'odp-action-btn odp-kb-btn';
+      kbBtn.innerHTML = '📨 Send from KB';
+      kbBtn.onclick = () => openKbFromOrder(r);
+      actions.appendChild(kbBtn);
+    }
+  };
+}
+
+// Initialize on boot
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(injectDrawerActionButtons, 500);
+});
+
+/* =========================================================
+ *  ESC KEY closes any modal
+ *  ========================================================= */
+document.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Escape' && activeModal) closePhase2Modal();
+});
 </script>
 
 </body>
