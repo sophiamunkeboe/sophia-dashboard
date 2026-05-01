@@ -2362,6 +2362,109 @@ tbody tr.slim-row .employee-buttons { display: none; }
   .phase2-row-2 { grid-template-columns: 1fr; }
   .phase2-rep-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* Coach report — rep deep panel buttons */
+.rdp-coach-row {
+  display: flex; gap: 6px;
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(124,236,255,.12);
+  background: rgba(184,156,255,.04);
+}
+.rdp-coach-btn {
+  flex: 1;
+  padding: 7px 10px;
+  background: linear-gradient(180deg, rgba(184,156,255,.18), rgba(140,120,200,.10));
+  border: 1px solid rgba(184,156,255,.4);
+  border-radius: 8px;
+  color: #efe2ff; cursor: pointer;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .04em;
+  transition: all .15s ease;
+}
+.rdp-coach-btn:hover {
+  background: linear-gradient(180deg, rgba(184,156,255,.32), rgba(140,120,200,.18));
+  border-color: rgba(184,156,255,.7);
+  transform: translateY(-1px);
+}
+
+/* Coach report formatted body */
+.coach-report-wrap {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+.coach-period {
+  font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: #8fb4c9; font-weight: 800;
+  margin-bottom: 10px; text-align: center;
+}
+.coach-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.coach-metric {
+  background: linear-gradient(180deg, rgba(124,236,255,.08), rgba(255,255,255,.02));
+  border: 1px solid rgba(124,236,255,.20);
+  border-radius: 10px;
+  padding: 10px 8px;
+  text-align: center;
+}
+.coach-metric .label {
+  font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+  color: #8fb4c9; font-weight: 800;
+  margin-bottom: 4px;
+}
+.coach-metric .value {
+  font-size: 18px; font-weight: 800; color: #eef7ff;
+}
+.coach-metric .value.green { color: #6effa8; }
+.coach-metric .value.amber { color: #ffd46a; }
+.coach-metric .value.red   { color: #ff8aa3; }
+.coach-metric .sub {
+  font-size: 9px; color: #8fb4c9; margin-top: 2px;
+}
+
+.coach-section {
+  background: rgba(2,6,17,.45);
+  border: 1px solid rgba(124,236,255,.16);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.coach-section-title {
+  font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  color: #c8d9ef; font-weight: 800;
+  margin-bottom: 8px;
+}
+.coach-highlights {
+  font-size: 13px; color: #eef7ff;
+  white-space: pre-wrap; line-height: 1.6;
+}
+.coach-notes {
+  font-size: 12.5px; color: #fff1c9;
+  background: rgba(255,212,106,.06);
+  border-left: 3px solid #ffd46a;
+  border-radius: 0 8px 8px 0;
+  padding: 10px 12px;
+  white-space: pre-wrap; line-height: 1.55;
+  font-style: italic;
+}
+.coach-history {
+  margin-top: 14px;
+}
+.coach-history-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 8px;
+  font-size: 11px; color: #c8d9ef;
+  border-bottom: 1px solid rgba(124,236,255,.08);
+}
+.coach-history-row .label { color: #8fb4c9; }
+.coach-history-row .val { font-weight: 700; }
+
+@media (max-width: 720px) {
+  .coach-report-wrap { grid-template-columns: 1fr; }
+  .coach-metric-grid { grid-template-columns: repeat(2, 1fr); }
+}
 </style>
 </head>
 <body>
@@ -2935,6 +3038,10 @@ tbody tr.slim-row .employee-buttons { display: none; }
     <div class="rdp-stat orders"><div class="label">Orders</div><div class="value" id="rdpOrders">0</div></div>
     <div class="rdp-stat brands"><div class="label">Brands</div><div class="value" id="rdpBrands">0</div></div>
   </div>
+  <div class="rdp-coach-row">
+    <button class="rdp-coach-btn" onclick="openCoachReport()">📋 Coach Report</button>
+    <button class="rdp-coach-btn" onclick="rebuildCoachReport()">↻ Rebuild Latest</button>
+  </div>
   <div class="rdp-body" id="rdpBody">
     <div class="lrp-empty">Click a rep to see their orders</div>
   </div>
@@ -3396,6 +3503,26 @@ tbody tr.slim-row .employee-buttons { display: none; }
   </div>
 </aside>
 
+<!-- COACH REPORT MODAL -->
+<aside id="coachReportModal" class="phase2-modal phase2-modal-wide">
+  <div class="phase2-modal-header">
+    <div>
+      <div class="phase2-modal-title">📋 Weekly Coach Report</div>
+      <div class="phase2-modal-sub" id="coachReportSubtitle">—</div>
+    </div>
+    <button class="phase2-modal-close" onclick="closeCoachReport()">×</button>
+  </div>
+  <div class="phase2-modal-body" id="coachReportBody">
+    <div style="font-size:11px;color:#8fb4c9;padding:14px;text-align:center;">Loading…</div>
+  </div>
+  <div class="phase2-modal-footer">
+    <button class="phase2-btn ghost" onclick="closeCoachReport()">Close</button>
+    <button class="phase2-btn" id="coachReportRebuildBtn" onclick="rebuildCoachReport()">↻ Rebuild Latest</button>
+    <button class="phase2-btn" id="coachReportCopyBtn" onclick="copyCoachReport()">📋 Copy</button>
+    <button class="phase2-btn primary" id="coachReportEmailBtn" onclick="emailCoachReport()">📨 Email to Rep</button>
+  </div>
+</aside>
+
 <!-- PHOTO UPLOAD INLINE WIDGET (gets injected into drawer/order panels by JS) -->
 <script>
 /* ============================================================
@@ -3677,12 +3804,20 @@ function renderLastSeenMeta(lead) {
   return `<span class="last-seen-meta">Last seen <strong>${escapeHtml(who)}</strong> · ${escapeHtml(what)} · ${escapeHtml(when)}</span>`;
 }
 
+/* AGING THRESHOLDS — v1.6.3 calmer schedule (1 hour to ON FIRE)
+ * Bucket 5  → 15+ min  (gentle green tag)
+ * Bucket 10 → 30+ min  (amber)
+ * Bucket 15 → 45+ min  (orange, pulses)
+ * Bucket 30 → 60+ min  (red, fast pulse, 🔥 ON FIRE)
+ * Bucket numbers (5/10/15/30) are kept as IDs because the CSS classes
+ * (.aging-5, .aging-10, .aging-15, .aging-30) are wired to them.
+ */
 function agingBucket(minutes) {
   if (minutes == null) return null;
-  if (minutes >= 30) return 30;
-  if (minutes >= 15) return 15;
-  if (minutes >= 10) return 10;
-  if (minutes >= 5) return 5;
+  if (minutes >= 60) return 30;
+  if (minutes >= 45) return 15;
+  if (minutes >= 30) return 10;
+  if (minutes >= 15) return 5;
   return null;
 }
 function applyAgingClass(tr, minutes) {
@@ -3692,7 +3827,8 @@ function applyAgingClass(tr, minutes) {
 function renderAgingBadge(minutes) {
   const b = agingBucket(minutes);
   if (!b) return '';
-  const labels = { 5: '5m', 10: '10m', 15: '15m', 30: '🔥 ON FIRE' };
+  // Show the actual elapsed bucket, not the CSS bucket id
+  const labels = { 5: '15m', 10: '30m', 15: '45m', 30: '🔥 ON FIRE' };
   return `<span class="aging-badge aging-${b}">${labels[b]}</span>`;
 }
 
@@ -3916,7 +4052,14 @@ function updateMetrics() {
 function getVisibleRows() {
   const q = lc(($('searchInput') || {}).value);
   let rows = getCompanyFiltered(allLeads);
-  if (activeRepFilter) rows = rows.filter(l => lc(l.assigned_to) === lc(activeRepFilter));
+  if (activeRepFilter) {
+    // Rep folder view: show only this rep's claimed leads
+    rows = rows.filter(l => lc(l.assigned_to) === lc(activeRepFilter));
+  } else {
+    // Master pool view: show only UNCLAIMED leads.
+    // Anything assigned has moved into someone's folder and should disappear from master.
+    rows = rows.filter(l => !l.assigned_to);
+  }
   if (q) {
     rows = rows.filter(l => {
       return [l.full_name, l.phone, l.products_requested, l.workflow_route, l.notes, l.coordinator_notes, l.business_name, l.email]
@@ -3959,7 +4102,27 @@ function renderTable() {
   const rows = getVisibleRows();
   const pastDues = getVisiblePastDues();
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="14" class="muted">No matching leads.</td></tr>';
+    let msg;
+    if (activeRepFilter) {
+      msg = `No leads in ${escapeHtml(activeRepFilter)}'s folder.`;
+    } else {
+      // Master pool empty
+      const totalClaimed = getCompanyFiltered(allLeads).filter(l => l.assigned_to).length;
+      if (totalClaimed > 0) {
+        msg = `Master pool is clear — all ${totalClaimed} active lead${totalClaimed === 1 ? ' is' : 's are'} claimed. 🎉`;
+      } else {
+        msg = 'No active leads right now.';
+      }
+    }
+    tbody.innerHTML = `<tr><td colspan="14" class="muted">${msg}</td></tr>`;
+    const sub = $('liveLeadsSubtitle');
+    if (sub) {
+      let parts = [];
+      if (activeRepFilter) parts.push(`${escapeHtml(activeRepFilter)}'s folder · empty`);
+      else parts.push('Master pool · empty');
+      if (pastDues.length) parts.push(`${pastDues.length} past-due in Tasks`);
+      sub.textContent = parts.join(' · ');
+    }
     updateMetrics(); updateTasksBadge(); updateAlertsBadge();
     return;
   }
@@ -3973,9 +4136,13 @@ function renderTable() {
   });
   const sub = $('liveLeadsSubtitle');
   if (sub) {
-    let parts = [`${rows.length} active lead${rows.length === 1 ? '' : 's'}`];
+    let parts;
+    if (activeRepFilter) {
+      parts = [`${escapeHtml(activeRepFilter)}'s folder · ${rows.length} lead${rows.length === 1 ? '' : 's'}`];
+    } else {
+      parts = [`Master pool · ${rows.length} unclaimed lead${rows.length === 1 ? '' : 's'}`];
+    }
     if (pastDues.length) parts.push(`${pastDues.length} past-due in Tasks`);
-    if (activeRepFilter) parts.push(`Filtered: ${activeRepFilter}`);
     sub.textContent = parts.join(' · ');
   }
   updateMetrics(); updateTasksBadge(); updateAlertsBadge();
@@ -4123,15 +4290,23 @@ async function assignLeadFromDropdown(rowId, repName, ev) {
   }
   const newAssignee = repName || null;
   const updatePayload = { assigned_to: newAssignee };
+  const nowIso = new Date().toISOString();
   if (newAssignee) {
-    updatePayload.claimed_at = new Date().toISOString();
-    updatePayload.claim_expires_at = new Date(Date.now() + 3*60*60*1000).toISOString();
-    updatePayload.last_action_at = new Date().toISOString();
+    // Claim path
+    updatePayload.claimed_at = nowIso;
+    updatePayload.claim_expires_at = new Date(Date.now() + 60*60*1000).toISOString(); // 1hr soft window now matches aging
+    updatePayload.last_action_at = nowIso;
     updatePayload.last_action_by = newAssignee;
     updatePayload.last_action_kind = 'claimed';
+    updatePayload.lifecycle_stage = 'claimed';
   } else {
+    // Release path — put back in master pool, looking fresh
     updatePayload.claimed_at = null;
     updatePayload.claim_expires_at = null;
+    updatePayload.last_action_at = nowIso;
+    updatePayload.last_action_by = 'system';
+    updatePayload.last_action_kind = 'released';
+    updatePayload.lifecycle_stage = 'unclaimed';
   }
   const { error } = await sb.from('leads').update(updatePayload).eq('id', rowId);
   if (error) { showSaveBanner('Assign failed: ' + error.message, true); return; }
@@ -4145,13 +4320,13 @@ async function assignLeadFromDropdown(rowId, repName, ev) {
   renderTable();
   renderTeamPills();
   await logStaffAction({
-    actor: newAssignee || 'unassigned',
+    actor: newAssignee || (lead && lead.assigned_to) || 'unassigned',
     action_type: newAssignee ? 'assigned' : 'unassigned',
     target_id: rowId,
     target_label: lead ? lead.full_name : '',
     company_key: lead ? lead.company_key : null
   });
-  showSaveBanner(newAssignee ? `Assigned to ${newAssignee}` : 'Unassigned · returned to Master pool');
+  showSaveBanner(newAssignee ? `Claimed → ${newAssignee}'s folder` : 'Released · back in Master pool');
 }
 
 async function markFollowedFromTable(rowId, ev) {
@@ -6888,6 +7063,323 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('keydown', (ev) => {
   if (ev.key === 'Escape' && activeModal) closePhase2Modal();
 });
+</script>
+<script>
+/* ================================================================
+ *  COACH REPORT — viewer, rebuild, copy, email
+ *  ================================================================ */
+let coachReportContext = null;  // {report, repName}
+
+async function openCoachReport() {
+  const repName = document.getElementById('rdpName')?.textContent?.trim();
+  if (!repName || repName === '—') { showSaveBanner('Open a rep first', true); return; }
+  await loadCoachReport(repName);
+}
+
+async function loadCoachReport(repName) {
+  $('coachReportSubtitle').textContent = `${repName} · last 7 days`;
+  $('coachReportBody').innerHTML = '<div style="font-size:11px;color:#8fb4c9;padding:14px;text-align:center;">Loading report…</div>';
+  openPhase2Modal('coachReportModal');
+
+  // Pull the latest report
+  const { data, error } = await sb
+    .from('coach_reports')
+    .select('*')
+    .eq('rep_short_name', repName)
+    .order('period_end', { ascending: false })
+    .order('generated_at', { ascending: false })
+    .limit(1);
+
+  if (error) {
+    $('coachReportBody').innerHTML = `<div style="color:#ff8aa3;padding:14px;">Error: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+  if (!data || !data.length) {
+    // No report exists yet — auto-build one
+    $('coachReportBody').innerHTML = '<div style="font-size:11px;color:#8fb4c9;padding:14px;text-align:center;">No report yet. Building one now…</div>';
+    await rebuildCoachReport(repName);
+    return;
+  }
+  coachReportContext = { report: data[0], repName: repName };
+  renderCoachReport(data[0], repName);
+  // Also load history (last 8 weeks)
+  loadCoachReportHistory(repName);
+}
+
+async function rebuildCoachReport(repName) {
+  if (!repName) repName = (coachReportContext && coachReportContext.repName) || document.getElementById('rdpName')?.textContent?.trim();
+  if (!repName || repName === '—') { showSaveBanner('No rep selected', true); return; }
+  $('coachReportBody').innerHTML = '<div style="font-size:11px;color:#8fb4c9;padding:14px;text-align:center;">Rebuilding…</div>';
+  // Call the SQL function via PostgREST RPC
+  const { data, error } = await sb.rpc('build_weekly_coach_report', { p_rep: repName });
+  if (error) {
+    $('coachReportBody').innerHTML = `<div style="color:#ff8aa3;padding:14px;">Rebuild failed: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+  // Re-fetch
+  await loadCoachReport(repName);
+  showSaveBanner('✓ Coach report rebuilt');
+}
+
+function renderCoachReport(report, repName) {
+  const m = report.metrics || {};
+  const orders = m.orders_closed || 0;
+  const revenue = m.revenue || 0;
+  const closeRate = m.close_rate_pct || 0;
+  const avgResponse = m.avg_response_minutes || 0;
+  const releases = m.claim_releases || 0;
+  const brands = m.brands_touched || 0;
+  const leadsClaimed = m.leads_claimed || 0;
+  const leadsFollowed = m.leads_followed_up || 0;
+  const topOrder = m.top_order_no || '—';
+  const topOrderTotal = m.top_order_total || 0;
+
+  // Color logic for metrics
+  const closeRateColor = closeRate >= 80 ? 'green' : closeRate >= 60 ? '' : closeRate > 0 ? 'amber' : 'red';
+  const responseColor = avgResponse < 30 ? 'green' : avgResponse < 60 ? '' : 'amber';
+  const releasesColor = releases === 0 ? 'green' : releases < 3 ? 'amber' : 'red';
+
+  $('coachReportBody').innerHTML = `
+    <div class="coach-period">Week of ${fmtDate(report.period_start)} — ${fmtDate(report.period_end)}</div>
+
+    <div class="coach-metric-grid">
+      <div class="coach-metric">
+        <div class="label">Orders Closed</div>
+        <div class="value">${orders}</div>
+      </div>
+      <div class="coach-metric">
+        <div class="label">Revenue</div>
+        <div class="value">${fmtMoney(revenue)}</div>
+      </div>
+      <div class="coach-metric">
+        <div class="label">Brands Touched</div>
+        <div class="value">${brands}</div>
+      </div>
+      <div class="coach-metric">
+        <div class="label">Leads Claimed</div>
+        <div class="value">${leadsClaimed}</div>
+      </div>
+      <div class="coach-metric">
+        <div class="label">Followed Up</div>
+        <div class="value">${leadsFollowed}</div>
+        <div class="sub">${leadsClaimed > 0 ? Math.round(closeRate) + '%' : '—'}</div>
+      </div>
+      <div class="coach-metric">
+        <div class="label">Avg Response</div>
+        <div class="value ${responseColor}">${avgResponse > 0 ? Math.round(avgResponse) + 'm' : '—'}</div>
+      </div>
+    </div>
+
+    <div class="coach-section">
+      <div class="coach-section-title">🌟 Highlights</div>
+      <div class="coach-highlights">${escapeHtml(report.highlights || 'No highlights this week.')}</div>
+    </div>
+
+    <div class="coach-section">
+      <div class="coach-section-title">💡 Coaching Notes</div>
+      <div class="coach-notes">${escapeHtml(report.coaching_notes || 'No coaching flags.')}</div>
+    </div>
+
+    ${releases > 0 ? `
+      <div class="coach-section" style="border-color:rgba(255,138,163,.4);background:rgba(255,138,163,.04);">
+        <div class="coach-section-title" style="color:#ff8aa3;">↩️ Auto-released claims this week: ${releases}</div>
+        <div style="font-size:11px;color:#c8d9ef;">Leads got auto-released after 3+ hours of inactivity. Aim to claim only what you can act on within the hour.</div>
+      </div>
+    ` : ''}
+
+    ${topOrder !== '—' ? `
+      <div class="coach-section">
+        <div class="coach-section-title">💎 Top Order</div>
+        <div style="font-size:13px;color:#fff;">
+          <span style="font-family:monospace;color:#7cecff;font-weight:800;">${escapeHtml(topOrder)}</span> · ${fmtMoney(topOrderTotal)}
+        </div>
+      </div>
+    ` : ''}
+
+    <div class="coach-history" id="coachReportHistory">
+      <div style="font-size:10px;color:#8fb4c9;padding:6px 0;">Loading recent weeks…</div>
+    </div>
+  `;
+}
+
+async function loadCoachReportHistory(repName) {
+  const { data } = await sb
+    .from('coach_reports')
+    .select('period_start, period_end, metrics, generated_at')
+    .eq('rep_short_name', repName)
+    .order('period_end', { ascending: false })
+    .limit(8);
+  const wrap = $('coachReportHistory');
+  if (!wrap || !data || data.length <= 1) {
+    if (wrap) wrap.innerHTML = '';
+    return;
+  }
+  // Skip the most recent (already shown above)
+  const history = data.slice(1);
+  if (!history.length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = `
+    <div class="coach-section-title" style="margin-bottom:6px;">📚 Previous weeks</div>
+    ${history.map(h => `
+      <div class="coach-history-row">
+        <span class="label">${fmtDate(h.period_start)} – ${fmtDate(h.period_end)}</span>
+        <span class="val">${(h.metrics?.orders_closed || 0)} orders · ${fmtMoney(h.metrics?.revenue || 0)}</span>
+      </div>
+    `).join('')}
+  `;
+}
+
+function copyCoachReport() {
+  if (!coachReportContext || !coachReportContext.report) return;
+  const r = coachReportContext.report;
+  const m = r.metrics || {};
+  const text = `Coach Report — ${coachReportContext.repName}
+Week: ${fmtDate(r.period_start)} – ${fmtDate(r.period_end)}
+
+📊 METRICS
+Orders Closed: ${m.orders_closed || 0}
+Revenue: ${fmtMoney(m.revenue || 0)}
+Brands Touched: ${m.brands_touched || 0}
+Leads Claimed: ${m.leads_claimed || 0}
+Leads Followed Up: ${m.leads_followed_up || 0}
+Close Rate: ${m.close_rate_pct || 0}%
+Avg Response: ${m.avg_response_minutes || 0} min
+Auto-released claims: ${m.claim_releases || 0}
+${m.top_order_no ? 'Top Order: ' + m.top_order_no + ' · ' + fmtMoney(m.top_order_total || 0) : ''}
+
+🌟 HIGHLIGHTS
+${r.highlights || 'No highlights this week.'}
+
+💡 COACHING NOTES
+${r.coaching_notes || 'No coaching flags.'}
+`;
+  navigator.clipboard.writeText(text)
+    .then(() => showSaveBanner('✓ Copied report to clipboard'))
+    .catch(() => showSaveBanner('Copy failed', true));
+}
+
+function emailCoachReport() {
+  if (!coachReportContext || !coachReportContext.report) return;
+  const r = coachReportContext.report;
+  const repName = coachReportContext.repName;
+  const m = r.metrics || {};
+  const subject = `Your weekly coach report — ${fmtDate(r.period_start)} to ${fmtDate(r.period_end)}`;
+  const body = `Hi ${repName},
+
+Here's your coaching summary for the week of ${fmtDate(r.period_start)} – ${fmtDate(r.period_end)}.
+
+📊 The numbers
+  • ${m.orders_closed || 0} orders closed · ${fmtMoney(m.revenue || 0)} revenue
+  • ${m.brands_touched || 0} brand${(m.brands_touched || 0) === 1 ? '' : 's'} touched
+  • ${m.leads_claimed || 0} leads claimed · ${m.leads_followed_up || 0} followed up (${m.close_rate_pct || 0}%)
+  • Avg response time: ${m.avg_response_minutes || 0} min
+  • Auto-released claims: ${m.claim_releases || 0}
+${m.top_order_no ? '  • Top order: ' + m.top_order_no + ' (' + fmtMoney(m.top_order_total || 0) + ')' : ''}
+
+🌟 Highlights
+${r.highlights || 'No highlights this week.'}
+
+💡 Coaching notes
+${r.coaching_notes || 'No coaching flags.'}
+
+Reply with any questions.
+
+— Brian`;
+  // Mark report as delivered
+  sb.from('coach_reports').update({ delivered: true, delivered_at: new Date().toISOString() })
+    .eq('id', r.id).then(() => {});
+  const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = url;
+  showSaveBanner('✓ Opened email composer');
+}
+
+function closeCoachReport() {
+  closePhase2Modal();
+  coachReportContext = null;
+}
+
+/* ================================================================
+ *  ENHANCED TICKER COPY for new lifecycle action_types
+ *  ================================================================ */
+// Override the original loadActivityTicker to add nicer copy for new event types.
+// We do this by wrapping after definition.
+const _origLoadActivityTicker = window.loadActivityTicker;
+window.loadActivityTicker = async function() {
+  const content = $('liveTickerContent');
+  if (!content) return;
+  const { data: actions } = await sb
+    .from('staff_actions')
+    .select('actor, action_type, target_label, target_id, company_key, created_at, detail')
+    .order('created_at', { ascending: false })
+    .limit(25);
+  const { data: leads } = await sb
+    .from('leads')
+    .select('full_name, company_key, assigned_to, created_at, follow_up_status, follow_up_time')
+    .order('created_at', { ascending: false })
+    .limit(15);
+  const items = [];
+  (actions || []).forEach(a => {
+    const who = a.actor || 'system';
+    let icon = '⚡', what = '';
+    switch (a.action_type) {
+      case 'assigned': icon = '🎯'; what = `claimed lead ${a.target_label || ''}`.trim(); break;
+      case 'unassigned': icon = '↩'; what = `unassigned ${a.target_label || ''}`.trim(); break;
+      case 'automation_sent': icon = '📤'; what = `triggered ${a.target_label || ''} automation`; break;
+      case 'followed_up': icon = '✅'; what = `followed up ${a.target_label || ''}`.trim(); break;
+      case 'closed_won':
+        icon = '🎉';
+        const wonLines = ['BOOM!', 'WOOO HOOOO!', 'closed it!', 'sealed the deal!', 'big closer alert!'];
+        what = `${wonLines[Math.floor(Math.random()*wonLines.length)]} ${a.target_label || ''}`.trim();
+        break;
+      case 'closed_lost':
+        icon = '😩';
+        const lostLines = ['lost one · wamp wamp', 'tough loss', 'one got away', 'onto the next'];
+        what = `${lostLines[Math.floor(Math.random()*lostLines.length)]}: ${a.target_label || ''}`.trim();
+        break;
+      case 'sertifi_sent': icon = '✉️'; what = `sent contract to ${a.target_label || ''}`.trim(); break;
+      case 'sertifi_returned': icon = '✅'; what = `Sertifi back from ${a.target_label || ''}!`.trim(); break;
+      case 'deposit_run': icon = '💳'; what = `deposit ran on ${a.target_label || ''}`.trim(); break;
+      case 'order_confirmed': icon = '✓'; what = `confirmed ${a.target_label || ''}`.trim(); break;
+      case 'sent_proposal': icon = '📤'; what = `sent proposal ${a.target_label || ''}`.trim(); break;
+      case 'kb_sent': icon = '📨'; what = `sent ${a.target_label || 'a template'} from KB`.trim(); break;
+      case 'note_added': icon = '📝'; what = `added a note to ${a.target_label || ''}`.trim(); break;
+      case 'linens_ordered': icon = '🛏️'; what = `ordered linens for ${a.target_label || ''}`.trim(); break;
+      case 'order_reassigned': icon = '↻'; what = `reassigned ${a.target_label || ''}`.trim(); break;
+      case 'alert_created': icon = '⚠️'; what = `created alert: ${a.target_label || ''}`.trim(); break;
+      case 'huddle_created': icon = '🤝'; what = `started huddle: ${a.target_label || ''}`.trim(); break;
+      case 'huddle_closed': icon = '🤝'; what = `closed huddle: ${a.target_label || ''}`.trim(); break;
+      case 'claim_released': icon = '⏳'; what = `auto-released stale claim · ${a.target_label || ''}`.trim(); break;
+      default: what = a.action_type ? a.action_type.replace(/_/g,' ') : 'activity';
+    }
+    items.push({ icon, who, what, when: fmtRelativeTime(a.created_at), ts: new Date(a.created_at || 0).getTime() });
+  });
+  (leads || []).slice(0, 8).forEach(l => {
+    if (l.full_name) {
+      items.push({
+        icon: '📞',
+        who: 'New call',
+        what: `${l.full_name} · ${COMPANY_LABELS[lc(l.company_key)] || l.company_key || '—'}`,
+        when: fmtRelativeTime(l.created_at),
+        ts: new Date(l.created_at || 0).getTime()
+      });
+    }
+  });
+  if (!items.length) {
+    content.innerHTML = '<span class="ticker-item"><span class="icon">🌐</span><span class="who">Sophia</span><span class="what"> is online — feeding RentMaster every 2 min</span><span class="when"> · just now</span></span>';
+    return;
+  }
+  items.sort((a,b) => b.ts - a.ts);
+  const top = items.slice(0, 14);
+  const itemHtml = top.map(it => `
+    <span class="ticker-item">
+      <span class="icon">${it.icon}</span>
+      <span class="who">${escapeHtml(it.who)}</span>
+      <span class="what"> ${escapeHtml(it.what)}</span>
+      <span class="when"> · ${escapeHtml(it.when)}</span>
+    </span>
+    <span class="ticker-divider">·</span>
+  `).join('');
+  content.innerHTML = itemHtml + itemHtml;
+};
 </script>
 
 </body>
