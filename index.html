@@ -2713,6 +2713,645 @@ tbody tr:hover .name-edit-btn { opacity: 0.85; }
 }
 .name-edit-popover-close:hover { color: #ff8aa3; }
 </style>
+<style>
+/* ================================================================
+ *  LAUNCH READINESS — v1.6.7
+ *  Done pile, route pills, status visuals, row recording button,
+ *  inline event date editor, sync health, db lookup
+ * ================================================================ */
+
+/* ----------------------------------------------------------------
+ *  ROUTE PILLS — match the visual weight of status pills
+ * ---------------------------------------------------------------- */
+.route-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 11px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid;
+  white-space: nowrap;
+  min-width: 84px;
+}
+.route-pill.r-quote        { background: rgba(110,255,168,.14); color: #d9ffe8; border-color: rgba(110,255,168,.45); }
+.route-pill.r-order_update { background: rgba(124,236,255,.14); color: #c8efff; border-color: rgba(124,236,255,.45); }
+.route-pill.r-message      { background: rgba(184,156,255,.14); color: #efe2ff; border-color: rgba(184,156,255,.45); }
+.route-pill.r-fallout      { background: rgba(255,138,163,.14); color: #ffd0db; border-color: rgba(255,138,163,.45); }
+.route-pill.r-system_alert { background: rgba(255,212,106,.14); color: #fff1c9; border-color: rgba(255,212,106,.45); }
+.route-pill.r-manual_review{ background: rgba(255,150,60,.14);  color: #ffe1c8; border-color: rgba(255,150,60,.45); }
+.route-pill.r-laundry      { background: rgba(100,168,255,.14); color: #c8e0ff; border-color: rgba(100,168,255,.45); }
+.route-pill.r-other        { background: rgba(159,179,200,.10); color: #c8d9ef; border-color: rgba(159,179,200,.30); }
+
+/* ----------------------------------------------------------------
+ *  ROW RECORDING BUTTON — tiny play icon in the table
+ * ---------------------------------------------------------------- */
+.row-rec-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(124,236,255,.40);
+  background: linear-gradient(180deg, rgba(124,236,255,.18), rgba(100,168,255,.10));
+  color: #fff;
+  cursor: pointer;
+  font-size: 11px;
+  margin-left: 6px;
+  vertical-align: middle;
+  transition: all .15s ease;
+  flex-shrink: 0;
+}
+.row-rec-btn:hover {
+  background: linear-gradient(180deg, rgba(124,236,255,.32), rgba(100,168,255,.20));
+  transform: scale(1.10);
+  box-shadow: 0 0 12px rgba(124,236,255,.45);
+}
+.row-rec-btn.playing {
+  background: linear-gradient(180deg, rgba(255,212,106,.32), rgba(255,150,60,.20));
+  border-color: rgba(255,212,106,.6);
+  animation: recPlayingPulse 1.4s ease-in-out infinite;
+}
+@keyframes recPlayingPulse {
+  0%,100% { box-shadow: 0 0 8px rgba(255,212,106,.30); }
+  50%     { box-shadow: 0 0 18px rgba(255,212,106,.65); }
+}
+.row-rec-btn.disabled {
+  opacity: 0.25;
+  border-color: rgba(159,179,200,.20);
+  background: rgba(255,255,255,.02);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Floating audio popover that appears when a row's play button is clicked */
+.row-audio-popover {
+  position: fixed;
+  z-index: 8000;
+  min-width: 380px;
+  padding: 14px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(8,21,45,.97), rgba(5,12,29,.97));
+  border: 1px solid rgba(124,236,255,.45);
+  box-shadow: 0 18px 48px rgba(0,0,0,.6), 0 0 28px rgba(124,236,255,.20);
+  display: none;
+}
+.row-audio-popover.open { display: block; animation: nameEditorIn .18s ease both; }
+.row-audio-popover .head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.row-audio-popover .head .ttl {
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #c8d9ef;
+  font-weight: 800;
+}
+.row-audio-popover .head .who {
+  font-size: 13px;
+  color: #fff;
+  font-weight: 700;
+  margin-top: 2px;
+}
+.row-audio-popover .head button {
+  background: transparent;
+  border: 0;
+  color: #9fb3c8;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+  line-height: 1;
+}
+.row-audio-popover .head button:hover { color: #ff8aa3; }
+.row-audio-popover audio {
+  width: 100%; height: 36px;
+  outline: none;
+  filter: invert(0.9) hue-rotate(180deg) saturate(0.7);
+}
+
+/* ----------------------------------------------------------------
+ *  EVENT DATE INLINE EDIT — pencil pattern reused
+ * ---------------------------------------------------------------- */
+.event-date-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.event-date-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 5px;
+  border: 1px solid rgba(124,236,255,.20);
+  background: rgba(124,236,255,.05);
+  color: #7cecff;
+  cursor: pointer;
+  font-size: 10px;
+  opacity: 0;
+  transition: opacity .15s ease, background .15s ease, transform .15s ease;
+  flex-shrink: 0;
+}
+tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
+.event-date-edit-btn:hover {
+  opacity: 1 !important;
+  background: rgba(124,236,255,.18);
+  border-color: rgba(124,236,255,.5);
+  transform: scale(1.10);
+}
+
+.event-date-popover {
+  position: fixed;
+  z-index: 8500;
+  min-width: 280px;
+  padding: 12px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(8,21,45,.97), rgba(5,12,29,.97));
+  border: 1px solid rgba(124,236,255,.45);
+  box-shadow: 0 16px 48px rgba(0,0,0,.6), 0 0 24px rgba(124,236,255,.20);
+  display: none;
+}
+.event-date-popover.open { display: block; animation: nameEditorIn .18s ease both; }
+.event-date-popover .head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+.event-date-popover .ttl {
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #c8d9ef;
+  font-weight: 800;
+}
+.event-date-popover input[type="date"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  background: rgba(2,6,17,.65);
+  border: 1px solid rgba(124,236,255,.30);
+  border-radius: 8px;
+  color: #eef7ff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  margin-bottom: 8px;
+  color-scheme: dark;
+}
+.event-date-popover input[type="date"]:focus {
+  outline: none;
+  border-color: rgba(124,236,255,.7);
+  box-shadow: 0 0 0 3px rgba(124,236,255,.14);
+}
+.event-date-popover .actions {
+  display: flex; justify-content: space-between; gap: 6px;
+}
+.event-date-popover .actions .left { display: flex; gap: 6px; }
+.event-date-popover .actions button {
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 7px;
+  cursor: pointer;
+  border: 1px solid rgba(159,179,200,.28);
+  background: transparent;
+  color: #9fb3c8;
+  transition: all .15s ease;
+}
+.event-date-popover .actions button:hover {
+  background: rgba(255,255,255,.06);
+  color: #eef7ff;
+}
+.event-date-popover .actions button.primary {
+  background: linear-gradient(180deg, rgba(124,236,255,.32), rgba(100,168,255,.20));
+  border-color: rgba(124,236,255,.6);
+  color: #fff;
+}
+.event-date-popover .actions button.danger {
+  border-color: rgba(255,138,163,.40);
+  color: #ffd0db;
+}
+.event-date-popover .actions button.danger:hover {
+  background: rgba(255,138,163,.10);
+  color: #fff;
+}
+
+/* ----------------------------------------------------------------
+ *  DONE BUTTON on table rows + drawer
+ * ---------------------------------------------------------------- */
+.row-done-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(110,255,168,.40);
+  background: linear-gradient(180deg, rgba(110,255,168,.10), rgba(110,200,140,.05));
+  color: #d9ffe8;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  transition: all .15s ease;
+}
+.row-done-btn:hover {
+  background: linear-gradient(180deg, rgba(110,255,168,.28), rgba(110,200,140,.15));
+  border-color: rgba(110,255,168,.7);
+  color: #fff;
+  transform: scale(1.10);
+  box-shadow: 0 0 12px rgba(110,255,168,.40);
+}
+.row-done-btn.is-done {
+  background: linear-gradient(180deg, rgba(110,255,168,.30), rgba(110,200,140,.18));
+  border-color: rgba(110,255,168,.8);
+  color: #fff;
+  box-shadow: 0 0 8px rgba(110,255,168,.35);
+}
+
+/* Done pile rail tab */
+.left-rail-tab.donepile-tab .badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px; height: 18px;
+  padding: 0 5px;
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 999px;
+  background: rgba(110,255,168,.30);
+  color: #d9ffe8;
+  border: 1px solid rgba(110,255,168,.50);
+}
+
+/* ----------------------------------------------------------------
+ *  DONE PILE PANEL
+ * ---------------------------------------------------------------- */
+.donepile-panel {
+  position: fixed;
+  top: 86px;
+  right: -640px;
+  width: 540px;
+  height: calc(100vh - 104px);
+  border-radius: 28px 0 0 28px;
+  background: linear-gradient(180deg, rgba(8,16,30,.98), rgba(10,20,40,.96));
+  border-left: 1px solid rgba(110,255,168,.30);
+  box-shadow: -22px 0 50px rgba(0,0,0,.45), -8px 0 28px rgba(110,255,168,.08);
+  backdrop-filter: blur(16px);
+  z-index: 38;
+  display: flex;
+  flex-direction: column;
+  transition: right .28s cubic-bezier(.4,0,.2,1);
+}
+.donepile-panel.open { right: 0; }
+@media (max-width: 1300px) { .donepile-panel { width: 460px; } }
+
+.donepile-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(110,255,168,.18);
+}
+.donepile-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #d9ffe8;
+  letter-spacing: .04em;
+}
+.donepile-sub {
+  font-size: 11px;
+  color: #9fb3c8;
+  margin-top: 4px;
+  letter-spacing: .04em;
+}
+.donepile-close {
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(110,255,168,.18);
+  border-radius: 8px;
+  color: #c8d9ef;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+}
+.donepile-close:hover {
+  background: rgba(255,138,163,.15);
+  border-color: rgba(255,138,163,.4);
+  color: #ff8aa3;
+}
+
+.donepile-toolbar {
+  display: flex; gap: 8px; padding: 12px 22px;
+  border-bottom: 1px solid rgba(110,255,168,.10);
+  background: rgba(110,255,168,.02);
+}
+.donepile-filter {
+  flex: 1;
+  padding: 7px 12px;
+  background: rgba(2,6,17,.5);
+  border: 1px solid rgba(110,255,168,.20);
+  border-radius: 7px;
+  color: #eef7ff;
+  font-size: 12px;
+}
+.donepile-range-btn {
+  padding: 7px 11px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 7px;
+  border: 1px solid rgba(110,255,168,.20);
+  background: rgba(110,255,168,.06);
+  color: #c8d9ef;
+  cursor: pointer;
+  letter-spacing: .04em;
+}
+.donepile-range-btn.active {
+  background: rgba(110,255,168,.20);
+  border-color: rgba(110,255,168,.5);
+  color: #fff;
+}
+
+.donepile-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 22px;
+}
+.donepile-row {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(110,255,168,.18);
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: start;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.donepile-row:hover {
+  background: rgba(110,255,168,.06);
+  border-color: rgba(110,255,168,.4);
+}
+.donepile-row .who-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-top: 6px;
+}
+.donepile-row .main {
+  min-width: 0;
+}
+.donepile-row .main .top {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 8px;
+}
+.donepile-row .main .name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.donepile-row .main .by {
+  font-size: 10px;
+  color: #6effa8;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.donepile-row .main .meta {
+  font-size: 10px;
+  color: #9fb3c8;
+  margin-top: 4px;
+  letter-spacing: .04em;
+}
+.donepile-row .actions {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.donepile-row .reopen-btn {
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  border-radius: 6px;
+  border: 1px solid rgba(255,212,106,.40);
+  background: rgba(255,212,106,.08);
+  color: #fff1c9;
+  cursor: pointer;
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.donepile-row .reopen-btn:hover {
+  background: rgba(255,212,106,.24);
+  border-color: rgba(255,212,106,.7);
+}
+.donepile-empty {
+  text-align: center;
+  padding: 36px 20px;
+  color: #8fb4c9;
+  font-size: 12px;
+}
+.donepile-empty .big {
+  font-size: 30px;
+  margin-bottom: 8px;
+}
+
+/* ----------------------------------------------------------------
+ *  SYNC HEALTH — small footer in the topbar area
+ * ---------------------------------------------------------------- */
+.sync-health-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  border-radius: 999px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.sync-health-pill.healthy {
+  background: rgba(110,255,168,.08);
+  color: #d9ffe8;
+  border-color: rgba(110,255,168,.40);
+}
+.sync-health-pill.warning {
+  background: rgba(255,212,106,.10);
+  color: #fff1c9;
+  border-color: rgba(255,212,106,.45);
+}
+.sync-health-pill.critical {
+  background: rgba(255,138,163,.10);
+  color: #ffd0db;
+  border-color: rgba(255,138,163,.50);
+  animation: criticalPulse 1.6s ease-in-out infinite;
+}
+@keyframes criticalPulse {
+  0%,100% { box-shadow: 0 0 0 rgba(255,138,163,.0); }
+  50%     { box-shadow: 0 0 14px rgba(255,138,163,.45); }
+}
+.sync-health-pill .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+}
+.sync-health-pill.healthy  .dot { background: #6effa8; box-shadow: 0 0 6px #6effa8; }
+.sync-health-pill.warning  .dot { background: #ffd46a; box-shadow: 0 0 6px #ffd46a; }
+.sync-health-pill.critical .dot { background: #ff5078; box-shadow: 0 0 6px #ff5078; }
+
+/* ----------------------------------------------------------------
+ *  SYNC HEALTH MODAL
+ * ---------------------------------------------------------------- */
+#syncHealthModal .health-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+#syncHealthModal .health-card {
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(124,236,255,.18);
+}
+#syncHealthModal .health-card.healthy { border-color: rgba(110,255,168,.40); background: rgba(110,255,168,.04); }
+#syncHealthModal .health-card.warning { border-color: rgba(255,212,106,.40); background: rgba(255,212,106,.04); }
+#syncHealthModal .health-card.critical { border-color: rgba(255,138,163,.45); background: rgba(255,138,163,.06); }
+#syncHealthModal .health-card .ttl {
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #c8d9ef;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+#syncHealthModal .health-card .status-line {
+  font-size: 14px; font-weight: 700;
+  margin-bottom: 6px;
+}
+#syncHealthModal .health-card .status-line.ok { color: #6effa8; }
+#syncHealthModal .health-card .status-line.warn { color: #ffd46a; }
+#syncHealthModal .health-card .status-line.bad { color: #ff8aa3; }
+#syncHealthModal .health-card .stat-row {
+  font-size: 11px;
+  color: #c8d9ef;
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+}
+#syncHealthModal .health-card .stat-row .k { color: #8fb4c9; }
+#syncHealthModal .health-card .stat-row .v { font-weight: 700; color: #fff; font-family: monospace; }
+
+/* ----------------------------------------------------------------
+ *  DB LOOKUP TOOL — manager escape hatch
+ * ---------------------------------------------------------------- */
+#dbLookupModal .dbl-toolbar {
+  display: flex; gap: 8px; margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+#dbLookupModal .dbl-toolbar select,
+#dbLookupModal .dbl-toolbar input {
+  padding: 8px 12px;
+  background: rgba(2,6,17,.6);
+  border: 1px solid rgba(124,236,255,.25);
+  border-radius: 8px;
+  color: #eef7ff;
+  font-size: 12px;
+  font-family: inherit;
+}
+#dbLookupModal .dbl-toolbar select { min-width: 160px; }
+#dbLookupModal .dbl-toolbar input { flex: 1; min-width: 200px; }
+#dbLookupModal .dbl-toolbar button {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid rgba(124,236,255,.40);
+  background: linear-gradient(180deg, rgba(124,236,255,.18), rgba(100,168,255,.10));
+  color: #fff;
+  cursor: pointer;
+}
+#dbLookupModal .dbl-toolbar button:hover {
+  background: linear-gradient(180deg, rgba(124,236,255,.32), rgba(100,168,255,.20));
+}
+
+#dbLookupModal .dbl-results-wrap {
+  max-height: 460px;
+  overflow: auto;
+  border: 1px solid rgba(124,236,255,.18);
+  border-radius: 10px;
+  background: rgba(2,6,17,.45);
+}
+#dbLookupModal .dbl-results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-family: monospace;
+}
+#dbLookupModal .dbl-results-table th {
+  position: sticky; top: 0;
+  background: rgba(8,21,45,.95);
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 700;
+  color: #c8d9ef;
+  border-bottom: 1px solid rgba(124,236,255,.25);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  z-index: 2;
+}
+#dbLookupModal .dbl-results-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  color: #eef7ff;
+  vertical-align: top;
+  white-space: nowrap;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#dbLookupModal .dbl-results-table tr:hover td {
+  background: rgba(124,236,255,.05);
+}
+#dbLookupModal .dbl-results-table td.editable {
+  cursor: pointer;
+  border-left: 2px solid transparent;
+}
+#dbLookupModal .dbl-results-table td.editable:hover {
+  background: rgba(124,236,255,.10);
+  border-left-color: rgba(124,236,255,.5);
+}
+#dbLookupModal .dbl-empty {
+  padding: 36px 20px;
+  text-align: center;
+  color: #8fb4c9;
+  font-size: 12px;
+}
+#dbLookupModal .dbl-help {
+  font-size: 10px;
+  color: #8fb4c9;
+  letter-spacing: .04em;
+  margin-bottom: 8px;
+  font-style: italic;
+}
+#dbLookupModal .dbl-cell-edit {
+  width: 100%;
+  padding: 4px 6px;
+  background: rgba(2,6,17,.85);
+  border: 1px solid rgba(124,236,255,.7);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 11px;
+  font-family: monospace;
+  outline: none;
+}
+</style>
 </head>
 <body>
 <img src="/logo-bg.png" class="background-logo" alt="Sophia background logo" />
@@ -3021,6 +3660,8 @@ tbody tr:hover .name-edit-btn { opacity: 0.85; }
   <button id="routingRailTab" class="left-rail-tab" onclick="toggleRoutingCockpit()">🗺️ Routing</button>
   <button id="lookupRailTab" class="left-rail-tab lookup-tab" onclick="toggleLookupPanel()">🔍 Lookup</button>
   <button id="huddleRailTab" class="left-rail-tab" onclick="openHuddleListModal()" title="Cluster Huddles">🤝 Huddle</button>
+  <button id="donePileRailTab" class="left-rail-tab donepile-tab" onclick="openDonePile()" title="Coordinator Done Pile">✓ Done Pile<span class="badge" id="donePileBadge">0</span></button>
+  <button id="syncHealthRailTab" class="left-rail-tab" onclick="openSyncHealth()" title="Sync health and DB tools">⚡ Tools</button>
 </div>
 
 <aside id="routingCockpitPanel" class="left-rail-panel">
@@ -3771,6 +4412,123 @@ tbody tr:hover .name-edit-btn { opacity: 0.85; }
 </aside>
 
 <!-- PHOTO UPLOAD INLINE WIDGET (gets injected into drawer/order panels by JS) -->
+<!-- ============================================================ -->
+<!-- LAUNCH READINESS MARKUP — v1.6.7                             -->
+<!-- ============================================================ -->
+
+<!-- DONE PILE PANEL (slides in from the right; sits next to the rep deep panel) -->
+<aside id="donePilePanel" class="donepile-panel">
+  <div class="donepile-head">
+    <div>
+      <div class="donepile-title">✓ Done Pile</div>
+      <div class="donepile-sub" id="donepileSub">Loading…</div>
+    </div>
+    <button class="donepile-close" onclick="closeDonePile()">×</button>
+  </div>
+  <div class="donepile-toolbar">
+    <input type="text" id="donepileSearchInput" class="donepile-filter" placeholder="Search done leads..." />
+    <button class="donepile-range-btn active" data-range="today" onclick="setDonePileRange('today', this)">Today</button>
+    <button class="donepile-range-btn" data-range="week" onclick="setDonePileRange('week', this)">This Week</button>
+    <button class="donepile-range-btn" data-range="all" onclick="setDonePileRange('all', this)">All</button>
+  </div>
+  <div class="donepile-body" id="donePileBody">
+    <div class="donepile-empty">
+      <div class="big">📋</div>
+      <div>Loading done pile...</div>
+    </div>
+  </div>
+</aside>
+
+<!-- SYNC HEALTH MODAL -->
+<aside id="syncHealthModal" class="phase2-modal phase2-modal-wide">
+  <div class="phase2-modal-header">
+    <div>
+      <div class="phase2-modal-title">⚡ Sync Health</div>
+      <div class="phase2-modal-sub">Live status of RentMaster API + AI lead ingestion</div>
+    </div>
+    <button class="phase2-modal-close" onclick="closeSyncHealth()">×</button>
+  </div>
+  <div class="phase2-modal-body" id="syncHealthBody">
+    <div style="font-size:11px;color:#8fb4c9;padding:14px;text-align:center;">Loading…</div>
+  </div>
+  <div class="phase2-modal-footer">
+    <button class="phase2-btn ghost" onclick="closeSyncHealth()">Close</button>
+    <button class="phase2-btn" onclick="loadSyncHealthData()">↻ Refresh</button>
+  </div>
+</aside>
+
+<!-- DB LOOKUP MODAL — manager escape hatch -->
+<aside id="dbLookupModal" class="phase2-modal phase2-modal-wide">
+  <div class="phase2-modal-header">
+    <div>
+      <div class="phase2-modal-title">🔧 Database Lookup</div>
+      <div class="phase2-modal-sub">Direct read/edit access — handle with care</div>
+    </div>
+    <button class="phase2-modal-close" onclick="closeDbLookup()">×</button>
+  </div>
+  <div class="phase2-modal-body">
+    <div class="dbl-help">Pick a table, optionally filter, then click any cell to edit. Changes are written immediately. Edits write to <code>staff_actions</code> for audit.</div>
+    <div class="dbl-toolbar">
+      <select id="dblTable" onchange="dbLookupOnTableChange()">
+        <option value="leads">leads</option>
+        <option value="customers">customers</option>
+        <option value="historical_orders">historical_orders</option>
+        <option value="historical_quotes">historical_quotes</option>
+        <option value="operations_alerts">operations_alerts</option>
+        <option value="order_notes">order_notes</option>
+        <option value="staff_actions">staff_actions</option>
+        <option value="payment_overrides">payment_overrides</option>
+      </select>
+      <input type="text" id="dblFilter" placeholder="Filter (search across visible columns)" oninput="dbLookupRender()" />
+      <button onclick="dbLookupLoad()">↻ Reload</button>
+      <button onclick="dbLookupExport()">⬇ Export CSV</button>
+    </div>
+    <div class="dbl-results-wrap">
+      <table class="dbl-results-table" id="dblResultsTable">
+        <thead id="dblResultsHead"></thead>
+        <tbody id="dblResultsBody">
+          <tr><td class="dbl-empty">Pick a table and click Reload to begin.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="phase2-modal-footer">
+    <button class="phase2-btn ghost" onclick="closeDbLookup()">Close</button>
+    <span style="flex:1;font-size:10px;color:#8fb4c9;align-self:center;" id="dblFooterInfo">—</span>
+  </div>
+</aside>
+
+<!-- Floating row-recording popover (single instance, reused) -->
+<div id="rowAudioPopover" class="row-audio-popover">
+  <div class="head">
+    <div>
+      <div class="ttl">🎙️ Call Recording</div>
+      <div class="who" id="rowAudioWho">—</div>
+    </div>
+    <button onclick="closeRowAudio()">×</button>
+  </div>
+  <audio id="rowAudioPlayer" controls preload="none"></audio>
+</div>
+
+<!-- Floating event-date popover (single instance, reused) -->
+<div id="eventDatePopover" class="event-date-popover">
+  <div class="head">
+    <div>
+      <div class="ttl">📅 Edit Event Date</div>
+    </div>
+    <button onclick="closeEventDateEditor()" style="background:transparent;border:0;color:#9fb3c8;cursor:pointer;font-size:18px;padding:0;line-height:1;">×</button>
+  </div>
+  <input type="date" id="eventDateInput" />
+  <div class="actions">
+    <div class="left">
+      <button class="danger" onclick="clearEventDate()">✕ Clear</button>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button onclick="closeEventDateEditor()">Cancel</button>
+      <button class="primary" onclick="saveEventDate()">✓ Save</button>
+    </div>
+  </div>
+</div>
 <script>
 /* ============================================================
  *  SOPHIA SYSTEMS DASHBOARD v1.6.0 — JavaScript (CORE)
@@ -4204,7 +4962,7 @@ function renderTeamPills() {
 }
 
 function countLeadsForRep(repName) {
-  const leadCount = allLeads.filter(l => lc(l.assigned_to) === lc(repName)).length;
+  const leadCount = allLeads.filter(l => lc(l.assigned_to) === lc(repName) && !l.done_at).length;
   const pastdueCount = Object.values(pastdueClaimsByOrder).filter(c => c && lc(c.assigned_to) === lc(repName) && !c.done_at).length;
   return leadCount + pastdueCount;
 }
@@ -8305,6 +9063,1178 @@ if (typeof _origOpenExtensionDrawer === 'function') {
     }, 50);
   };
 }
+</script>
+<style>
+/* ================================================================
+ *  COLUMN RESIZE — v1.6.6
+ *  Drag the right edge of any header to resize its column.
+ *  Double-click handle = auto-fit. Click "↻ Columns" to reset.
+ * ================================================================ */
+
+/* When resize mode is active, switch to fixed layout so widths stick */
+.slim-table.resizable {
+  table-layout: fixed;
+  width: max-content;        /* let it grow as columns get wider */
+  min-width: 100%;           /* but still fill the wrap on small layouts */
+}
+
+/* Header cells become positioned containers so we can absolutely-place the handle */
+.slim-table.resizable thead th {
+  position: sticky;          /* keep existing sticky behavior */
+  top: 0;
+  user-select: none;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Body cells: clip overflow elegantly so fixed widths actually constrain content */
+.slim-table.resizable tbody td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Some columns inherently need to wrap (Products, Signals) — opt them out */
+.slim-table.resizable tbody td.col-products,
+.slim-table.resizable tbody td.col-signals,
+.slim-table.resizable tbody td.col-name {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+/* The resize handle — a thin invisible strip on the right edge of each th */
+.col-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 7px;
+  height: 100%;
+  cursor: col-resize;
+  user-select: none;
+  z-index: 5;
+  background: transparent;
+  transition: background .12s ease;
+}
+.col-resize-handle::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  top: 25%;
+  bottom: 25%;
+  width: 1px;
+  background: rgba(124,236,255,.0);
+  transition: background .12s ease;
+}
+.col-resize-handle:hover {
+  background: rgba(124,236,255,.10);
+}
+.col-resize-handle:hover::after,
+.col-resize-handle.active::after {
+  background: rgba(124,236,255,.7);
+  box-shadow: 0 0 6px rgba(124,236,255,.5);
+}
+.col-resize-handle.active {
+  background: rgba(124,236,255,.18);
+}
+
+/* Body wide while drag in progress — gives feedback */
+body.col-resizing {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+body.col-resizing * {
+  cursor: col-resize !important;
+}
+
+/* Tiny "↻ Columns" reset button — sits in the panel header next to search */
+.column-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 11px;
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  border-radius: 8px;
+  border: 1px solid rgba(124,236,255,.22);
+  background: rgba(124,236,255,.06);
+  color: #c8efff;
+  cursor: pointer;
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.column-reset-btn:hover {
+  background: rgba(124,236,255,.16);
+  border-color: rgba(124,236,255,.5);
+  color: #fff;
+}
+
+/* Tooltip showing the current column width while dragging */
+.col-resize-tooltip {
+  position: fixed;
+  z-index: 9999;
+  padding: 4px 9px;
+  background: rgba(2,6,17,.95);
+  border: 1px solid rgba(124,236,255,.55);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: monospace;
+  box-shadow: 0 6px 20px rgba(0,0,0,.5), 0 0 12px rgba(124,236,255,.3);
+  pointer-events: none;
+  display: none;
+}
+.col-resize-tooltip.show { display: block; }
+</style>
+
+<script>
+/* ================================================================
+ *  COLUMN RESIZE — v1.6.6
+ * ================================================================ */
+
+const COL_RESIZE_STORAGE_KEY = 'sophia.colWidths.v1';
+
+/* Default column widths in pixels. Order matches the <th> sequence. */
+const COL_DEFAULTS = [
+  { key: 'company',   width: 120, minW: 80,  cls: 'col-company' },
+  { key: 'source',    width: 110, minW: 70,  cls: 'col-source' },
+  { key: 'name',      width: 220, minW: 120, cls: 'col-name' },
+  { key: 'phone',     width: 160, minW: 100, cls: 'col-phone' },
+  { key: 'event',     width: 130, minW: 80,  cls: 'col-event' },
+  { key: 'products',  width: 320, minW: 140, cls: 'col-products' },
+  { key: 'route',     width: 130, minW: 80,  cls: 'col-route' },
+  { key: 'status',    width: 130, minW: 80,  cls: 'col-status' },
+  { key: 'signals',   width: 200, minW: 120, cls: 'col-signals' },
+  { key: 'assigned',  width: 150, minW: 90,  cls: 'col-assigned' },
+  { key: 'followup',  width: 110, minW: 70,  cls: 'col-followup' },
+  { key: 'assign',    width: 130, minW: 80,  cls: 'col-assign' },
+  { key: 'done',      width: 90,  minW: 60,  cls: 'col-done' },
+  { key: 'received',  width: 130, minW: 80,  cls: 'col-received' },
+];
+
+let colResizeState = {
+  dragging: false,
+  colIndex: -1,
+  startX: 0,
+  startWidth: 0,
+  tooltipEl: null
+};
+
+/* Load saved widths from localStorage and merge over defaults */
+function getColWidths() {
+  let saved = {};
+  try {
+    const raw = localStorage.getItem(COL_RESIZE_STORAGE_KEY);
+    if (raw) saved = JSON.parse(raw) || {};
+  } catch(e) { saved = {}; }
+  return COL_DEFAULTS.map(d => ({
+    ...d,
+    width: (typeof saved[d.key] === 'number' && saved[d.key] >= d.minW) ? saved[d.key] : d.width
+  }));
+}
+
+/* Persist current widths */
+function saveColWidths(widthsByKey) {
+  try {
+    localStorage.setItem(COL_RESIZE_STORAGE_KEY, JSON.stringify(widthsByKey));
+  } catch(e) { /* localStorage might be disabled in private mode — silently ignore */ }
+}
+
+/* Build/refresh the colgroup based on the current widths */
+function applyColgroup(widths) {
+  const table = document.querySelector('.slim-table');
+  if (!table) return;
+  let cg = table.querySelector('colgroup.resizable-colgroup');
+  if (!cg) {
+    cg = document.createElement('colgroup');
+    cg.className = 'resizable-colgroup';
+    table.insertBefore(cg, table.firstChild);
+  }
+  cg.innerHTML = widths.map(w => `<col data-col-key="${w.key}" style="width:${w.width}px;" />`).join('');
+}
+
+/* Tag every body cell with its corresponding col class so CSS rules apply */
+function tagBodyCellsWithColClasses() {
+  const widths = getColWidths();
+  const rows = document.querySelectorAll('.slim-table tbody tr');
+  rows.forEach(tr => {
+    const cells = tr.querySelectorAll('td');
+    if (cells.length === widths.length) {
+      cells.forEach((td, i) => {
+        // Strip any existing col-* class first
+        td.className = td.className.split(/\s+/).filter(c => !c.startsWith('col-')).join(' ');
+        td.classList.add(widths[i].cls);
+      });
+    }
+  });
+}
+
+/* Inject resize handles into every <th> */
+function injectResizeHandles() {
+  const ths = document.querySelectorAll('.slim-table thead th');
+  if (!ths.length) return;
+  const widths = getColWidths();
+  ths.forEach((th, i) => {
+    if (i >= widths.length) return;
+    th.style.position = 'relative';
+    th.dataset.colKey = widths[i].key;
+    if (th.querySelector('.col-resize-handle')) return; // already injected
+    const handle = document.createElement('div');
+    handle.className = 'col-resize-handle';
+    handle.dataset.colIndex = i;
+    handle.title = 'Drag to resize · Double-click to auto-fit';
+    handle.addEventListener('mousedown', onResizeStart);
+    handle.addEventListener('dblclick', onResizeAutoFit);
+    th.appendChild(handle);
+  });
+}
+
+function onResizeStart(ev) {
+  ev.preventDefault();
+  ev.stopPropagation();
+  const handle = ev.currentTarget;
+  const colIndex = parseInt(handle.dataset.colIndex, 10);
+  const cg = document.querySelector('colgroup.resizable-colgroup');
+  if (!cg) return;
+  const colEl = cg.children[colIndex];
+  if (!colEl) return;
+
+  colResizeState.dragging = true;
+  colResizeState.colIndex = colIndex;
+  colResizeState.startX = ev.clientX;
+  colResizeState.startWidth = parseInt(colEl.style.width, 10) || COL_DEFAULTS[colIndex].width;
+  handle.classList.add('active');
+  document.body.classList.add('col-resizing');
+
+  // Tooltip
+  if (!colResizeState.tooltipEl) {
+    colResizeState.tooltipEl = document.createElement('div');
+    colResizeState.tooltipEl.className = 'col-resize-tooltip';
+    document.body.appendChild(colResizeState.tooltipEl);
+  }
+  colResizeState.tooltipEl.classList.add('show');
+  updateResizeTooltip(ev, colResizeState.startWidth);
+
+  document.addEventListener('mousemove', onResizeMove);
+  document.addEventListener('mouseup', onResizeEnd);
+}
+
+function updateResizeTooltip(ev, width) {
+  const el = colResizeState.tooltipEl;
+  if (!el) return;
+  el.textContent = width + ' px';
+  el.style.left = (ev.clientX + 14) + 'px';
+  el.style.top = (ev.clientY - 26) + 'px';
+}
+
+function onResizeMove(ev) {
+  if (!colResizeState.dragging) return;
+  const cg = document.querySelector('colgroup.resizable-colgroup');
+  if (!cg) return;
+  const colEl = cg.children[colResizeState.colIndex];
+  if (!colEl) return;
+  const def = COL_DEFAULTS[colResizeState.colIndex];
+  const dx = ev.clientX - colResizeState.startX;
+  let newW = Math.max(def.minW, Math.min(900, colResizeState.startWidth + dx));
+  colEl.style.width = newW + 'px';
+  updateResizeTooltip(ev, newW);
+}
+
+function onResizeEnd(ev) {
+  if (!colResizeState.dragging) return;
+  document.removeEventListener('mousemove', onResizeMove);
+  document.removeEventListener('mouseup', onResizeEnd);
+  document.body.classList.remove('col-resizing');
+  document.querySelectorAll('.col-resize-handle.active').forEach(h => h.classList.remove('active'));
+  if (colResizeState.tooltipEl) colResizeState.tooltipEl.classList.remove('show');
+
+  // Persist
+  const cg = document.querySelector('colgroup.resizable-colgroup');
+  if (cg) {
+    const widthsByKey = {};
+    Array.from(cg.children).forEach(col => {
+      const key = col.dataset.colKey;
+      const w = parseInt(col.style.width, 10);
+      if (key && w) widthsByKey[key] = w;
+    });
+    saveColWidths(widthsByKey);
+  }
+
+  colResizeState.dragging = false;
+  colResizeState.colIndex = -1;
+}
+
+function onResizeAutoFit(ev) {
+  ev.preventDefault();
+  ev.stopPropagation();
+  const handle = ev.currentTarget;
+  const colIndex = parseInt(handle.dataset.colIndex, 10);
+  const cg = document.querySelector('colgroup.resizable-colgroup');
+  if (!cg) return;
+  const colEl = cg.children[colIndex];
+  if (!colEl) return;
+  const def = COL_DEFAULTS[colIndex];
+
+  // Measure widest content in this column
+  const cells = document.querySelectorAll(`.slim-table tbody td:nth-child(${colIndex + 1})`);
+  const headerEl = document.querySelectorAll('.slim-table thead th')[colIndex];
+  let maxW = 0;
+  // Use a hidden measurement span
+  const meter = document.createElement('span');
+  meter.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:inherit;padding:0;';
+  document.body.appendChild(meter);
+  if (headerEl) {
+    meter.textContent = headerEl.textContent.trim();
+    maxW = Math.max(maxW, meter.offsetWidth);
+  }
+  // Sample first 30 visible cells (for performance)
+  let sampled = 0;
+  cells.forEach(cell => {
+    if (sampled >= 30) return;
+    meter.innerHTML = cell.innerHTML; // approximate width with the same content
+    maxW = Math.max(maxW, meter.offsetWidth);
+    sampled++;
+  });
+  document.body.removeChild(meter);
+  // Add padding allowance for the cell padding (15+18=33 each side approx)
+  let target = Math.max(def.minW, Math.min(900, maxW + 48));
+  colEl.style.width = target + 'px';
+  // Persist
+  const widthsByKey = {};
+  Array.from(cg.children).forEach(col => {
+    const key = col.dataset.colKey;
+    const w = parseInt(col.style.width, 10);
+    if (key && w) widthsByKey[key] = w;
+  });
+  saveColWidths(widthsByKey);
+  showSaveBanner(`✓ Auto-fit: ${def.key} → ${target}px`);
+}
+
+/* Reset all columns to defaults */
+function resetColumnWidths() {
+  try { localStorage.removeItem(COL_RESIZE_STORAGE_KEY); } catch(e) {}
+  applyColgroup(COL_DEFAULTS);
+  showSaveBanner('✓ Columns reset to defaults');
+}
+
+/* Inject the "↻ Columns" reset button next to the search input */
+function injectColumnResetButton() {
+  if (document.getElementById('columnResetBtn')) return;
+  const search = document.getElementById('searchInput');
+  if (!search) return;
+  const btn = document.createElement('button');
+  btn.id = 'columnResetBtn';
+  btn.type = 'button';
+  btn.className = 'column-reset-btn';
+  btn.title = 'Reset all column widths to defaults';
+  btn.innerHTML = '↻ Columns';
+  btn.onclick = resetColumnWidths;
+  search.parentNode.insertBefore(btn, search.nextSibling);
+}
+
+/* ================================================================
+ *  Wire up: enable resize after the table first renders
+ * ================================================================ */
+function enableColumnResize() {
+  const table = document.querySelector('.slim-table');
+  if (!table) return;
+  table.classList.add('resizable');
+  applyColgroup(getColWidths());
+  injectResizeHandles();
+  injectColumnResetButton();
+}
+
+/* Wrap renderTable to keep things in sync after every render */
+const _origRenderTableForResize = window.renderTable;
+window.renderTable = function() {
+  _origRenderTableForResize.call(this);
+  // After every render, make sure resize is wired and body cells carry col classes
+  enableColumnResize();
+  tagBodyCellsWithColClasses();
+};
+
+/* Initial call once DOM is ready */
+document.addEventListener('DOMContentLoaded', () => {
+  // Run after a tick so the table has time to be present
+  setTimeout(enableColumnResize, 200);
+});
+</script>
+<script>
+/* ================================================================
+ *  LAUNCH READINESS — v1.6.7
+ *  Done Pile, Route pills, Row recording, Event date editor,
+ *  Sync Health, DB Lookup
+ * ================================================================ */
+
+/* ----------------------------------------------------------------
+ *  ROUTE PILL RENDERER
+ * ---------------------------------------------------------------- */
+function renderRoutePill(route) {
+  if (!route) return '<span class="muted">—</span>';
+  const r = String(route).trim().toLowerCase();
+  // Map any unknown routes to "other"
+  const known = ['quote','order_update','message','fallout','system_alert','manual_review','laundry'];
+  const cls = known.includes(r) ? r : 'other';
+  const label = String(route).replace(/_/g, ' ').toUpperCase();
+  return `<span class="route-pill r-${cls}">${escapeHtml(label)}</span>`;
+}
+
+/* ----------------------------------------------------------------
+ *  ROW RECORDING BUTTON — small play button in the Phone column
+ *  When clicked, shows a floating audio popover anchored to the row.
+ * ---------------------------------------------------------------- */
+let _rowAudioCurrentBtn = null;
+
+function renderRowRecBtn(lead) {
+  const has = lead.recording_url && lead.recording_url.trim();
+  const cls = has ? '' : 'disabled';
+  const onclick = has
+    ? `onclick="event.stopPropagation(); playRowRecording('${escapeHtml(lead.id)}', this)"`
+    : 'title="No recording captured for this call"';
+  return `<button class="row-rec-btn ${cls}" ${onclick}>▶</button>`;
+}
+
+function playRowRecording(leadId, btnEl) {
+  const lead = allLeads.find(l => l.id === leadId);
+  if (!lead || !lead.recording_url) return;
+  const popover = $('rowAudioPopover');
+  const player = $('rowAudioPlayer');
+  // Clear previous active state
+  document.querySelectorAll('.row-rec-btn.playing').forEach(b => b.classList.remove('playing'));
+  btnEl.classList.add('playing');
+  _rowAudioCurrentBtn = btnEl;
+
+  // Set source and load
+  player.src = lead.recording_url;
+  player.load();
+
+  // Position popover near the button
+  const rect = btnEl.getBoundingClientRect();
+  let left = rect.left;
+  if (left + 400 > window.innerWidth - 16) left = window.innerWidth - 400 - 16;
+  if (left < 16) left = 16;
+  let top = rect.bottom + 8;
+  if (top + 130 > window.innerHeight) top = Math.max(16, rect.top - 130 - 8);
+  popover.style.left = left + 'px';
+  popover.style.top = top + 'px';
+
+  // Fill in who
+  const phone = (lead.phone || lead.call_from_number || '').trim();
+  const who = (lead.full_name && lead.full_name.trim()) || phone || 'Unknown caller';
+  $('rowAudioWho').textContent = who + (lead.call_id ? ' · ' + lead.call_id : '');
+
+  popover.classList.add('open');
+  // Auto-play
+  setTimeout(() => {
+    player.play().catch(() => { /* autoplay restrictions; user can hit play */ });
+  }, 100);
+
+  // Listener: clear playing class when audio ends
+  player.onended = () => {
+    if (_rowAudioCurrentBtn) _rowAudioCurrentBtn.classList.remove('playing');
+    _rowAudioCurrentBtn = null;
+  };
+  player.onpause = () => {
+    if (_rowAudioCurrentBtn && player.currentTime === 0) {
+      _rowAudioCurrentBtn.classList.remove('playing');
+    }
+  };
+}
+
+function closeRowAudio() {
+  const popover = $('rowAudioPopover');
+  const player = $('rowAudioPlayer');
+  popover.classList.remove('open');
+  try { player.pause(); player.currentTime = 0; player.src = ''; } catch(e) {}
+  if (_rowAudioCurrentBtn) {
+    _rowAudioCurrentBtn.classList.remove('playing');
+    _rowAudioCurrentBtn = null;
+  }
+}
+
+// Close on outside click
+document.addEventListener('click', (ev) => {
+  const popover = $('rowAudioPopover');
+  if (!popover || !popover.classList.contains('open')) return;
+  if (popover.contains(ev.target)) return;
+  // If clicked a different rec button, the playRowRecording will handle reposition; otherwise close
+  if (ev.target.closest && ev.target.closest('.row-rec-btn')) return;
+  closeRowAudio();
+});
+
+/* ----------------------------------------------------------------
+ *  EVENT DATE INLINE EDITOR
+ * ---------------------------------------------------------------- */
+let eventDateContext = null;
+
+function renderEventDateCell(lead) {
+  const date = lead.event_date || '';
+  return `
+    <span class="event-date-cell">
+      <span>${escapeHtml(date) || '<span class="muted">—</span>'}</span>
+      <button class="event-date-edit-btn"
+              title="Edit event date"
+              onclick="event.stopPropagation(); openEventDateEditor('${escapeHtml(lead.id)}', this)">✎</button>
+    </span>
+  `;
+}
+
+function openEventDateEditor(leadId, btnEl) {
+  const lead = allLeads.find(l => l.id === leadId);
+  if (!lead) return;
+  closeEventDateEditor();
+  closeRowAudio();
+  eventDateContext = { leadId };
+  const pop = $('eventDatePopover');
+  const inp = $('eventDateInput');
+  // Convert lead.event_date to YYYY-MM-DD if possible
+  const raw = (lead.event_date || '').trim();
+  let isoDate = '';
+  if (raw) {
+    const d = new Date(raw);
+    if (!isNaN(d.getTime())) {
+      isoDate = d.toISOString().slice(0,10);
+    } else if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+      isoDate = raw.slice(0,10);
+    }
+  }
+  inp.value = isoDate;
+  // Position
+  const rect = btnEl.getBoundingClientRect();
+  let left = rect.left;
+  if (left + 300 > window.innerWidth - 16) left = window.innerWidth - 300 - 16;
+  if (left < 16) left = 16;
+  let top = rect.bottom + 8;
+  if (top + 200 > window.innerHeight) top = Math.max(16, rect.top - 200 - 8);
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  pop.classList.add('open');
+  setTimeout(() => inp.focus(), 50);
+}
+
+function closeEventDateEditor() {
+  const pop = $('eventDatePopover');
+  if (pop) pop.classList.remove('open');
+  eventDateContext = null;
+}
+
+async function saveEventDate() {
+  if (!eventDateContext) return;
+  const inp = $('eventDateInput');
+  const newVal = inp.value || null;
+  const lead = allLeads.find(l => l.id === eventDateContext.leadId);
+  if (!lead) { closeEventDateEditor(); return; }
+  if ((newVal || '') === (lead.event_date || '')) {
+    showSaveBanner('Event date unchanged');
+    closeEventDateEditor();
+    return;
+  }
+  const { error } = await sb.from('leads').update({
+    event_date: newVal,
+    last_action_at: new Date().toISOString(),
+    last_action_by: 'manager',
+    last_action_kind: 'event_date_edited'
+  }).eq('id', eventDateContext.leadId);
+  if (error) { showSaveBanner('Save failed: ' + error.message, true); return; }
+  lead.event_date = newVal;
+  await logStaffAction({
+    actor: 'manager',
+    action_type: 'event_date_edited',
+    target_id: eventDateContext.leadId,
+    target_label: lead.full_name || '',
+    detail: { new_event_date: newVal }
+  });
+  renderTable();
+  showSaveBanner(newVal ? `✓ Event date set to ${newVal}` : '✓ Event date cleared');
+  closeEventDateEditor();
+}
+
+async function clearEventDate() {
+  $('eventDateInput').value = '';
+  await saveEventDate();
+}
+
+document.addEventListener('click', (ev) => {
+  const pop = $('eventDatePopover');
+  if (!pop || !pop.classList.contains('open')) return;
+  if (pop.contains(ev.target)) return;
+  if (ev.target.closest && ev.target.closest('.event-date-edit-btn')) return;
+  closeEventDateEditor();
+});
+document.addEventListener('keydown', (ev) => {
+  const pop = $('eventDatePopover');
+  if (!pop || !pop.classList.contains('open')) return;
+  if (ev.key === 'Escape') closeEventDateEditor();
+  if (ev.key === 'Enter') saveEventDate();
+});
+
+/* ================================================================
+ *  Wrap renderTable to (1) replace route plain-text with pills,
+ *  (2) append the row recording button to the phone cell,
+ *  (3) wrap event date in the editable cell wrapper.
+ * ================================================================ */
+const _origRenderTableForLaunch = window.renderTable;
+window.renderTable = function() {
+  _origRenderTableForLaunch.call(this);
+  // Patch each row's route, phone, event date columns
+  document.querySelectorAll('tbody tr[data-lead-id]').forEach(tr => {
+    const leadId = tr.getAttribute('data-lead-id');
+    const lead = allLeads.find(l => l.id === leadId);
+    if (!lead) return;
+    const cells = tr.querySelectorAll('td');
+    if (cells.length < 14) return;
+    // Cell index 3 = Phone — append rec button if not already present
+    const phoneCell = cells[3];
+    if (phoneCell && !phoneCell.querySelector('.row-rec-btn')) {
+      phoneCell.insertAdjacentHTML('beforeend', renderRowRecBtn(lead));
+    }
+    // Cell index 4 = Event Date — wrap with editor unless already wrapped
+    const eventCell = cells[4];
+    if (eventCell && !eventCell.querySelector('.event-date-edit-btn')) {
+      eventCell.innerHTML = renderEventDateCell(lead);
+    }
+    // Cell index 6 = Route — replace plain text with pill if not already
+    const routeCell = cells[6];
+    if (routeCell && !routeCell.querySelector('.route-pill')) {
+      routeCell.innerHTML = renderRoutePill(lead.workflow_route);
+    }
+  });
+};
+
+/* ================================================================
+ *  GET VISIBLE ROWS — exclude leads that are "done" from the live view.
+ *  They go to the Done Pile instead.
+ * ================================================================ */
+const _origGetVisibleRows = window.getVisibleRows;
+window.getVisibleRows = function() {
+  let rows = _origGetVisibleRows.call(this);
+  // Filter out "done" leads — they live in the Done Pile, not the active list
+  rows = rows.filter(l => !l.done_at);
+  return rows;
+};
+
+/* ================================================================
+ *  DONE PILE
+ * ================================================================ */
+let donePileRange = 'today';
+let donePileFilter = '';
+
+function openDonePile() {
+  // Close any other open right-side panels first
+  closeRailPanels();
+  closeRoutingCockpit && closeRoutingCockpit();
+  closeLookupPanel && closeLookupPanel();
+  closeRepDeepPanel && closeRepDeepPanel();
+  $('donePilePanel').classList.add('open');
+  $('donePileRailTab').classList.add('active');
+  loadDonePile();
+}
+function closeDonePile() {
+  $('donePilePanel').classList.remove('open');
+  $('donePileRailTab').classList.remove('active');
+}
+
+function setDonePileRange(range, btn) {
+  donePileRange = range;
+  document.querySelectorAll('.donepile-range-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  loadDonePile();
+}
+
+async function loadDonePile() {
+  const body = $('donePileBody');
+  body.innerHTML = '<div class="donepile-empty"><div class="big">⏳</div><div>Loading...</div></div>';
+
+  let q = sb.from('leads')
+    .select('id, full_name, business_name, phone, call_from_number, company_key, workflow_route, event_date, done_at, done_by, assigned_to, recording_url')
+    .not('done_at', 'is', null)
+    .order('done_at', { ascending: false })
+    .limit(200);
+
+  // Apply range
+  if (donePileRange === 'today') {
+    const start = new Date(); start.setHours(0,0,0,0);
+    q = q.gte('done_at', start.toISOString());
+  } else if (donePileRange === 'week') {
+    const start = new Date(); start.setDate(start.getDate() - 7); start.setHours(0,0,0,0);
+    q = q.gte('done_at', start.toISOString());
+  }
+
+  const { data, error } = await q;
+  if (error) {
+    body.innerHTML = `<div class="donepile-empty" style="color:#ff8aa3;">Error: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+  let rows = data || [];
+  // Apply current company filter
+  if (typeof activeCompany !== 'undefined' && activeCompany !== 'master') {
+    rows = rows.filter(r => lc(r.company_key) === activeCompany);
+  }
+  // Apply text filter
+  const filterStr = ($('donepileSearchInput').value || '').toLowerCase().trim();
+  if (filterStr) {
+    rows = rows.filter(r => {
+      return [r.full_name, r.business_name, r.phone, r.workflow_route, r.done_by]
+        .some(v => v && String(v).toLowerCase().includes(filterStr));
+    });
+  }
+
+  if (!rows.length) {
+    body.innerHTML = `<div class="donepile-empty">
+      <div class="big">📭</div>
+      <div>No leads done in this range.</div>
+      <div style="font-size:10px;margin-top:6px;color:#7ab298;">Mark leads done from the active list with the ✓ button.</div>
+    </div>`;
+    $('donepileSub').textContent = '0 in pile · ' + donePileRange;
+    return;
+  }
+  $('donepileSub').textContent = `${rows.length} in pile · ${donePileRange}`;
+  body.innerHTML = rows.map(r => {
+    const company = lc(r.company_key) || 'master';
+    const dotColor = (typeof COMPANY_COLORS !== 'undefined') ? (COMPANY_COLORS[company] || '#7cecff') : '#7cecff';
+    const route = renderRoutePill(r.workflow_route);
+    const doneBy = r.done_by ? `by ${escapeHtml(r.done_by)}` : '';
+    const doneRel = fmtRelativeTime(r.done_at);
+    return `
+      <div class="donepile-row" onclick="openDrawer('${escapeHtml(r.id)}')">
+        <span class="who-dot" style="background:${dotColor};box-shadow:0 0 4px ${dotColor};"></span>
+        <div class="main">
+          <div class="top">
+            <div class="name">${escapeHtml(r.full_name || r.business_name || 'Unnamed')}</div>
+            <div class="by">${doneBy}</div>
+          </div>
+          <div style="margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+            ${route}
+            ${r.event_date ? `<span style="font-size:10px;color:#9fb3c8;">📅 ${escapeHtml(r.event_date)}</span>` : ''}
+          </div>
+          <div class="meta">Done ${doneRel}</div>
+        </div>
+        <div class="actions">
+          <button class="reopen-btn" onclick="event.stopPropagation(); reopenLead('${escapeHtml(r.id)}')">↺ Reopen</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const inp = document.getElementById('donepileSearchInput');
+    if (inp) inp.addEventListener('input', () => {
+      clearTimeout(window._donepileFilterTimer);
+      window._donepileFilterTimer = setTimeout(loadDonePile, 250);
+    });
+  }, 300);
+});
+
+/* Mark a lead "done" — sets done_at + done_by, lifecycle_stage='done' */
+async function markLeadDone(leadId, ev) {
+  if (ev) ev.stopPropagation();
+  const lead = allLeads.find(l => l.id === leadId);
+  if (!lead) return;
+  if (lead.done_at) {
+    // Already done — toggle reopens
+    return reopenLead(leadId, ev);
+  }
+  const nowIso = new Date().toISOString();
+  const payload = {
+    done_at: nowIso,
+    done_by: 'manager',
+    lifecycle_stage: 'done',
+    follow_up_status: true,
+    follow_up_time: nowIso,
+    last_action_at: nowIso,
+    last_action_by: 'manager',
+    last_action_kind: 'marked_done'
+  };
+  const { error } = await sb.from('leads').update(payload).eq('id', leadId);
+  if (error) { showSaveBanner('Failed to mark done: ' + error.message, true); return; }
+  Object.assign(lead, payload);
+  await logStaffAction({
+    actor: 'manager',
+    action_type: 'marked_done',
+    target_id: leadId,
+    target_label: lead.full_name || '',
+    company_key: lead.company_key
+  });
+  showSaveBanner(`✓ Moved to Done Pile`);
+  renderTable();
+  renderTeamPills && renderTeamPills();
+  refreshDonePileBadge();
+  // If the done pile panel is open, refresh it
+  if ($('donePilePanel').classList.contains('open')) loadDonePile();
+}
+
+/* Reopen a lead — clears done_at and pulls it back to active */
+async function reopenLead(leadId, ev) {
+  if (ev) ev.stopPropagation();
+  const lead = allLeads.find(l => l.id === leadId);
+  const nowIso = new Date().toISOString();
+  const payload = {
+    done_at: null,
+    done_by: null,
+    lifecycle_stage: lead && lead.assigned_to ? 'claimed' : 'unclaimed',
+    follow_up_status: false,
+    last_action_at: nowIso,
+    last_action_by: 'manager',
+    last_action_kind: 'reopened'
+  };
+  const { error } = await sb.from('leads').update(payload).eq('id', leadId);
+  if (error) { showSaveBanner('Reopen failed: ' + error.message, true); return; }
+  if (lead) Object.assign(lead, payload);
+  await logStaffAction({
+    actor: 'manager',
+    action_type: 'reopened',
+    target_id: leadId,
+    target_label: lead ? (lead.full_name || '') : '',
+    company_key: lead ? lead.company_key : null
+  });
+  showSaveBanner('↺ Lead reopened — back in active list');
+  renderTable();
+  renderTeamPills && renderTeamPills();
+  refreshDonePileBadge();
+  if ($('donePilePanel').classList.contains('open')) loadDonePile();
+}
+
+async function refreshDonePileBadge() {
+  // Count leads done today
+  const start = new Date(); start.setHours(0,0,0,0);
+  const { count } = await sb
+    .from('leads')
+    .select('id', { count: 'exact', head: true })
+    .gte('done_at', start.toISOString());
+  const badge = $('donePileBadge');
+  if (badge) badge.textContent = count || 0;
+}
+
+/* ================================================================
+ *  Wrap renderLeadRow to swap the "Done" column placeholder with a real button
+ *  The original render shows received timestamp at index 13 - we keep that
+ *  but inject a Done button at index 12 (the "Done" column).
+ *  Looking at the table headers: ...Follow Up | Assign | Done | Received
+ *  So td indices: 10=FollowUp 11=Assign 12=Done 13=Received
+ * ================================================================ */
+const _origRenderTableForDone = window.renderTable;
+window.renderTable = function() {
+  _origRenderTableForDone.call(this);
+  document.querySelectorAll('tbody tr[data-lead-id]').forEach(tr => {
+    const leadId = tr.getAttribute('data-lead-id');
+    const lead = allLeads.find(l => l.id === leadId);
+    if (!lead) return;
+    const cells = tr.querySelectorAll('td');
+    if (cells.length < 14) return;
+    const doneCell = cells[12];
+    if (!doneCell) return;
+    if (doneCell.querySelector('.row-done-btn')) return; // already done
+    doneCell.innerHTML = `<button class="row-done-btn ${lead.done_at ? 'is-done' : ''}"
+      title="${lead.done_at ? 'Reopen lead' : 'Mark done — moves to Done Pile'}"
+      onclick="event.stopPropagation(); ${lead.done_at ? 'reopenLead' : 'markLeadDone'}('${escapeHtml(leadId)}', event)">✓</button>`;
+  });
+};
+
+/* ================================================================
+ *  SYNC HEALTH MODAL
+ * ================================================================ */
+async function openSyncHealth() {
+  openPhase2Modal('syncHealthModal');
+  await loadSyncHealthData();
+}
+function closeSyncHealth() { closePhase2Modal(); }
+
+async function loadSyncHealthData() {
+  const body = $('syncHealthBody');
+  body.innerHTML = '<div style="font-size:11px;color:#8fb4c9;padding:14px;text-align:center;">Loading…</div>';
+  const { data, error } = await sb.from('v_sync_health').select('*').single();
+  if (error) {
+    body.innerHTML = `<div style="color:#ff8aa3;padding:14px;">Error: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+  const rmLastSuccess = data.rentmaster_last_success ? new Date(data.rentmaster_last_success) : null;
+  const rmLastPartial = data.rentmaster_last_partial ? new Date(data.rentmaster_last_partial) : null;
+  const rmLastEnd = rmLastSuccess && rmLastPartial
+    ? (rmLastSuccess > rmLastPartial ? rmLastSuccess : rmLastPartial)
+    : (rmLastSuccess || rmLastPartial);
+  const rmAgeMin = rmLastEnd ? Math.round((Date.now() - rmLastEnd.getTime()) / 60000) : null;
+  let rmStatus = 'critical', rmStatusLabel = 'No recent runs found', rmCardCls = 'critical';
+  if (rmAgeMin !== null && rmAgeMin <= 3 && data.rentmaster_failures_1h === 0) {
+    rmStatus = 'healthy'; rmStatusLabel = '✓ Running on schedule'; rmCardCls = 'healthy';
+  } else if (rmAgeMin !== null && rmAgeMin <= 10) {
+    rmStatus = 'warning'; rmStatusLabel = '⚠ Slow but reachable'; rmCardCls = 'warning';
+  } else if (data.rentmaster_failures_1h > 0) {
+    rmStatus = 'warning'; rmStatusLabel = '⚠ ' + data.rentmaster_failures_1h + ' failures in last hour'; rmCardCls = 'warning';
+  }
+
+  const aiLastAt = data.ai_last_lead_at ? new Date(data.ai_last_lead_at) : null;
+  const aiAgeHours = aiLastAt ? (Date.now() - aiLastAt.getTime()) / 3600000 : null;
+  let aiCardCls = 'healthy', aiLabel = '✓ Recent leads received';
+  if (aiAgeHours === null) { aiCardCls = 'critical'; aiLabel = '✗ Never received any leads'; }
+  else if (aiAgeHours > 24) { aiCardCls = 'warning'; aiLabel = '⚠ No leads in last 24h'; }
+  else if (aiAgeHours > 6)  { aiCardCls = 'warning'; aiLabel = '⚠ No leads in last 6h'; }
+
+  body.innerHTML = `
+    <div class="health-grid">
+      <div class="health-card ${rmCardCls}">
+        <div class="ttl">📦 RentMaster Sync</div>
+        <div class="status-line ${rmCardCls === 'healthy' ? 'ok' : rmCardCls === 'warning' ? 'warn' : 'bad'}">${rmStatusLabel}</div>
+        <div class="stat-row"><span class="k">Last run</span><span class="v">${rmLastEnd ? fmtRelativeTime(rmLastEnd.toISOString()) : '—'}</span></div>
+        <div class="stat-row"><span class="k">Last status</span><span class="v">${escapeHtml(data.rentmaster_last_status || '—')}</span></div>
+        <div class="stat-row"><span class="k">Orders fetched</span><span class="v">${data.rentmaster_last_orders ?? '—'}</span></div>
+        <div class="stat-row"><span class="k">Quotes fetched</span><span class="v">${data.rentmaster_last_quotes ?? '—'}</span></div>
+        <div class="stat-row"><span class="k">Failures (1h)</span><span class="v" style="${data.rentmaster_failures_1h > 0 ? 'color:#ff8aa3;' : ''}">${data.rentmaster_failures_1h || 0}</span></div>
+      </div>
+      <div class="health-card ${aiCardCls}">
+        <div class="ttl">🎙️ AI Lead Pipe</div>
+        <div class="status-line ${aiCardCls === 'healthy' ? 'ok' : aiCardCls === 'warning' ? 'warn' : 'bad'}">${aiLabel}</div>
+        <div class="stat-row"><span class="k">Last lead</span><span class="v">${aiLastAt ? fmtRelativeTime(aiLastAt.toISOString()) : 'never'}</span></div>
+        <div class="stat-row"><span class="k">Leads in 24h</span><span class="v">${data.ai_leads_24h || 0}</span></div>
+        <div class="stat-row"><span class="k">Leads in 1h</span><span class="v">${data.ai_leads_1h || 0}</span></div>
+        <div class="stat-row" style="margin-top:6px;font-style:italic;">
+          <span style="font-size:10px;color:#8fb4c9;">Note: leads come from the voice agents (ElevenLabs / Vapi), not RentMaster. If empty, check the agent webhook.</span>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <button class="phase2-btn" onclick="openDbLookup()">🔧 Open DB Lookup</button>
+      <button class="phase2-btn" onclick="closeSyncHealth(); openSyncPanel();">📤 Manual Payment Sync</button>
+    </div>
+  `;
+  // Update the health pill at the top
+  refreshSyncHealthPill(rmCardCls, aiCardCls);
+}
+
+function refreshSyncHealthPill(rmCls, aiCls) {
+  // The most concerning of the two wins
+  const order = ['healthy','warning','critical'];
+  const overall = (order.indexOf(rmCls) > order.indexOf(aiCls)) ? rmCls : aiCls;
+  const tab = $('syncHealthRailTab');
+  if (!tab) return;
+  // Show coloring on the rail tab to indicate state
+  tab.classList.remove('alert-loud', 'task-loud');
+  if (overall === 'critical') tab.classList.add('alert-loud');
+  else if (overall === 'warning') tab.classList.add('task-loud');
+}
+
+/* ================================================================
+ *  DB LOOKUP TOOL — direct table read/edit
+ * ================================================================ */
+let dblData = [];
+let dblColumns = [];
+
+const DBL_TABLE_COLUMNS = {
+  // Curated short lists; if user wants "all" we still only show this projection
+  'leads':              ['id','full_name','business_name','phone','email','company_key','workflow_route','event_date','assigned_to','follow_up_status','done_at','created_at'],
+  'customers':          ['id','full_name','business_name','phone','email','address','city','state','zip','dashboard_notes','created_at'],
+  'historical_orders':  ['order_no','customer_name','sales_rep','total','balance_due','event_start_date','order_date','status_raw','company_key','surface'],
+  'historical_quotes':  ['quote_no','customer_name','sales_rep','total','event_start_date','quote_date','status_raw','company_key'],
+  'operations_alerts':  ['id','company','assigned_to','text','priority','due','done','created_at'],
+  'order_notes':        ['id','order_no','author','body','pin','created_at'],
+  'staff_actions':      ['id','actor','action_type','target_label','company_key','created_at'],
+  'payment_overrides':  ['id','order_no','override_state','override_reason','overridden_by','created_at']
+};
+
+const DBL_EDITABLE_COLS = {
+  // Whitelist of columns that are safe to edit inline
+  'leads': new Set(['full_name','business_name','phone','email','event_date','assigned_to']),
+  'customers': new Set(['full_name','business_name','phone','email','address','city','state','zip','dashboard_notes']),
+  'historical_orders': new Set(['sales_rep','balance_due']),
+  'historical_quotes': new Set(['sales_rep']),
+  'operations_alerts': new Set(['assigned_to','text','priority','due','done']),
+  'order_notes': new Set(['body','pin']),
+  'staff_actions': new Set(),
+  'payment_overrides': new Set(['override_state','override_reason'])
+};
+
+function openDbLookup() {
+  closeSyncHealth();
+  openPhase2Modal('dbLookupModal');
+  // Auto-load on first open
+  if (!dblData.length) dbLookupLoad();
+}
+function closeDbLookup() { closePhase2Modal(); }
+
+function dbLookupOnTableChange() {
+  dblData = [];
+  dbLookupLoad();
+}
+
+async function dbLookupLoad() {
+  const tableName = $('dblTable').value;
+  const cols = DBL_TABLE_COLUMNS[tableName] || ['*'];
+  dblColumns = cols.includes('*') ? null : cols;
+  const tbody = $('dblResultsBody');
+  tbody.innerHTML = '<tr><td class="dbl-empty">Loading...</td></tr>';
+  let q = sb.from(tableName).select(cols.join(','));
+  // Default ordering — try created_at, fall back to first column
+  q = q.order('created_at', { ascending: false }).limit(200);
+  const { data, error } = await q;
+  if (error) {
+    // Fall back to no order
+    const r2 = await sb.from(tableName).select(cols.join(',')).limit(200);
+    if (r2.error) {
+      tbody.innerHTML = `<tr><td class="dbl-empty" style="color:#ff8aa3;">Error: ${escapeHtml(r2.error.message)}</td></tr>`;
+      return;
+    }
+    dblData = r2.data || [];
+  } else {
+    dblData = data || [];
+  }
+  $('dblFooterInfo').textContent = `${dblData.length} rows · table: ${tableName}`;
+  dbLookupRender();
+}
+
+function dbLookupRender() {
+  const tableName = $('dblTable').value;
+  const head = $('dblResultsHead');
+  const tbody = $('dblResultsBody');
+  if (!dblColumns || !dblData) {
+    tbody.innerHTML = '<tr><td class="dbl-empty">Click Reload to begin.</td></tr>';
+    return;
+  }
+  // Filter
+  const filterStr = ($('dblFilter').value || '').toLowerCase().trim();
+  let rows = dblData;
+  if (filterStr) {
+    rows = rows.filter(r =>
+      dblColumns.some(c => {
+        const v = r[c];
+        return v != null && String(v).toLowerCase().includes(filterStr);
+      })
+    );
+  }
+  head.innerHTML = `<tr>${dblColumns.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr>`;
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td class="dbl-empty" colspan="' + dblColumns.length + '">No rows match.</td></tr>';
+    return;
+  }
+  const editableSet = DBL_EDITABLE_COLS[tableName] || new Set();
+  tbody.innerHTML = rows.map(r => {
+    const id = r.id || r.order_no || r.quote_no || null;
+    return `<tr data-row-id="${escapeHtml(id || '')}">${dblColumns.map(c => {
+      const v = r[c];
+      let display;
+      if (v === null || v === undefined) display = '';
+      else if (typeof v === 'boolean') display = v ? '✓' : '·';
+      else if (typeof v === 'object') display = JSON.stringify(v);
+      else display = String(v);
+      const editable = editableSet.has(c) && id;
+      const cls = editable ? 'editable' : '';
+      const onclick = editable ? `onclick="dbLookupEditCell(this, '${escapeHtml(tableName)}', '${escapeHtml(id)}', '${escapeHtml(c)}')"` : '';
+      return `<td class="${cls}" ${onclick} title="${editable ? 'Click to edit' : ''}">${escapeHtml(display.length > 80 ? display.slice(0,77) + '...' : display)}</td>`;
+    }).join('')}</tr>`;
+  }).join('');
+  $('dblFooterInfo').textContent = `${rows.length} of ${dblData.length} rows · ${tableName}`;
+}
+
+function dbLookupEditCell(td, tableName, rowId, colName) {
+  if (td.querySelector('input')) return; // already editing
+  const oldValue = td.textContent;
+  td.innerHTML = `<input class="dbl-cell-edit" value="${escapeHtml(oldValue.replace(/\.\.\.$/, ''))}" />`;
+  const inp = td.querySelector('input');
+  inp.focus();
+  inp.select();
+  let saved = false;
+  const finish = async (commit) => {
+    if (saved) return; saved = true;
+    const newValue = inp.value;
+    if (!commit || newValue === oldValue) {
+      td.innerHTML = escapeHtml(oldValue);
+      return;
+    }
+    // Determine PK column based on table
+    const pkCol = (tableName === 'historical_orders') ? 'order_no'
+                : (tableName === 'historical_quotes') ? 'quote_no'
+                : 'id';
+    let coerced = newValue;
+    // Coerce booleans for known boolean columns
+    const boolCols = new Set(['done','pin','follow_up_status']);
+    if (boolCols.has(colName)) {
+      const lc = newValue.trim().toLowerCase();
+      coerced = (lc === 'true' || lc === '1' || lc === '✓' || lc === 'yes');
+    }
+    // Coerce numbers
+    const numCols = new Set(['balance_due','total']);
+    if (numCols.has(colName)) {
+      coerced = newValue === '' ? null : parseFloat(newValue);
+      if (isNaN(coerced)) coerced = null;
+    }
+    // Empty string → null for date-ish columns
+    if (newValue === '' && (colName.endsWith('_at') || colName.endsWith('_date'))) {
+      coerced = null;
+    }
+    td.innerHTML = '<span style="color:#8fb4c9;">saving...</span>';
+    const payload = {}; payload[colName] = coerced;
+    const { error } = await sb.from(tableName).update(payload).eq(pkCol, rowId);
+    if (error) {
+      td.innerHTML = `<span style="color:#ff8aa3;" title="${escapeHtml(error.message)}">✗ ${escapeHtml(oldValue)}</span>`;
+      showSaveBanner('Edit failed: ' + error.message, true);
+      return;
+    }
+    // Update local cache
+    const row = dblData.find(r => (r.id === rowId || r.order_no === rowId || r.quote_no === rowId));
+    if (row) row[colName] = coerced;
+    td.innerHTML = `<span style="color:#6effa8;">${escapeHtml(String(coerced))}</span>`;
+    setTimeout(() => { td.innerHTML = escapeHtml(String(coerced).slice(0,80)); }, 800);
+    // Audit
+    await logStaffAction({
+      actor: 'manager',
+      action_type: 'db_edit',
+      target_label: `${tableName}.${colName}`,
+      detail: { table: tableName, column: colName, row_id: rowId, old_value: oldValue, new_value: coerced }
+    });
+  };
+  inp.addEventListener('blur', () => finish(true));
+  inp.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') { ev.preventDefault(); finish(true); }
+    if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+  });
+}
+
+function dbLookupExport() {
+  if (!dblData || !dblData.length || !dblColumns) {
+    showSaveBanner('Nothing to export', true);
+    return;
+  }
+  const filterStr = ($('dblFilter').value || '').toLowerCase().trim();
+  let rows = dblData;
+  if (filterStr) {
+    rows = rows.filter(r =>
+      dblColumns.some(c => {
+        const v = r[c];
+        return v != null && String(v).toLowerCase().includes(filterStr);
+      })
+    );
+  }
+  const csvCell = (v) => {
+    if (v === null || v === undefined) return '';
+    const s = typeof v === 'object' ? JSON.stringify(v) : String(v);
+    if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  };
+  const lines = [dblColumns.join(','), ...rows.map(r => dblColumns.map(c => csvCell(r[c])).join(','))];
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${$('dblTable').value}_export_${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showSaveBanner(`✓ Exported ${rows.length} rows to CSV`);
+}
+
+/* ================================================================
+ *  Initial wiring
+ * ================================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    refreshDonePileBadge();
+    // Refresh badge every 30s
+    setInterval(refreshDonePileBadge, 30000);
+  }, 800);
+});
 </script>
 
 </body>
