@@ -7951,6 +7951,361 @@ document.addEventListener('keydown', (ev) => {
   if (ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)) saveNameCorrection();
 });
 </script>
+<style>
+/* ================================================================
+ *  DRAWER ENHANCEMENTS — v1.6.5
+ *  Phone fallback, inline audio player, transcript reveal
+ * ================================================================ */
+
+/* Caller ID fallback tag (appears next to phone when sourced from caller_id) */
+.caller-id-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  color: #ffd1b8;
+  background: rgba(255,150,60,.16);
+  border: 1px solid rgba(255,150,60,.40);
+  vertical-align: middle;
+}
+
+/* Caller ID line on the meta strip (shown when phone differs from caller ID) */
+.caller-id-row {
+  font-size: 10px;
+  color: #9fb3c8;
+  margin-top: 3px;
+  letter-spacing: .04em;
+}
+.caller-id-row strong { color: #ffd1b8; font-family: monospace; }
+
+/* Audio player card — sits below the meta strip */
+.drawer-audio-card {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(124,236,255,.06), rgba(2,6,17,.4));
+  border: 1px solid rgba(124,236,255,.22);
+}
+.drawer-audio-card .audio-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.drawer-audio-card .audio-card-title {
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #c8d9ef;
+  font-weight: 800;
+}
+.drawer-audio-card .audio-card-subtitle {
+  font-size: 10px;
+  color: #8fb4c9;
+  font-weight: 600;
+}
+.drawer-audio-card audio {
+  width: 100%;
+  height: 36px;
+  outline: none;
+  border-radius: 8px;
+  filter: invert(0.9) hue-rotate(180deg) saturate(0.7);
+}
+.drawer-audio-empty {
+  text-align: center;
+  font-size: 11px;
+  color: #8fb4c9;
+  padding: 8px 4px;
+  font-style: italic;
+}
+
+/* Transcript reveal card — sits between the meta strip and the notes zone */
+.drawer-transcript-card {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(184,156,255,.06), rgba(2,6,17,.35));
+  border: 1px solid rgba(184,156,255,.22);
+}
+.drawer-transcript-card .tc-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+.drawer-transcript-card .tc-title {
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #efe2ff;
+  font-weight: 800;
+}
+.drawer-transcript-card .tc-toggle {
+  font-size: 11px;
+  color: #b89cff;
+  font-weight: 700;
+}
+.drawer-transcript-card .tc-body {
+  display: none;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(184,156,255,.18);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #eef7ff;
+  white-space: pre-wrap;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.drawer-transcript-card.open .tc-body { display: block; }
+.drawer-transcript-card.open .tc-toggle::before { content: '▲ '; }
+.drawer-transcript-card:not(.open) .tc-toggle::before { content: '▼ '; }
+
+/* Empty-state hint on the coordinator notes textarea */
+.drawer-textarea.empty-hint {
+  border-color: rgba(159,179,200,.18);
+  background: rgba(255,255,255,.015);
+}
+</style>
+
+<script>
+/* ================================================================
+ *  DRAWER ENHANCEMENTS — v1.6.5
+ * ================================================================ */
+
+/* Format a phone number for human display */
+function fmtPhone(raw) {
+  if (!raw) return '';
+  const digits = String(raw).replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('1')) {
+    return `(${digits.slice(1,4)}) ${digits.slice(4,7)}-${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+  }
+  return raw;
+}
+
+/* Strip a phone number to digits for tel: links */
+function digitsOnly(raw) {
+  if (!raw) return '';
+  return String(raw).replace(/\D/g, '');
+}
+
+/* Compare two phone-like strings as digits */
+function samePhoneDigits(a, b) {
+  const da = digitsOnly(a).replace(/^1/, '');
+  const db = digitsOnly(b).replace(/^1/, '');
+  return da && db && da === db;
+}
+
+/* Resolve the best display phone for a lead.
+   Returns { display, source, telTarget }
+   source = 'phone' | 'caller_id' | null
+*/
+function resolveLeadPhone(lead) {
+  const direct = (lead.phone || '').trim();
+  const callerId = (lead.call_from_number || lead.caller_id || '').trim();
+  if (direct) {
+    return {
+      display: fmtPhone(direct),
+      source: 'phone',
+      telTarget: digitsOnly(direct),
+      altCallerId: (callerId && !samePhoneDigits(direct, callerId)) ? fmtPhone(callerId) : null
+    };
+  }
+  if (callerId) {
+    return {
+      display: fmtPhone(callerId),
+      source: 'caller_id',
+      telTarget: digitsOnly(callerId),
+      altCallerId: null
+    };
+  }
+  return { display: '', source: null, telTarget: '', altCallerId: null };
+}
+
+/* Render a phone with caller-id tag and tel link */
+function renderDrawerPhoneCell(lead) {
+  const r = resolveLeadPhone(lead);
+  if (!r.display) return '<span class="muted">—</span>';
+  const link = `<a href="tel:${escapeHtml(r.telTarget)}" style="color:#7cecff;">${escapeHtml(r.display)}</a>`;
+  const tag = r.source === 'caller_id'
+    ? '<span class="caller-id-tag" title="No phone provided — using caller ID">CALLER ID</span>'
+    : '';
+  let altLine = '';
+  if (r.altCallerId) {
+    // phone differs from caller ID — surface both
+    altLine = `<div class="caller-id-row">📲 Caller ID: <strong>${escapeHtml(r.altCallerId)}</strong></div>`;
+  }
+  return link + tag + altLine;
+}
+
+/* Same logic for the table row name cell — but more compact */
+function renderTablePhoneCell(lead) {
+  const r = resolveLeadPhone(lead);
+  if (!r.display) return '<span class="muted">—</span>';
+  const link = `<a href="tel:${escapeHtml(r.telTarget)}" style="color:#7cecff;text-decoration:none;" onclick="event.stopPropagation();">${escapeHtml(r.display)}</a>`;
+  const tag = r.source === 'caller_id'
+    ? '<span class="caller-id-tag" title="Caller ID">CID</span>'
+    : '';
+  return link + tag;
+}
+
+/* ================================================================
+ *  Wrap openDrawer to enhance after the original runs
+ * ================================================================ */
+const _origOpenDrawerForEnhancements = window.openDrawer;
+window.openDrawer = async function(id) {
+  await _origOpenDrawerForEnhancements.call(this, id);
+  if (!currentDrawerLead) return;
+  const lead = currentDrawerLead;
+
+  // 1) Phone with caller-id fallback
+  const phoneEl = document.getElementById('drawerPhone');
+  if (phoneEl) phoneEl.innerHTML = renderDrawerPhoneCell(lead);
+
+  // 2) Inject audio player card right above the notes zone (if not present)
+  injectDrawerAudioCard(lead);
+
+  // 3) Inject transcript reveal card if there's content
+  injectDrawerTranscriptCard(lead);
+
+  // 4) Visual hint on coordinator notes if empty (no value but non-blank placeholder)
+  const coordEl = document.getElementById('drawerCoordinatorNotes');
+  if (coordEl) {
+    coordEl.classList.toggle('empty-hint', !(lead.coordinator_notes && lead.coordinator_notes.trim()));
+  }
+  const notesEl = document.getElementById('drawerNotes');
+  if (notesEl) {
+    notesEl.classList.toggle('empty-hint', !(lead.notes && lead.notes.trim()));
+  }
+};
+
+function injectDrawerAudioCard(lead) {
+  // Place the audio card right BEFORE the .drawer-notes-zone
+  const notesZone = document.querySelector('.drawer-notes-zone');
+  if (!notesZone) return;
+  let card = document.getElementById('drawerAudioCard');
+  if (!card) {
+    card = document.createElement('div');
+    card.id = 'drawerAudioCard';
+    card.className = 'drawer-audio-card';
+    notesZone.parentNode.insertBefore(card, notesZone);
+  }
+  if (lead.recording_url) {
+    const subtitle = lead.call_id ? `Call ID: ${escapeHtml(lead.call_id)}` : '';
+    card.innerHTML = `
+      <div class="audio-card-head">
+        <span class="audio-card-title">🎙️ Call Recording</span>
+        <span class="audio-card-subtitle">${subtitle}</span>
+      </div>
+      <audio controls preload="none" src="${escapeHtml(lead.recording_url)}">
+        Your browser doesn't support audio playback.
+      </audio>
+      <div style="text-align:right;margin-top:6px;">
+        <a href="${escapeHtml(lead.recording_url)}" target="_blank" rel="noopener" style="font-size:10px;color:#7cecff;text-decoration:none;letter-spacing:.04em;">
+          ⬇ Open in new tab
+        </a>
+      </div>
+    `;
+  } else {
+    card.innerHTML = `
+      <div class="audio-card-head">
+        <span class="audio-card-title">🎙️ Call Recording</span>
+        <span class="audio-card-subtitle">${lead.call_id ? 'Call ID: ' + escapeHtml(lead.call_id) : ''}</span>
+      </div>
+      <div class="drawer-audio-empty">No recording captured for this call yet.</div>
+    `;
+  }
+}
+
+function injectDrawerTranscriptCard(lead) {
+  const notesZone = document.querySelector('.drawer-notes-zone');
+  if (!notesZone) return;
+
+  const transcript = lead.transcript_full && lead.transcript_full.trim()
+    ? lead.transcript_full
+    : (lead.transcript_excerpt && lead.transcript_excerpt.trim() ? lead.transcript_excerpt : null);
+
+  let card = document.getElementById('drawerTranscriptCard');
+  if (!transcript) {
+    if (card) card.remove();
+    return;
+  }
+  if (!card) {
+    card = document.createElement('div');
+    card.id = 'drawerTranscriptCard';
+    card.className = 'drawer-transcript-card';
+    // Insert right after audio card if it exists, otherwise before notes
+    const audioCard = document.getElementById('drawerAudioCard');
+    if (audioCard) audioCard.parentNode.insertBefore(card, audioCard.nextSibling);
+    else notesZone.parentNode.insertBefore(card, notesZone);
+  }
+  const title = lead.transcript_full ? '📝 Full Transcript' : '📝 Transcript Excerpt';
+  card.innerHTML = `
+    <div class="tc-head" onclick="this.parentElement.classList.toggle('open')">
+      <span class="tc-title">${title}</span>
+      <span class="tc-toggle">${lead.transcript_full ? 'EXPAND' : 'SHOW'}</span>
+    </div>
+    <div class="tc-body">${escapeHtml(transcript)}</div>
+  `;
+}
+
+/* ================================================================
+ *  Wrap renderTable to use phone fallback in the table rows too
+ * ================================================================ */
+const _origRenderTableForPhone = window.renderTable;
+window.renderTable = function() {
+  _origRenderTableForPhone.call(this);
+  // For each row, replace the phone cell content with the fallback-aware version
+  document.querySelectorAll('tbody tr[data-lead-id]').forEach(tr => {
+    const leadId = tr.getAttribute('data-lead-id');
+    const lead = allLeads.find(l => l.id === leadId);
+    if (!lead) return;
+    // The phone cell is the 4th td (index 3): Company, Source, Name, Phone, ...
+    const cells = tr.querySelectorAll('td');
+    if (cells.length >= 4) {
+      const phoneCell = cells[3];
+      // Only replace if it doesn't already have a CID tag (to be idempotent)
+      if (!phoneCell.querySelector('.caller-id-tag')) {
+        const fallbackHtml = renderTablePhoneCell(lead);
+        // Don't blow away aging classes or phone already present — replace only the inner
+        phoneCell.innerHTML = fallbackHtml;
+      }
+    }
+  });
+};
+
+/* ================================================================
+ *  Extension drawer (the order/quote history panel) — also wire phone fallback
+ * ================================================================ */
+const _origOpenExtensionDrawer = window.openExtensionDrawer;
+if (typeof _origOpenExtensionDrawer === 'function') {
+  window.openExtensionDrawer = async function(kind) {
+    await _origOpenExtensionDrawer.call(this, kind);
+    // Patch the phone row in the intel section after render
+    setTimeout(() => {
+      const lead = currentDrawerLead;
+      if (!lead) return;
+      // Find the intel-kv-row that has "Phone" label and replace its value
+      const rows = document.querySelectorAll('#extDrawerBody .intel-kv-row');
+      rows.forEach(row => {
+        const k = row.querySelector('.k');
+        if (k && k.textContent.trim() === 'Phone') {
+          const v = row.querySelector('.v');
+          if (v) v.innerHTML = renderDrawerPhoneCell(lead);
+        }
+      });
+    }, 50);
+  };
+}
+</script>
 
 </body>
 </html>
