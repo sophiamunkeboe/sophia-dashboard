@@ -2466,6 +2466,253 @@ tbody tr.slim-row .employee-buttons { display: none; }
   .coach-metric-grid { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
+<style>
+/* ================================================================
+ *  NAME EDITOR — v1.6.4
+ *  Inline pencil edit on table rows + drawer identity zone
+ *  Backed by leads.name_corrected_at / name_corrected_by
+ * ================================================================ */
+
+/* Pencil button on table name cell — visible on hover */
+.name-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.name-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  border: 1px solid rgba(124,236,255,.20);
+  border-radius: 6px;
+  background: rgba(124,236,255,.05);
+  color: #7cecff;
+  cursor: pointer;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity .15s ease, background .15s ease, transform .15s ease;
+  flex-shrink: 0;
+}
+tbody tr:hover .name-edit-btn { opacity: 0.85; }
+.name-edit-btn:hover {
+  opacity: 1 !important;
+  background: rgba(124,236,255,.18);
+  border-color: rgba(124,236,255,.5);
+  transform: scale(1.08);
+}
+
+/* Indicator that name was already corrected by a human */
+.name-corrected-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  margin-left: 6px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  background: rgba(110,255,168,.14);
+  border: 1px solid rgba(110,255,168,.45);
+  color: #d9ffe8;
+}
+.name-corrected-tag::before {
+  content: '✓';
+  margin-right: 3px;
+  color: #6effa8;
+}
+
+/* Drawer-side bigger edit button */
+.drawer-name-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  margin-left: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  border: 1px solid rgba(124,236,255,.30);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(124,236,255,.10), rgba(124,236,255,.04));
+  color: #c8efff;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: all .15s ease;
+}
+.drawer-name-edit-btn:hover {
+  background: linear-gradient(180deg, rgba(124,236,255,.22), rgba(124,236,255,.08));
+  border-color: rgba(124,236,255,.6);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* The inline editor panel — pops out below the name */
+.name-editor-panel {
+  display: none;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(124,236,255,.08), rgba(2,6,17,.55));
+  border: 1px solid rgba(124,236,255,.40);
+  box-shadow: 0 0 22px rgba(124,236,255,.18) inset;
+}
+.name-editor-panel.open { display: block; animation: nameEditorIn .22s ease both; }
+@keyframes nameEditorIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.name-editor-label {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #8fb4c9;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.name-editor-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.name-suggestion-chip {
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(124,236,255,.22);
+  color: #eef7ff;
+  cursor: pointer;
+  transition: all .15s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.name-suggestion-chip:hover {
+  background: rgba(124,236,255,.14);
+  border-color: rgba(124,236,255,.5);
+}
+.name-suggestion-chip.selected {
+  background: linear-gradient(180deg, rgba(124,236,255,.28), rgba(100,168,255,.16));
+  border-color: rgba(124,236,255,.7);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(124,236,255,.30);
+}
+.name-suggestion-chip .src {
+  font-size: 8px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #8fb4c9;
+  font-weight: 800;
+  background: rgba(0,0,0,.3);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.name-suggestion-chip.selected .src { color: #c8efff; background: rgba(0,0,0,.25); }
+
+.name-editor-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  background: rgba(2,6,17,.65);
+  border: 1px solid rgba(124,236,255,.30);
+  border-radius: 8px;
+  color: #eef7ff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  margin-bottom: 8px;
+}
+.name-editor-input:focus {
+  outline: none;
+  border-color: rgba(124,236,255,.7);
+  box-shadow: 0 0 0 3px rgba(124,236,255,.14);
+}
+
+.name-editor-note-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  background: rgba(2,6,17,.45);
+  border: 1px solid rgba(124,236,255,.18);
+  border-radius: 8px;
+  color: #c8efff;
+  font-size: 11px;
+  font-family: inherit;
+  margin-bottom: 10px;
+}
+.name-editor-note-input::placeholder { color: #6a8499; font-style: italic; }
+
+.name-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.name-editor-actions button {
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid rgba(159,179,200,.28);
+  background: transparent;
+  color: #9fb3c8;
+  transition: all .15s ease;
+}
+.name-editor-actions button:hover {
+  background: rgba(255,255,255,.06);
+  color: #eef7ff;
+}
+.name-editor-actions button.primary {
+  background: linear-gradient(180deg, rgba(124,236,255,.32), rgba(100,168,255,.20));
+  border-color: rgba(124,236,255,.6);
+  color: #fff;
+  box-shadow: 0 0 14px rgba(124,236,255,.25);
+}
+.name-editor-actions button.primary:hover {
+  background: linear-gradient(180deg, rgba(124,236,255,.45), rgba(100,168,255,.30));
+  box-shadow: 0 0 22px rgba(124,236,255,.40);
+}
+.name-editor-actions button:disabled { opacity: .4; cursor: not-allowed; }
+
+/* Floating popover for inline table-row edit */
+.name-edit-popover {
+  position: fixed;
+  z-index: 8500;
+  min-width: 320px;
+  max-width: 420px;
+  padding: 12px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(8,21,45,.97), rgba(5,12,29,.97));
+  border: 1px solid rgba(124,236,255,.45);
+  box-shadow: 0 16px 48px rgba(0,0,0,.6), 0 0 24px rgba(124,236,255,.20);
+  display: none;
+}
+.name-edit-popover.open { display: block; animation: nameEditorIn .18s ease both; }
+.name-edit-popover-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+.name-edit-popover-title {
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #c8d9ef;
+  font-weight: 800;
+}
+.name-edit-popover-close {
+  background: transparent; border: 0;
+  color: #9fb3c8; cursor: pointer;
+  font-size: 16px;
+  padding: 0; line-height: 1;
+}
+.name-edit-popover-close:hover { color: #ff8aa3; }
+</style>
 </head>
 <body>
 <img src="/logo-bg.png" class="background-logo" alt="Sophia background logo" />
@@ -7380,6 +7627,329 @@ window.loadActivityTicker = async function() {
   `).join('');
   content.innerHTML = itemHtml + itemHtml;
 };
+</script>
+<script>
+/* ================================================================
+ *  NAME EDITOR — v1.6.4
+ *  Inline customer name correction with dropdown of smart suggestions
+ *  Backed by leads.full_name + caller_provided_name
+ *  Stamps name_corrected_at / name_corrected_by / name_correction_note
+ * ================================================================ */
+
+let nameEditorContext = null;     // {leadId, mode:'drawer'|'popover', anchorEl}
+let nameEditorSelectedKey = null; // key of the currently-selected suggestion
+
+/* Build the list of smart suggestions for a given lead */
+function buildNameSuggestions(lead) {
+  const seen = new Set();
+  const out = [];
+  const add = (value, source) => {
+    if (!value) return;
+    const v = String(value).trim();
+    if (!v) return;
+    const key = v.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ value: v, source: source });
+  };
+  // Current canonical (from customers table) — strongest signal
+  if (lead.canonical_customer_name) add(lead.canonical_customer_name, 'CANONICAL');
+  // Current full_name
+  if (lead.full_name) add(lead.full_name, 'CURRENT');
+  // What the caller actually said (if AI revised it)
+  if (lead.caller_provided_name) add(lead.caller_provided_name, 'CALLER SAID');
+  // Original AI version stored from a previous correction
+  if (lead.ai_original_name) add(lead.ai_original_name, 'AI ORIGINAL');
+  // Business name as a candidate (some clients only have a business)
+  if (lead.business_name) add(lead.business_name, 'BUSINESS');
+  // Try splitting full_name into first/last in case AI captured a phrase
+  if (lead.full_name) {
+    const parts = String(lead.full_name).trim().split(/\s+/);
+    if (parts.length >= 2) {
+      add(parts[0], 'FIRST WORD');
+      add(parts[parts.length - 1], 'LAST WORD');
+    }
+  }
+  // Email-derived first name (e.g. "claire.smith@..." → "Claire")
+  if (lead.email && lead.email.includes('@')) {
+    const local = lead.email.split('@')[0];
+    const first = local.split(/[\._\-\d]/)[0];
+    if (first && first.length >= 2 && first.length <= 30) {
+      const cap = first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+      add(cap, 'FROM EMAIL');
+    }
+  }
+  return out;
+}
+
+/* Render the editor body — used by both drawer and popover modes */
+function renderNameEditorBody(lead, options) {
+  options = options || {};
+  const suggestions = buildNameSuggestions(lead);
+  const currentName = lead.full_name || '';
+  const chips = suggestions.map((s, i) => `
+    <button type="button" class="name-suggestion-chip${i === 0 ? ' selected' : ''}"
+            data-key="${escapeHtml(s.value)}"
+            onclick="pickNameSuggestion(this)">
+      <span>${escapeHtml(s.value)}</span>
+      <span class="src">${escapeHtml(s.source)}</span>
+    </button>
+  `).join('');
+  // Initial selected key = first suggestion
+  nameEditorSelectedKey = suggestions.length ? suggestions[0].value : currentName;
+  return `
+    <div class="name-editor-label">Pick a suggested name or type your own</div>
+    <div class="name-editor-suggestions" id="nameEditorSuggestions">
+      ${chips || '<span style="font-size:11px;color:#8fb4c9;">No auto-suggestions available — type below.</span>'}
+    </div>
+    <div class="name-editor-label">Custom name</div>
+    <input type="text" class="name-editor-input" id="nameEditorInput"
+           placeholder="Type the correct name…"
+           value="${escapeHtml(nameEditorSelectedKey || '')}"
+           oninput="nameEditorSelectedKey = this.value;" />
+    <input type="text" class="name-editor-note-input" id="nameEditorNote"
+           placeholder="Optional: why? (e.g. 'AI heard wrong', 'Caller's spouse')" />
+    <div class="name-editor-actions">
+      <button type="button" onclick="closeNameEditor()">Cancel</button>
+      <button type="button" class="primary" onclick="saveNameCorrection()">✓ Save name</button>
+    </div>
+  `;
+}
+
+function pickNameSuggestion(btnEl) {
+  document.querySelectorAll('#nameEditorSuggestions .name-suggestion-chip').forEach(b => b.classList.remove('selected'));
+  btnEl.classList.add('selected');
+  nameEditorSelectedKey = btnEl.dataset.key;
+  const inp = document.getElementById('nameEditorInput');
+  if (inp) inp.value = nameEditorSelectedKey;
+}
+
+/* Open the editor inline within the drawer identity zone */
+function openNameEditorInDrawer() {
+  if (!currentDrawerLead) return;
+  // Make sure the panel container exists
+  let panel = document.getElementById('drawerNameEditorPanel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'drawerNameEditorPanel';
+    panel.className = 'name-editor-panel';
+    const identity = document.querySelector('.drawer-identity');
+    if (!identity) { showSaveBanner('Drawer not open', true); return; }
+    identity.appendChild(panel);
+  }
+  panel.innerHTML = renderNameEditorBody(currentDrawerLead);
+  panel.classList.add('open');
+  nameEditorContext = { leadId: currentDrawerLead.id, mode: 'drawer' };
+  setTimeout(() => {
+    const inp = document.getElementById('nameEditorInput');
+    if (inp) { inp.focus(); inp.select(); }
+  }, 50);
+}
+
+/* Open the floating popover from a table row click */
+function openNameEditorPopover(leadId, anchorEl, ev) {
+  if (ev) ev.stopPropagation();
+  const lead = allLeads.find(l => l.id === leadId);
+  if (!lead) return;
+  closeNameEditor(); // close any other open editor
+
+  let pop = document.getElementById('nameEditorPopover');
+  if (!pop) {
+    pop = document.createElement('div');
+    pop.id = 'nameEditorPopover';
+    pop.className = 'name-edit-popover';
+    pop.onclick = (e) => e.stopPropagation();
+    document.body.appendChild(pop);
+  }
+  pop.innerHTML = `
+    <div class="name-edit-popover-header">
+      <div class="name-edit-popover-title">✎ Correct customer name</div>
+      <button type="button" class="name-edit-popover-close" onclick="closeNameEditor()">×</button>
+    </div>
+    ${renderNameEditorBody(lead)}
+  `;
+
+  // Position the popover near the anchor element
+  const rect = anchorEl.getBoundingClientRect();
+  const popWidth = 380;
+  let left = rect.left;
+  if (left + popWidth > window.innerWidth - 16) left = window.innerWidth - popWidth - 16;
+  if (left < 16) left = 16;
+  let top = rect.bottom + 8;
+  if (top + 320 > window.innerHeight) top = Math.max(16, rect.top - 320 - 8);
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  pop.classList.add('open');
+
+  nameEditorContext = { leadId: leadId, mode: 'popover' };
+  setTimeout(() => {
+    const inp = document.getElementById('nameEditorInput');
+    if (inp) { inp.focus(); inp.select(); }
+  }, 50);
+}
+
+function closeNameEditor() {
+  const drawerPanel = document.getElementById('drawerNameEditorPanel');
+  if (drawerPanel) drawerPanel.classList.remove('open');
+  const pop = document.getElementById('nameEditorPopover');
+  if (pop) pop.classList.remove('open');
+  nameEditorContext = null;
+  nameEditorSelectedKey = null;
+}
+
+async function saveNameCorrection() {
+  if (!nameEditorContext) return;
+  const leadId = nameEditorContext.leadId;
+  const lead = allLeads.find(l => l.id === leadId);
+  if (!lead) { showSaveBanner('Lead not found', true); closeNameEditor(); return; }
+
+  const inp = document.getElementById('nameEditorInput');
+  const noteInp = document.getElementById('nameEditorNote');
+  const newName = (inp?.value || '').trim();
+  const note = (noteInp?.value || '').trim() || null;
+
+  if (!newName) { showSaveBanner('Name cannot be empty', true); return; }
+  if (newName.length > 200) { showSaveBanner('Name too long (max 200 chars)', true); return; }
+
+  // No-op if unchanged
+  if (newName === (lead.full_name || '')) {
+    showSaveBanner('Name unchanged');
+    closeNameEditor();
+    return;
+  }
+
+  const nowIso = new Date().toISOString();
+  const updatePayload = {
+    full_name: newName,
+    name_corrected_at: nowIso,
+    name_corrected_by: 'manager',
+    name_correction_note: note
+  };
+  // Preserve the original AI name if not already preserved
+  if (!lead.caller_provided_name && lead.full_name) {
+    updatePayload.caller_provided_name = lead.full_name;
+  }
+
+  const { error } = await sb.from('leads').update(updatePayload).eq('id', leadId);
+  if (error) { showSaveBanner('Save failed: ' + error.message, true); return; }
+
+  // Update the local cache so the UI reflects immediately
+  Object.assign(lead, updatePayload);
+  lead.name_was_corrected = true;
+
+  // Audit trail
+  await logStaffAction({
+    actor: 'manager',
+    action_type: 'name_corrected',
+    target_id: leadId,
+    target_label: newName,
+    company_key: lead.company_key,
+    detail: {
+      previous_name: updatePayload.caller_provided_name || lead.caller_provided_name || null,
+      new_name: newName,
+      note: note
+    }
+  });
+
+  // Refresh visible UI
+  renderTable();
+  if (currentDrawerLead && currentDrawerLead.id === leadId) {
+    // Reflect in drawer header
+    const titleEl = document.getElementById('drawerCustomerName');
+    if (titleEl) titleEl.textContent = newName;
+    // Update caller_said line
+    const callerSaid = document.getElementById('drawerCallerSaid');
+    if (callerSaid && updatePayload.caller_provided_name) {
+      callerSaid.textContent = `caller said: "${updatePayload.caller_provided_name}"`;
+      callerSaid.style.display = '';
+    }
+    // Hide mismatch flag
+    const mismatch = document.getElementById('drawerNameMismatch');
+    if (mismatch) mismatch.style.display = 'none';
+  }
+
+  showSaveBanner(`✓ Name corrected to "${newName}"`);
+  closeNameEditor();
+}
+
+/* ================================================================
+ *  Inject the pencil button into the table name cell
+ *  Done via wrapping renderLeadRow's output post-hoc, since the row
+ *  HTML is built as a string. Easier: hook into the row after render.
+ * ================================================================ */
+const _origRenderTable = window.renderTable;
+window.renderTable = function() {
+  _origRenderTable.call(this);
+  // After table renders, inject pencil + corrected-tag into each name cell
+  document.querySelectorAll('tbody tr[data-lead-id]').forEach(tr => {
+    const nameCell = tr.querySelector('.name-cell');
+    if (!nameCell) return;
+    if (nameCell.querySelector('.name-edit-btn')) return; // already injected
+    const leadId = tr.getAttribute('data-lead-id');
+    const lead = allLeads.find(l => l.id === leadId);
+    if (!lead) return;
+
+    // Append corrected tag if applicable
+    if (lead.name_was_corrected && !nameCell.querySelector('.name-corrected-tag')) {
+      const tag = document.createElement('span');
+      tag.className = 'name-corrected-tag';
+      tag.title = lead.name_correction_note ? `Corrected: ${lead.name_correction_note}` : 'Name was corrected by a human';
+      tag.textContent = 'CORRECTED';
+      nameCell.appendChild(tag);
+    }
+
+    // Append pencil button
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'name-edit-btn';
+    btn.title = 'Edit name';
+    btn.innerHTML = '✎';
+    btn.onclick = (ev) => openNameEditorPopover(leadId, btn, ev);
+    nameCell.appendChild(btn);
+  });
+};
+
+/* ================================================================
+ *  Inject the EDIT button into the drawer identity zone
+ *  Wrap openDrawer to add the button after each open
+ * ================================================================ */
+const _origOpenDrawerForName = window.openDrawer;
+window.openDrawer = async function(id) {
+  await _origOpenDrawerForName.call(this, id);
+  setTimeout(() => {
+    const titleEl = document.getElementById('drawerCustomerName');
+    if (!titleEl) return;
+    // Make sure the title is followed by an edit button
+    let btn = document.getElementById('drawerNameEditBtn');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'drawerNameEditBtn';
+      btn.className = 'drawer-name-edit-btn';
+      btn.innerHTML = '✎ Edit name';
+      btn.onclick = (ev) => { ev.stopPropagation(); openNameEditorInDrawer(); };
+      titleEl.parentNode.insertBefore(btn, titleEl.nextSibling);
+    }
+    // Close any leftover editor from a prior drawer session
+    const oldPanel = document.getElementById('drawerNameEditorPanel');
+    if (oldPanel) oldPanel.classList.remove('open');
+  }, 60);
+};
+
+/* ================================================================
+ *  Close on outside click / ESC
+ * ================================================================ */
+document.addEventListener('click', (ev) => {
+  if (!nameEditorContext) return;
+  if (nameEditorContext.mode !== 'popover') return;
+  const pop = document.getElementById('nameEditorPopover');
+  if (pop && !pop.contains(ev.target)) closeNameEditor();
+});
+document.addEventListener('keydown', (ev) => {
+  if (!nameEditorContext) return;
+  if (ev.key === 'Escape') closeNameEditor();
+  if (ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)) saveNameCorrection();
+});
 </script>
 
 </body>
