@@ -2461,6 +2461,240 @@ tbody tr.slim-row .employee-buttons { display: none; }
 .coach-history-row .label { color: #8fb4c9; }
 .coach-history-row .val { font-weight: 700; }
 
+/* ============================================================
+ *  COMPACT MODE — v1.6.9
+ *  When body has class .leads-compact, hide non-essential cols
+ *  in the Live Leads table. Keeps Company / Source / Name / Phone
+ *  visible plus a tiny Status pill. Click row to see all details.
+ *  ============================================================ */
+body.leads-compact .slim-table th:nth-child(5),  /* Event Date */
+body.leads-compact .slim-table th:nth-child(6),  /* Products */
+body.leads-compact .slim-table th:nth-child(7),  /* Route */
+body.leads-compact .slim-table th:nth-child(9),  /* Signals */
+body.leads-compact .slim-table th:nth-child(10), /* Assigned */
+body.leads-compact .slim-table th:nth-child(11), /* Follow Up */
+body.leads-compact .slim-table th:nth-child(12), /* Assign */
+body.leads-compact .slim-table th:nth-child(13), /* Done */
+body.leads-compact .slim-table th:nth-child(14), /* Received */
+body.leads-compact .slim-table td:nth-child(5),
+body.leads-compact .slim-table td:nth-child(6),
+body.leads-compact .slim-table td:nth-child(7),
+body.leads-compact .slim-table td:nth-child(9),
+body.leads-compact .slim-table td:nth-child(10),
+body.leads-compact .slim-table td:nth-child(11),
+body.leads-compact .slim-table td:nth-child(12),
+body.leads-compact .slim-table td:nth-child(13),
+body.leads-compact .slim-table td:nth-child(14) {
+  display: none !important;
+}
+body.leads-compact .slim-table {
+  table-layout: auto;
+}
+body.leads-compact #leadsCompactToggle {
+  background: linear-gradient(180deg, rgba(124,236,255,.20), rgba(124,236,255,.10));
+  border-color: rgba(124,236,255,.45);
+  color: #cbe7f5;
+}
+
+/* Click-to-copy for order/quote numbers */
+.copy-num {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  border-radius: 4px;
+  padding: 1px 5px;
+  background: rgba(124,236,255,.06);
+  border: 1px solid rgba(124,236,255,.18);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: .92em;
+  letter-spacing: .02em;
+  transition: all .15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.copy-num:hover {
+  background: rgba(124,236,255,.16);
+  border-color: rgba(124,236,255,.45);
+  color: #fff;
+}
+.copy-num::after {
+  content: "📋";
+  opacity: .55;
+  font-size: .85em;
+  margin-left: 2px;
+}
+.copy-num.just-copied {
+  background: rgba(124,255,168,.20);
+  border-color: rgba(124,255,168,.55);
+  color: #b8ffc8;
+}
+.copy-num.just-copied::after {
+  content: "✓";
+  opacity: 1;
+  color: #7cffa8;
+}
+
+/* ============================================================
+ *  COMMS DRAWER — v1.6.9 NEW (leftmost)
+ *  Email + Text history beside the main client detail
+ *  ============================================================ */
+.comms-drawer {
+  position: fixed;
+  top: 0;
+  left: -560px;
+  bottom: 0;
+  width: 540px;
+  max-width: 90vw;
+  background: linear-gradient(180deg, #0a1320 0%, #0d1828 100%);
+  border-right: 1px solid rgba(124,236,255,.18);
+  z-index: 9985;
+  transition: left .26s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 8px 0 30px rgba(0,0,0,.6);
+}
+.comms-drawer.open { left: 0; }
+.comms-drawer-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(124,236,255,.14);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(180deg, rgba(124,236,255,.06), transparent);
+}
+.comms-drawer-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #cbe7f5;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.comms-drawer-customer {
+  font-size: 12px;
+  color: #8fb4c9;
+  margin-top: 2px;
+}
+.comms-drawer-close {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(124,236,255,.20);
+  color: #8fb4c9;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+.comms-drawer-close:hover {
+  background: rgba(255,255,255,.10);
+  color: #fff;
+}
+.comms-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.comms-section {
+  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(124,236,255,.14);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+}
+.comms-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #cbe7f5;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(124,236,255,.12);
+}
+.comms-section-head .count-badge {
+  background: rgba(124,236,255,.12);
+  color: #cbe7f5;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.comms-section-body {
+  flex: 1;
+  overflow-y: auto;
+  font-size: 13px;
+  color: #cbe7f5;
+}
+.comms-empty {
+  text-align: center;
+  padding: 32px 12px;
+  color: #6a8ba0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.comms-empty .icon { font-size: 32px; opacity: .35; display: block; margin-bottom: 8px; }
+.comms-empty strong { color: #8fb4c9; display: block; margin-bottom: 4px; font-size: 13px; }
+.comms-msg {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: rgba(124,236,255,.05);
+  border-left: 3px solid rgba(124,236,255,.35);
+}
+.comms-msg.outbound {
+  background: rgba(184,156,255,.06);
+  border-left-color: rgba(184,156,255,.40);
+  margin-left: 24px;
+}
+.comms-msg .msg-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #8fb4c9;
+  margin-bottom: 4px;
+}
+.comms-msg .msg-body {
+  font-size: 13px;
+  color: #e5f1f8;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+/* PHANTOM CALLER — likely-customer chip on lead rows */
+.phantom-likely {
+  display: inline-block;
+  padding: 1px 6px;
+  margin-left: 6px;
+  background: rgba(255,212,106,.10);
+  border: 1px solid rgba(255,212,106,.35);
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #ffd46a;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.phantom-source {
+  font-size: 10px;
+  color: #ffd46a;
+  margin-left: 4px;
+  opacity: .8;
+}
+
 @media (max-width: 720px) {
   .coach-report-wrap { grid-template-columns: 1fr; }
   .coach-metric-grid { grid-template-columns: repeat(2, 1fr); }
@@ -4937,240 +5171,6 @@ function renderLastSeenMeta(lead) {
   const what = (lead.last_action_kind || 'activity').replace(/_/g,' ');
   const when = fmtRelativeTime(lead.last_action_at);
   return `<span class="last-seen-meta">Last seen <strong>${escapeHtml(who)}</strong> · ${escapeHtml(what)} · ${escapeHtml(when)}</span>`;
-}
-
-/* ============================================================
- *  COMPACT MODE — v1.6.9
- *  When body has class .leads-compact, hide non-essential cols
- *  in the Live Leads table. Keeps Company / Source / Name / Phone
- *  visible plus a tiny Status pill. Click row to see all details.
- *  ============================================================ */
-body.leads-compact .slim-table th:nth-child(5),  /* Event Date */
-body.leads-compact .slim-table th:nth-child(6),  /* Products */
-body.leads-compact .slim-table th:nth-child(7),  /* Route */
-body.leads-compact .slim-table th:nth-child(9),  /* Signals */
-body.leads-compact .slim-table th:nth-child(10), /* Assigned */
-body.leads-compact .slim-table th:nth-child(11), /* Follow Up */
-body.leads-compact .slim-table th:nth-child(12), /* Assign */
-body.leads-compact .slim-table th:nth-child(13), /* Done */
-body.leads-compact .slim-table th:nth-child(14), /* Received */
-body.leads-compact .slim-table td:nth-child(5),
-body.leads-compact .slim-table td:nth-child(6),
-body.leads-compact .slim-table td:nth-child(7),
-body.leads-compact .slim-table td:nth-child(9),
-body.leads-compact .slim-table td:nth-child(10),
-body.leads-compact .slim-table td:nth-child(11),
-body.leads-compact .slim-table td:nth-child(12),
-body.leads-compact .slim-table td:nth-child(13),
-body.leads-compact .slim-table td:nth-child(14) {
-  display: none !important;
-}
-body.leads-compact .slim-table {
-  table-layout: auto;
-}
-body.leads-compact #leadsCompactToggle {
-  background: linear-gradient(180deg, rgba(124,236,255,.20), rgba(124,236,255,.10));
-  border-color: rgba(124,236,255,.45);
-  color: #cbe7f5;
-}
-
-/* Click-to-copy for order/quote numbers */
-.copy-num {
-  cursor: pointer;
-  user-select: none;
-  position: relative;
-  border-radius: 4px;
-  padding: 1px 5px;
-  background: rgba(124,236,255,.06);
-  border: 1px solid rgba(124,236,255,.18);
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: .92em;
-  letter-spacing: .02em;
-  transition: all .15s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.copy-num:hover {
-  background: rgba(124,236,255,.16);
-  border-color: rgba(124,236,255,.45);
-  color: #fff;
-}
-.copy-num::after {
-  content: "📋";
-  opacity: .55;
-  font-size: .85em;
-  margin-left: 2px;
-}
-.copy-num.just-copied {
-  background: rgba(124,255,168,.20);
-  border-color: rgba(124,255,168,.55);
-  color: #b8ffc8;
-}
-.copy-num.just-copied::after {
-  content: "✓";
-  opacity: 1;
-  color: #7cffa8;
-}
-
-/* ============================================================
- *  COMMS DRAWER — v1.6.9 NEW (leftmost)
- *  Email + Text history beside the main client detail
- *  ============================================================ */
-.comms-drawer {
-  position: fixed;
-  top: 0;
-  left: -560px;
-  bottom: 0;
-  width: 540px;
-  max-width: 90vw;
-  background: linear-gradient(180deg, #0a1320 0%, #0d1828 100%);
-  border-right: 1px solid rgba(124,236,255,.18);
-  z-index: 9985;
-  transition: left .26s cubic-bezier(.4,0,.2,1);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 8px 0 30px rgba(0,0,0,.6);
-}
-.comms-drawer.open { left: 0; }
-.comms-drawer-head {
-  padding: 14px 18px;
-  border-bottom: 1px solid rgba(124,236,255,.14);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(180deg, rgba(124,236,255,.06), transparent);
-}
-.comms-drawer-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #cbe7f5;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-.comms-drawer-customer {
-  font-size: 12px;
-  color: #8fb4c9;
-  margin-top: 2px;
-}
-.comms-drawer-close {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(124,236,255,.20);
-  color: #8fb4c9;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-}
-.comms-drawer-close:hover {
-  background: rgba(255,255,255,.10);
-  color: #fff;
-}
-.comms-drawer-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.comms-section {
-  background: rgba(255,255,255,.02);
-  border: 1px solid rgba(124,236,255,.14);
-  border-radius: 10px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  min-height: 220px;
-}
-.comms-section-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: #cbe7f5;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(124,236,255,.12);
-}
-.comms-section-head .count-badge {
-  background: rgba(124,236,255,.12);
-  color: #cbe7f5;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0;
-}
-.comms-section-body {
-  flex: 1;
-  overflow-y: auto;
-  font-size: 13px;
-  color: #cbe7f5;
-}
-.comms-empty {
-  text-align: center;
-  padding: 32px 12px;
-  color: #6a8ba0;
-  font-size: 12px;
-  line-height: 1.6;
-}
-.comms-empty .icon { font-size: 32px; opacity: .35; display: block; margin-bottom: 8px; }
-.comms-empty strong { color: #8fb4c9; display: block; margin-bottom: 4px; font-size: 13px; }
-.comms-msg {
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  border-radius: 8px;
-  background: rgba(124,236,255,.05);
-  border-left: 3px solid rgba(124,236,255,.35);
-}
-.comms-msg.outbound {
-  background: rgba(184,156,255,.06);
-  border-left-color: rgba(184,156,255,.40);
-  margin-left: 24px;
-}
-.comms-msg .msg-head {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: #8fb4c9;
-  margin-bottom: 4px;
-}
-.comms-msg .msg-body {
-  font-size: 13px;
-  color: #e5f1f8;
-  line-height: 1.45;
-  white-space: pre-wrap;
-}
-
-/* PHANTOM CALLER — likely-customer chip on lead rows */
-.phantom-likely {
-  display: inline-block;
-  padding: 1px 6px;
-  margin-left: 6px;
-  background: rgba(255,212,106,.10);
-  border: 1px solid rgba(255,212,106,.35);
-  border-radius: 4px;
-  font-size: 9px;
-  font-weight: 700;
-  color: #ffd46a;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-.phantom-source {
-  font-size: 10px;
-  color: #ffd46a;
-  margin-left: 4px;
-  opacity: .8;
 }
 
 /* AGING THRESHOLDS — v1.6.3 calmer schedule (1 hour to ON FIRE)
