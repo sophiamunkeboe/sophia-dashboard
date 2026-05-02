@@ -242,7 +242,243 @@ font-weight: 700;
 }
 
 /* LIVE TICKER */
-.live-ticker-bar {
+/* ============================================================
+ *  FIREWORKS + CELEBRATION OVERLAY — v1.7.5
+ * ============================================================ */
+.fireworks-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9000;
+  background: transparent;
+}
+.celebration-banner {
+  position: fixed;
+  top: 35%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(.7);
+  background: linear-gradient(135deg, rgba(124,236,255,.18), rgba(184,156,255,.18), rgba(255,215,0,.18));
+  border: 2px solid rgba(255,215,0,.60);
+  border-radius: 24px;
+  padding: 28px 56px;
+  text-align: center;
+  z-index: 9001;
+  box-shadow: 0 0 60px rgba(255,215,0,.50), 0 20px 80px rgba(0,0,0,.6);
+  backdrop-filter: blur(20px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .4s ease, transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+.celebration-banner.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.celebration-banner-text {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(255,215,0,.80), 0 0 40px rgba(255,215,0,.40);
+  margin-bottom: 8px;
+  animation: celebrationPulse 1.6s ease-in-out infinite;
+}
+.celebration-banner-sub {
+  font-size: 16px;
+  color: #ffd700;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+@keyframes celebrationPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+/* ============================================================
+ *  TWIN CHAT BOXES — v1.7.5
+ *  Replaces the horizontal marquee with two slim scroll-up
+ *  chat-style feeds: Live Calls (left) and Team Vibes (right)
+ * ============================================================ */
+.twin-chat-bar {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  height: 110px;
+  flex: 1;
+  min-width: 0;
+}
+.chat-box {
+  flex: 1;
+  min-width: 0;
+  max-width: 380px;
+  background: linear-gradient(180deg, rgba(8,16,30,.85), rgba(10,20,38,.78));
+  border: 1px solid rgba(124,236,255,.18);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,.30), inset 0 0 30px rgba(124,236,255,.04);
+  position: relative;
+}
+.chat-box-vibes {
+  border-color: rgba(184,156,255,.22);
+  background: linear-gradient(180deg, rgba(14,8,28,.85), rgba(20,10,38,.78));
+  box-shadow: 0 6px 20px rgba(0,0,0,.30), inset 0 0 30px rgba(184,156,255,.05);
+}
+.chat-box-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-bottom: 1px solid rgba(124,236,255,.12);
+  background: linear-gradient(180deg, rgba(124,236,255,.08), rgba(124,236,255,.02));
+  height: 24px;
+  flex-shrink: 0;
+}
+.chat-box-vibes .chat-box-head {
+  border-bottom-color: rgba(184,156,255,.14);
+  background: linear-gradient(180deg, rgba(184,156,255,.10), rgba(184,156,255,.02));
+}
+.chat-box-icon { font-size: 12px; line-height: 1; }
+.chat-box-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  color: #cbe7f5;
+  flex: 1;
+}
+.chat-box-vibes .chat-box-label { color: #d4c2ff; }
+.chat-box-pulse {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #ff5a78;
+  box-shadow: 0 0 8px rgba(255,90,120,.7);
+  animation: chatPulse 1.6s ease-in-out infinite;
+}
+@keyframes chatPulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.chat-vibe-post-btn {
+  background: rgba(184,156,255,.18);
+  border: 1px solid rgba(184,156,255,.40);
+  color: #d4c2ff;
+  font-size: 12px;
+  font-weight: 700;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0; line-height: 1;
+  transition: all .15s ease;
+}
+.chat-vibe-post-btn:hover {
+  background: rgba(184,156,255,.35);
+  color: #fff;
+  transform: scale(1.1);
+}
+.chat-box-stream {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column-reverse;  /* newest at the bottom, scroll up = older */
+  gap: 4px;
+  scroll-behavior: smooth;
+}
+.chat-box-stream::-webkit-scrollbar { width: 4px; }
+.chat-box-stream::-webkit-scrollbar-thumb { background: rgba(124,236,255,.20); border-radius: 2px; }
+.chat-msg {
+  font-size: 11px;
+  line-height: 1.35;
+  color: #dfeaf6;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: rgba(124,236,255,.04);
+  border-left: 2px solid rgba(124,236,255,.30);
+  animation: chatMsgIn .35s ease-out;
+}
+.chat-box-vibes .chat-msg {
+  background: rgba(184,156,255,.04);
+  border-left-color: rgba(184,156,255,.30);
+}
+@keyframes chatMsgIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.chat-msg-time {
+  font-size: 9px;
+  color: #8fb4c9;
+  margin-left: 6px;
+  opacity: .8;
+}
+.chat-msg-actor {
+  font-weight: 700;
+  margin-right: 4px;
+}
+.chat-msg-empty {
+  font-size: 10px;
+  color: #6e7e92;
+  text-align: center;
+  padding: 16px 6px;
+  opacity: .6;
+}
+.chat-msg-system {
+  background: rgba(255,212,106,.06);
+  border-left-color: rgba(255,212,106,.40);
+  color: #fff1c9;
+  font-style: italic;
+}
+.chat-msg-vibe-joke {
+  background: rgba(110,255,168,.04);
+  border-left-color: rgba(110,255,168,.30);
+}
+.chat-msg-vibe-motivation {
+  background: rgba(255,212,106,.05);
+  border-left-color: rgba(255,212,106,.40);
+}
+.chat-msg-celebration {
+  background: linear-gradient(90deg, rgba(255,215,0,.10), rgba(110,255,168,.10));
+  border-left: 3px solid #ffd700;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* Manual post input bar */
+.chat-vibe-input-wrap {
+  display: flex;
+  gap: 4px;
+  padding: 4px 6px;
+  border-top: 1px solid rgba(184,156,255,.20);
+  background: rgba(184,156,255,.05);
+  flex-shrink: 0;
+}
+.chat-vibe-input {
+  flex: 1;
+  background: rgba(2,6,17,.5);
+  border: 1px solid rgba(184,156,255,.30);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 11px;
+  padding: 4px 8px;
+  outline: none;
+}
+.chat-vibe-input:focus { border-color: rgba(184,156,255,.60); }
+.chat-vibe-send, .chat-vibe-cancel {
+  background: rgba(184,156,255,.20);
+  border: 1px solid rgba(184,156,255,.40);
+  color: #d4c2ff;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0 8px;
+  transition: all .15s ease;
+}
+.chat-vibe-send:hover { background: rgba(184,156,255,.40); color: #fff; }
+.chat-vibe-cancel { color: #ff8aa3; border-color: rgba(255,138,163,.30); }
+.chat-vibe-cancel:hover { background: rgba(255,138,163,.20); }
+
+/* HIDE the old marquee CSS just in case any leftover refs (no harm if absent) */
+.live-ticker-bar { display: none !important; }
+
+.live-ticker-bar-OLD {
 flex: 1 1 280px;
 min-width: 220px;
 height: 40px;
@@ -1885,6 +2121,22 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 .tiny-route { display: inline-flex; margin-top: 8px; }
 
 /* ITEM CHIPS / DOLLAR / SIGNALS */
+/* v1.7.5: tighter column widths so all 13 columns fit on standard monitors */
+.slim-table th, .slim-table td { white-space: nowrap; }
+.slim-table th:nth-child(1), .slim-table td:nth-child(1) { width: 90px; max-width: 110px; }   /* Company */
+.slim-table th:nth-child(2), .slim-table td:nth-child(2) { width: 70px; max-width: 90px; }    /* Source */
+.slim-table th:nth-child(3), .slim-table td:nth-child(3) { width: auto; max-width: 200px; white-space: normal; }   /* Name (allow wrap) */
+.slim-table th:nth-child(4), .slim-table td:nth-child(4) { width: 130px; }                    /* Phone */
+.slim-table th:nth-child(5), .slim-table td:nth-child(5) { width: 96px; font-size: 12px; }    /* Event Date */
+.slim-table th:nth-child(6), .slim-table td:nth-child(6) { width: 110px; }                    /* Route */
+.slim-table th:nth-child(7), .slim-table td:nth-child(7) { width: 80px; }                     /* Status */
+.slim-table th:nth-child(8), .slim-table td:nth-child(8) { width: auto; min-width: 110px; }   /* Signals */
+.slim-table th:nth-child(9), .slim-table td:nth-child(9) { width: 84px; font-size: 12px; }    /* Assigned */
+.slim-table th:nth-child(10), .slim-table td:nth-child(10) { width: 76px; font-size: 11px; }  /* Follow Up */
+.slim-table th:nth-child(11), .slim-table td:nth-child(11) { width: 88px; }                   /* Assign */
+.slim-table th:nth-child(12), .slim-table td:nth-child(12) { width: 56px; }                   /* Done */
+.slim-table th:nth-child(13), .slim-table td:nth-child(13) { width: 76px; font-size: 11px; }  /* Received */
+.slim-table th { font-size: 11px; padding: 8px 10px; }
 tbody tr.slim-row { height: 56px; }
 tbody tr.slim-row td { padding: 8px 14px; vertical-align: middle; font-size: 13px; }
 .item-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .04em; border: 1px solid rgba(255,255,255,.10); white-space: nowrap; line-height: 1; }
@@ -3716,6 +3968,13 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </style>
 </head>
 <body>
+<!-- v1.7.5: Fireworks celebration overlay -->
+<canvas id="fireworksCanvas" class="fireworks-canvas" style="display:none;"></canvas>
+<div id="celebrationBanner" class="celebration-banner" style="display:none;">
+  <div class="celebration-banner-text" id="celebrationBannerText">🎉 MILESTONE HIT 🎉</div>
+  <div class="celebration-banner-sub" id="celebrationBannerSub">Daily $2,500 deposit threshold crossed!</div>
+</div>
+
 <img src="/logo-bg.png" class="background-logo" alt="Sophia background logo" />
 
 <div class="app-shell">
@@ -3730,11 +3989,32 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </div>
 
 <div class="header-right">
-<div class="live-ticker-bar" id="liveTickerBar">
-  <div class="live-ticker-label">LIVE</div>
-  <div class="live-ticker-track">
-    <div class="live-ticker-content" id="liveTickerContent">
-      <span class="ticker-item"><span class="icon">⚡</span><span class="who">Sophia</span><span class="what"> is online — feeding RentMaster every 2 min</span><span class="when"> · just now</span></span>
+<!-- v1.7.5: twin chat boxes replace the horizontal marquee.
+     Both stream upward like a chat room. -->
+<div class="twin-chat-bar">
+  <div class="chat-box chat-box-calls" id="chatBoxCalls" title="Live call activity across all brands">
+    <div class="chat-box-head">
+      <span class="chat-box-icon">📞</span>
+      <span class="chat-box-label">LIVE CALLS</span>
+      <span class="chat-box-pulse"></span>
+    </div>
+    <div class="chat-box-stream" id="chatBoxCallsStream">
+      <div class="chat-msg-empty">Waiting for activity…</div>
+    </div>
+  </div>
+  <div class="chat-box chat-box-vibes" id="chatBoxVibes" title="Team vibes — wins, losses, jokes, motivation">
+    <div class="chat-box-head">
+      <span class="chat-box-icon">✨</span>
+      <span class="chat-box-label">TEAM VIBES</span>
+      <button class="chat-vibe-post-btn" id="chatVibePostBtn" onclick="openVibePostBox()" title="Post a message to the team">+</button>
+    </div>
+    <div class="chat-box-stream" id="chatBoxVibesStream">
+      <div class="chat-msg-empty">Setting the mood…</div>
+    </div>
+    <div class="chat-vibe-input-wrap" id="chatVibeInputWrap" style="display:none;">
+      <input id="chatVibeInput" class="chat-vibe-input" placeholder="Hey team…" maxlength="280" onkeydown="if(event.key==='Enter') postVibeMessage()" />
+      <button class="chat-vibe-send" onclick="postVibeMessage()">↑</button>
+      <button class="chat-vibe-cancel" onclick="closeVibePostBox()">×</button>
     </div>
   </div>
 </div>
@@ -3752,7 +4032,7 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.4</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.5</span></div>
 </div>
 </div>
 </div>
@@ -5362,6 +5642,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   await safe('renderTable',         async () => renderTable());
   await safe('setupRealtime',       async () => setupRealtime());
   await safe('loadActivityTicker',  loadActivityTicker);
+  // v1.7.5: kick off milestone polling + mid-day vibe check
+  try { startMilestonePolling(); } catch (e) { console.warn('[boot] milestone polling', e); }
+  try { checkMidDayVibe(); setInterval(checkMidDayVibe, 5 * 60000); } catch (e) {}
   await safe('loadKudosData',       loadKudosData);
   await safe('loadRoutingCockpit',  loadRoutingCockpit);
   setupGlobalKeyHandlers();
@@ -6907,6 +7190,33 @@ function renderRoutingRow(o, dotColor) {
 <script>
 /* ============================================================
  *  RAIL PANELS
+ *
+ *  v1.7.5 (2026-05-02)
+ *  - FIX: Route column now shows colored pills again (was plain text).
+ *    The post-render code had `cells.length < 14` guard that fell
+ *    through after Products column removal. Updated to 13 + shifted
+ *    Route cell index from 6 to 5.
+ *  - TIGHTER: Live Leads column widths set explicitly via :nth-child
+ *    selectors. All 13 columns now fit on standard monitors.
+ *  - REPLACED: horizontal marquee at top with TWIN CHAT BOXES,
+ *    side-by-side, slim chat-room style:
+ *      LEFT — 📞 LIVE CALLS: real-time call activity from leads table
+ *      RIGHT — ✨ TEAM VIBES: auto events from staff_actions +
+ *              rotating canned jokes/motivation/tips +
+ *              manual posts (click + button to type a message)
+ *    Both update via Supabase realtime (no refresh needed).
+ *  - NEW: 🎆 FIREWORKS celebration overlay. When today is daily
+ *    deposit total crosses $2,500 ($5k, $10k tiers also), a fresh
+ *    milestone fires: 6-second canvas fireworks (cyan/magenta/gold
+ *    particles), gold celebration banner, and a system vibe message
+ *    posted to the Team Vibes feed. One-shot per day per tier.
+ *  - NEW: Mid-day vibe — between 12pm-2pm Phoenix time, Sophia drops
+ *    a midday motivation message into Team Vibes once per day.
+ *  - DB: new tables team_chat_messages, daily_milestones,
+ *    team_vibe_seeds. New functions check_daily_milestones() and
+ *    mark_milestone_celebrated(). Fixed v_activity_feed view (was
+ *    referencing wrong table names + filtered out all real action
+ *    types — now returns all activity).
  *
  *  v1.7.4 (2026-05-02)
  *  - REMOVED: Products column from Live Leads table (was column 6).
@@ -8613,7 +8923,402 @@ function bridgePanelClick(type) {
 /* ============================================================
  *  LIVE ACTIVITY TICKER
  *  ============================================================ */
+/* ============================================================
+ *  v1.7.5: TWIN CHAT BOXES — Live Calls + Team Vibes
+ * ============================================================ */
+const CHAT_VIBES_LIMIT = 30;
+const CHAT_CALLS_LIMIT = 20;
+let _vibeRotateTimer = null;
+let _vibeSeedsCache = [];
+
+function fmtChatTime(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    const diffMin = Math.round((Date.now() - d.getTime()) / 60000);
+    if (diffMin < 1) return 'now';
+    if (diffMin < 60) return diffMin + 'm';
+    if (diffMin < 1440) return Math.round(diffMin/60) + 'h';
+    return Math.round(diffMin/1440) + 'd';
+  } catch (e) { return ''; }
+}
+
+function chatRenderCallMsg(lead) {
+  const company = (lead.company_key || '').toUpperCase();
+  const name = lead.full_name || lead.caller_provided_name || 'Unknown';
+  return `<div class="chat-msg">
+    <span class="chat-msg-actor" style="color:#7cecff;">📞 ${escapeHtml(company)}</span>
+    <span>${escapeHtml(name)}</span>
+    <span class="chat-msg-time">${fmtChatTime(lead.created_at)}</span>
+  </div>`;
+}
+
+function chatRenderVibeMsg(action) {
+  const actor = action.actor_short_name || 'system';
+  const color = action.actor_color || '#7cecff';
+  const target = action.target_no ? ` ${action.target_no}` : '';
+  let icon = '⚡', what = '';
+  switch (action.action_type) {
+    case 'sent_proposal': icon = '📤'; what = `sent proposal${target}`; break;
+    case 'followup_call': icon = '📞'; what = `called${target}`; break;
+    case 'followup_text': icon = '💬'; what = `texted${target}`; break;
+    case 'followup_email': icon = '📧'; what = `emailed${target}`; break;
+    case 'followup_reminder': icon = '⏰'; what = `set reminder${target}`; break;
+    case 'in_progress': icon = '🔄'; what = `working${target}`; break;
+    case 'final_attempt': icon = '🎯'; what = `final push${target}`; break;
+    case 'closed_won': case 'won': icon = '🎉'; what = `WON${target}!`; break;
+    case 'closed_lost': case 'lost': icon = '💪'; what = `${target} fell through — onto the next`; break;
+    case 'order_confirmed': icon = '✅'; what = `confirmed${target}`; break;
+    case 'assigned': icon = '🎯'; what = `claimed${target}`; break;
+    default: what = (action.action_type || 'activity').replace(/_/g, ' ') + target;
+  }
+  const isCelebration = action.action_type === 'closed_won' || action.action_type === 'won';
+  const cls = isCelebration ? 'chat-msg chat-msg-celebration' : 'chat-msg';
+  return `<div class="${cls}">
+    <span class="chat-msg-actor" style="color:${color};">${icon} ${escapeHtml(actor)}</span>
+    <span>${escapeHtml(what)}</span>
+    <span class="chat-msg-time">${fmtChatTime(action.created_at)}</span>
+  </div>`;
+}
+
+function chatRenderManualMsg(m) {
+  const color = m.author_color || '#d4c2ff';
+  return `<div class="chat-msg">
+    <span class="chat-msg-actor" style="color:${color};">${escapeHtml(m.author_name || 'team')}</span>
+    <span>${escapeHtml(m.message)}</span>
+    <span class="chat-msg-time">${fmtChatTime(m.created_at)}</span>
+  </div>`;
+}
+
+function chatRenderSystemVibe(seed) {
+  const cat = seed.category || 'motivation';
+  const cls = cat === 'joke' ? 'chat-msg-vibe-joke' : 'chat-msg-vibe-motivation';
+  return `<div class="chat-msg ${cls} chat-msg-system">
+    <span>${escapeHtml(seed.message)}</span>
+  </div>`;
+}
+
+async function loadVibeSeeds() {
+  if (_vibeSeedsCache.length) return _vibeSeedsCache;
+  try {
+    const { data } = await sb.from('team_vibe_seeds').select('category, message, weight').limit(60);
+    _vibeSeedsCache = data || [];
+  } catch (e) { console.warn('[vibes] seed load failed', e); }
+  return _vibeSeedsCache;
+}
+
+function pickRandomVibe() {
+  if (!_vibeSeedsCache.length) return null;
+  // Weighted random
+  const total = _vibeSeedsCache.reduce((s, v) => s + (v.weight || 1), 0);
+  let r = Math.random() * total;
+  for (const v of _vibeSeedsCache) {
+    r -= (v.weight || 1);
+    if (r <= 0) return v;
+  }
+  return _vibeSeedsCache[0];
+}
+
+async function loadLiveCalls() {
+  const stream = $('chatBoxCallsStream');
+  if (!stream) return;
+  const { data: leads } = await sb
+    .from('leads')
+    .select('id, full_name, caller_provided_name, company_key, created_at')
+    .order('created_at', { ascending: false })
+    .limit(CHAT_CALLS_LIMIT);
+  const html = (leads || []).map(chatRenderCallMsg).join('');
+  stream.innerHTML = html || '<div class="chat-msg-empty">No call activity yet.</div>';
+}
+
+async function loadTeamVibes() {
+  const stream = $('chatBoxVibesStream');
+  if (!stream) return;
+  await loadVibeSeeds();
+  // Pull recent activity feed actions + manual chat messages, merge by time
+  const [{ data: actions }, { data: manuals }] = await Promise.all([
+    sb.from('v_activity_feed').select('action_id, action_type, created_at, actor_short_name, actor_color, target_no, customer_name, total').order('created_at', { ascending: false }).limit(20),
+    sb.from('team_chat_messages').select('id, author_name, author_color, message, is_system, created_at').eq('channel', 'vibes').order('created_at', { ascending: false }).limit(15)
+  ]);
+  const merged = [];
+  (actions || []).forEach(a => merged.push({ ts: new Date(a.created_at).getTime(), html: chatRenderVibeMsg(a) }));
+  (manuals || []).forEach(m => merged.push({ ts: new Date(m.created_at).getTime(), html: chatRenderManualMsg(m) }));
+  merged.sort((a, b) => b.ts - a.ts);
+  // If too few real items, intersperse some seeded vibes
+  if (merged.length < 5) {
+    for (let i = 0; i < (5 - merged.length); i++) {
+      const v = pickRandomVibe();
+      if (v) merged.push({ ts: Date.now() - (i * 60000), html: chatRenderSystemVibe(v) });
+    }
+  }
+  stream.innerHTML = merged.slice(0, CHAT_VIBES_LIMIT).map(m => m.html).join('') || '<div class="chat-msg-empty">Setting the mood…</div>';
+}
+
+/* Periodically rotate in a fresh canned vibe so the box stays alive */
+function startVibeRotation() {
+  if (_vibeRotateTimer) clearInterval(_vibeRotateTimer);
+  _vibeRotateTimer = setInterval(async () => {
+    const stream = $('chatBoxVibesStream');
+    if (!stream) return;
+    await loadVibeSeeds();
+    const v = pickRandomVibe();
+    if (!v) return;
+    const newMsg = chatRenderSystemVibe(v);
+    // Insert at the bottom (which is "newest" because flex column-reverse)
+    stream.insertAdjacentHTML('afterbegin', newMsg);
+    // Cap total
+    const msgs = stream.querySelectorAll('.chat-msg');
+    if (msgs.length > CHAT_VIBES_LIMIT) {
+      msgs[msgs.length - 1].remove();
+    }
+  }, 90000); // every 90 seconds
+}
+
+function openVibePostBox() {
+  const wrap = $('chatVibeInputWrap');
+  if (wrap) {
+    wrap.style.display = 'flex';
+    setTimeout(() => $('chatVibeInput')?.focus(), 50);
+  }
+}
+function closeVibePostBox() {
+  const wrap = $('chatVibeInputWrap');
+  if (wrap) wrap.style.display = 'none';
+  const inp = $('chatVibeInput');
+  if (inp) inp.value = '';
+}
+async function postVibeMessage() {
+  const inp = $('chatVibeInput');
+  if (!inp) return;
+  const msg = (inp.value || '').trim();
+  if (!msg) return;
+  // Use the active rep from the team-pill UI as author, fallback to "Team"
+  const author = (typeof activeRep !== 'undefined' && activeRep) ? activeRep : 'Team';
+  const repColor = (typeof REP_COLORS !== 'undefined' && REP_COLORS[author]) ? REP_COLORS[author] : '#d4c2ff';
+  inp.disabled = true;
+  try {
+    const { error } = await sb.from('team_chat_messages').insert({
+      author_name: author,
+      author_color: repColor,
+      message: msg,
+      channel: 'vibes',
+      is_system: false
+    });
+    if (error) { console.warn('[vibe post]', error); showSaveBanner('Could not post: ' + error.message, true); }
+    else { closeVibePostBox(); }
+  } finally {
+    inp.disabled = false;
+  }
+}
+
+/* ============================================================
+ *  v1.7.5: FIREWORKS PARTICLE ENGINE
+ *  Pure canvas, ~6 second show, cyan/magenta/gold bursts
+ * ============================================================ */
+let _fwAnim = null;
+function launchFireworks(durationMs) {
+  durationMs = durationMs || 6000;
+  const canvas = $('fireworksCanvas');
+  if (!canvas) return;
+  canvas.style.display = 'block';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const particles = [];
+  const colors = ['#7cecff', '#ff8aa3', '#ffd700', '#b89cff', '#7cffa8', '#ffd46a'];
+
+  function spawnBurst(x, y) {
+    const count = 50 + Math.floor(Math.random() * 30);
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - .5) * .3;
+      const speed = 2 + Math.random() * 5;
+      particles.push({
+        x: x, y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1,
+        decay: 0.012 + Math.random() * 0.012,
+        color: color,
+        size: 2 + Math.random() * 2
+      });
+    }
+  }
+
+  let lastBurst = 0;
+  let burstCount = 0;
+  const startedAt = Date.now();
+  function tick() {
+    const now = Date.now();
+    const elapsed = now - startedAt;
+    // Stop generating new bursts after duration, but keep animating particles
+    if (elapsed < durationMs && now - lastBurst > 500) {
+      const x = canvas.width * (0.15 + Math.random() * 0.7);
+      const y = canvas.height * (0.20 + Math.random() * 0.45);
+      spawnBurst(x, y);
+      lastBurst = now;
+      burstCount++;
+    }
+    // Clear with slight fade for trail
+    ctx.fillStyle = 'rgba(2, 6, 17, 0.15)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Update + draw particles
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.06; // gravity
+      p.vx *= 0.99;
+      p.life -= p.decay;
+      if (p.life <= 0) { particles.splice(i, 1); continue; }
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    if (particles.length > 0 || elapsed < durationMs) {
+      _fwAnim = requestAnimationFrame(tick);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.style.display = 'none';
+      _fwAnim = null;
+    }
+  }
+  if (_fwAnim) cancelAnimationFrame(_fwAnim);
+  tick();
+}
+
+function showCelebrationBanner(text, sub, durationMs) {
+  durationMs = durationMs || 5000;
+  const banner = $('celebrationBanner');
+  const t = $('celebrationBannerText');
+  const s = $('celebrationBannerSub');
+  if (!banner) return;
+  if (text && t) t.textContent = text;
+  if (sub && s) s.textContent = sub;
+  banner.style.display = 'block';
+  // Force reflow then add show class for animation
+  void banner.offsetHeight;
+  banner.classList.add('show');
+  setTimeout(() => {
+    banner.classList.remove('show');
+    setTimeout(() => { banner.style.display = 'none'; }, 500);
+  }, durationMs);
+}
+
+function celebrateMilestone(milestoneType, currentTotal) {
+  const labels = {
+    'deposits_2500':  { text: '🎉 $2,500 IN DEPOSITS! 🎉', sub: `Daily threshold crossed — ${fmtMoney(currentTotal)} collected` },
+    'deposits_5000':  { text: '🚀 $5,000 DAY! 🚀', sub: `Crushing it — ${fmtMoney(currentTotal)} in deposits` },
+    'deposits_10000': { text: '🏆 $10,000 EPIC DAY! 🏆', sub: `Legendary — ${fmtMoney(currentTotal)} in deposits today` }
+  };
+  const label = labels[milestoneType] || { text: '🎉 MILESTONE HIT 🎉', sub: `${fmtMoney(currentTotal)} crossed` };
+  launchFireworks(milestoneType === 'deposits_10000' ? 9000 : 6000);
+  showCelebrationBanner(label.text, label.sub, 5000);
+  // Also drop a system vibe message into the team-vibes feed
+  try {
+    sb.from('team_chat_messages').insert({
+      author_name: 'Sophia',
+      author_color: '#ffd700',
+      message: `${label.text} ${label.sub}`,
+      channel: 'vibes',
+      is_system: true
+    }).then(() => loadTeamVibes()).catch(()=>{});
+  } catch (e) {}
+  // Mark celebrated server-side so we don't re-fire
+  try {
+    sb.rpc('mark_milestone_celebrated', { p_milestone_type: milestoneType }).catch(()=>{});
+  } catch (e) {}
+}
+
+let _milestonePollTimer = null;
+async function pollDailyMilestones() {
+  try {
+    const { data, error } = await sb.rpc('check_daily_milestones');
+    if (error) { console.warn('[milestones]', error); return; }
+    if (!data || !data.length) return;
+    // Find the highest tier that's freshly triggered
+    const fresh = (data || []).filter(d => d.freshly_triggered);
+    if (!fresh.length) return;
+    // Order by threshold desc, fire the biggest one
+    fresh.sort((a, b) => (b.threshold_amount || 0) - (a.threshold_amount || 0));
+    const top = fresh[0];
+    console.log('[milestones] FRESH:', top.milestone_type, '$' + top.current_total);
+    celebrateMilestone(top.milestone_type, top.current_total);
+  } catch (e) { console.warn('[milestones poll]', e); }
+}
+
+function startMilestonePolling() {
+  if (_milestonePollTimer) clearInterval(_milestonePollTimer);
+  // Check immediately, then every 60s
+  pollDailyMilestones();
+  _milestonePollTimer = setInterval(pollDailyMilestones, 60000);
+}
+
+/* Mid-day vibe: post a daytime message at noon Phoenix time once per day */
+let _midDayVibeFiredKey = null;
+function checkMidDayVibe() {
+  try {
+    const now = new Date();
+    // Get Phoenix hour (Phoenix is MST year-round, UTC-7)
+    const phoenixUtcOffset = -7 * 60;
+    const localOffset = now.getTimezoneOffset();
+    const phoenixDate = new Date(now.getTime() + (localOffset - (-phoenixUtcOffset)) * 60000);
+    const hour = phoenixDate.getHours();
+    const dayKey = phoenixDate.getFullYear() + '-' + (phoenixDate.getMonth()+1) + '-' + phoenixDate.getDate();
+    // Fire once between 12pm and 2pm Phoenix time
+    if (hour >= 12 && hour < 14 && _midDayVibeFiredKey !== dayKey) {
+      _midDayVibeFiredKey = dayKey;
+      const msgs = [
+        '🌞 Midday check-in — how is your pipeline looking?',
+        '☀️ Lunch break powered by closing rates. Lets keep it rolling.',
+        '🌮 Halfway through the day — got a quote on the fence? Now is the time.',
+        '🍕 Midday mood: one more callback before lunch hits.'
+      ];
+      const msg = msgs[Math.floor(Math.random() * msgs.length)];
+      try {
+        sb.from('team_chat_messages').insert({
+          author_name: 'Sophia',
+          author_color: '#ffd46a',
+          message: msg,
+          channel: 'vibes',
+          is_system: true
+        }).then(() => loadTeamVibes()).catch(()=>{});
+      } catch (e) {}
+    }
+  } catch (e) { console.warn('[midday]', e); }
+}
+
+/* Subscribe to realtime events for both feeds */
+let _twinChatChannel = null;
+function subscribeTwinChatRealtime() {
+  if (_twinChatChannel) { try { sb.removeChannel(_twinChatChannel); } catch (e) {} }
+  _twinChatChannel = sb.channel('twin-chat-' + Date.now())
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leads' }, () => {
+      loadLiveCalls();
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'staff_actions' }, () => {
+      loadTeamVibes();
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'team_chat_messages' }, () => {
+      loadTeamVibes();
+    })
+    .subscribe();
+}
+
 async function loadActivityTicker() {
+  // v1.7.5: legacy entry point still callable from boot sequence — now it
+  // fans out to both new chat boxes and starts realtime + rotation.
+  await Promise.all([loadLiveCalls(), loadTeamVibes()]);
+  if (!_vibeRotateTimer) startVibeRotation();
+  if (!_twinChatChannel) subscribeTwinChatRealtime();
+  return; // important: skip old marquee path below
+  // (Old code retained but unreachable for safety)
   const content = $('liveTickerContent');
   if (!content) return;
   const { data: actions } = await sb
@@ -11284,7 +11989,8 @@ window.renderTable = function() {
     const lead = allLeads.find(l => l.id === leadId);
     if (!lead) return;
     const cells = tr.querySelectorAll('td');
-    if (cells.length < 14) return;
+    // v1.7.5: column count is now 13 (Products column removed)
+    if (cells.length < 13) return;
     // Cell index 3 = Phone — append rec button if not already present
     const phoneCell = cells[3];
     if (phoneCell && !phoneCell.querySelector('.row-rec-btn')) {
@@ -11295,8 +12001,8 @@ window.renderTable = function() {
     if (eventCell && !eventCell.querySelector('.event-date-edit-btn')) {
       eventCell.innerHTML = renderEventDateCell(lead);
     }
-    // Cell index 6 = Route — replace plain text with pill if not already
-    const routeCell = cells[6];
+    // Cell index 5 = Route — was index 6, shifted down after Products removal
+    const routeCell = cells[5];
     if (routeCell && !routeCell.querySelector('.route-pill')) {
       routeCell.innerHTML = renderRoutePill(lead.workflow_route);
     }
