@@ -388,15 +388,32 @@ font-weight: 700;
 }
 .chat-box-stream {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;          /* v1.7.10: hide scrollbar — auto-scroll handles motion */
   padding: 6px 8px;
-  display: flex;
-  flex-direction: column-reverse;  /* newest at the bottom, scroll up = older */
-  gap: 4px;
-  scroll-behavior: smooth;
+  position: relative;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
 }
-.chat-box-stream::-webkit-scrollbar { width: 4px; }
-.chat-box-stream::-webkit-scrollbar-thumb { background: rgba(124,236,255,.20); border-radius: 2px; }
+.chat-box-stream::-webkit-scrollbar { display: none; }
+
+/* v1.7.10: inner track holds duplicated message list for seamless loop */
+.chat-ticker-track {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: chatTickerScroll var(--ticker-duration, 30s) linear infinite;
+}
+.chat-box:hover .chat-ticker-track { animation-play-state: paused; }
+.chat-box-stream:hover .chat-ticker-track { animation-play-state: paused; }
+
+@keyframes chatTickerScroll {
+  /* Start with the first set fully visible, scroll the duplicate set into view, loop seamlessly */
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-50%); }   /* -50% because we render content twice */
+}
+
+/* When few messages exist, disable the animation entirely so single items don't drift */
+.chat-ticker-track.no-scroll { animation: none; transform: translateY(0); }
 .chat-msg {
   font-size: 11px;
   line-height: 1.35;
@@ -4089,7 +4106,9 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
         <span class="chat-box-pulse"></span>
       </div>
       <div class="chat-box-stream" id="chatBoxCallsStream">
-        <div class="chat-msg" style="opacity:.7;"><span class="chat-msg-actor" style="color:#7cecff;">📡 Sophia</span><span>online — listening across 5 brands</span></div>
+        <div class="chat-ticker-track no-scroll">
+          <div class="chat-msg" style="opacity:.7;"><span class="chat-msg-actor" style="color:#7cecff;">📡 Sophia</span><span>online — listening across 5 brands</span></div>
+        </div>
       </div>
     </div>
     <div class="chat-box chat-box-vibes" id="chatBoxVibes" title="Team vibes — wins, losses, jokes, motivation">
@@ -4099,9 +4118,11 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
         <button class="chat-vibe-post-btn" id="chatVibePostBtn" onclick="openVibePostBox()" title="Post a message to the team">+</button>
       </div>
       <div class="chat-box-stream" id="chatBoxVibesStream">
-        <div class="chat-msg chat-msg-vibe-motivation chat-msg-system"><span>☕ Coffee in hand, conquer mode on. Lets gooo.</span></div>
-        <div class="chat-msg chat-msg-vibe-joke chat-msg-system"><span>😄 The wedding tent fell over. It was strapped for cash.</span></div>
-        <div class="chat-msg chat-msg-vibe-motivation chat-msg-system"><span>💡 Tip: Customers who hear back within 5 minutes are 9x more likely to convert.</span></div>
+        <div class="chat-ticker-track no-scroll">
+          <div class="chat-msg chat-msg-vibe-motivation chat-msg-system"><span>☕ Coffee in hand, conquer mode on. Lets gooo.</span></div>
+          <div class="chat-msg chat-msg-vibe-joke chat-msg-system"><span>😄 The wedding tent fell over. It was strapped for cash.</span></div>
+          <div class="chat-msg chat-msg-vibe-motivation chat-msg-system"><span>💡 Tip: Customers who hear back within 5 minutes are 9x more likely to convert.</span></div>
+        </div>
       </div>
       <div class="chat-vibe-input-wrap" id="chatVibeInputWrap" style="display:none;">
         <input id="chatVibeInput" class="chat-vibe-input" placeholder="Hey team…" maxlength="280" onkeydown="if(event.key==='Enter') postVibeMessage()" />
@@ -4127,7 +4148,7 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.9</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.10</span></div>
 <button onclick="window.launchFireworks(6000); window.showCelebrationBanner('🎆 TEST FIREWORKS 🎆','Just checking the lights work',4000); return false;"
   title="Test fireworks animation"
   style="margin-top:6px;background:linear-gradient(180deg,rgba(255,215,0,.20),rgba(255,138,163,.15));border:1px solid rgba(255,215,0,.45);color:#ffd700;font-size:9px;font-weight:700;letter-spacing:.06em;padding:3px 8px;border-radius:6px;cursor:pointer;text-transform:uppercase;">🎆 Test FX</button>
@@ -7295,6 +7316,24 @@ function renderRoutingRow(o, dotColor) {
 /* ============================================================
  *  RAIL PANELS
  *
+ *  v1.7.10 (2026-05-02 auto-scrolling chat boxes)
+ *  - NEW: both top chat boxes now auto-scroll vertically with a
+ *    pure CSS infinite ticker animation. No JS timers — browser
+ *    handles motion. Pauses on hover so a rep can read a message.
+ *    Speed scales with item count (~3.5s per message, capped at
+ *    20-120s for the full loop).
+ *  - SEAMLESS LOOP: paintTickerStream() helper duplicates the
+ *    message list inline so the @keyframes 0%→100% (-50% Y)
+ *    transition snaps back without a visible jump.
+ *  - GRACEFUL <4 MESSAGES: lists below 4 items render with the
+ *    no-scroll modifier so single notifications dont drift.
+ *  - MASK FADE: top + bottom 12% of each stream uses CSS mask
+ *    so messages fade in/out instead of hard-cutting at the
+ *    container edge — feels like a proper ticker.
+ *  - VIBE ROTATION: when the 90s rotation fires, new canned
+ *    vibe is inserted into team_chat_messages (so every viewer
+ *    sees it via realtime) instead of being injected client-only.
+ *
  *  v1.7.9 (2026-05-02 event date relocation)
  *  - REMOVED: Event Date column from Live Leads table.
  *    Now 10 columns instead of 11. Reclaimed ~92px and gave it
@@ -9098,6 +9137,32 @@ const CHAT_CALLS_LIMIT = 20;
 let _vibeRotateTimer = null;
 let _vibeSeedsCache = [];
 
+/* v1.7.10: paint a message list into a chat-box-stream with auto-scroll
+   ticker semantics. If there are 4+ messages, duplicate the list so the
+   CSS @keyframes loop is seamless and adjust ticker-duration for a
+   readable scroll speed. */
+function paintTickerStream(streamEl, messageHtmlArr) {
+  if (!streamEl) return;
+  const arr = Array.isArray(messageHtmlArr) ? messageHtmlArr : [];
+  if (arr.length === 0) {
+    streamEl.innerHTML = '<div class="chat-ticker-track no-scroll"><div class="chat-msg-empty">No activity yet.</div></div>';
+    return;
+  }
+  // If too few messages to overflow the box, just render once with no scroll
+  if (arr.length < 4) {
+    streamEl.innerHTML = '<div class="chat-ticker-track no-scroll">' + arr.join('') + '</div>';
+    return;
+  }
+  // Otherwise: duplicate the list for seamless loop. Tune speed by count.
+  // ~3.5 seconds per message feels readable.
+  const duration = Math.max(20, Math.min(120, arr.length * 3.5));
+  streamEl.innerHTML =
+    '<div class="chat-ticker-track" style="--ticker-duration: ' + duration + 's;">' +
+      arr.join('') +
+      arr.join('') +  // duplicate for seamless loop
+    '</div>';
+}
+
 function fmtChatTime(iso) {
   if (!iso) return '';
   try {
@@ -9197,14 +9262,13 @@ async function loadLiveCalls() {
       .limit(CHAT_CALLS_LIMIT);
     const items = (leads || []).map(chatRenderCallMsg);
     if (items.length === 0) {
-      // v1.7.6: friendly default instead of empty
       items.push('<div class="chat-msg" style="opacity:.7;"><span class="chat-msg-actor" style="color:#7cecff;">📡 Sophia</span><span>online — listening across 5 brands</span></div>');
       items.push('<div class="chat-msg" style="opacity:.6;"><span class="chat-msg-actor" style="color:#7cecff;">☎️</span><span>No calls in last 24h. Quiet day.</span></div>');
     }
-    stream.innerHTML = items.join('');
+    paintTickerStream(stream, items);  // v1.7.10: auto-scroll
   } catch (e) {
     console.warn('[live calls]', e);
-    stream.innerHTML = '<div class="chat-msg-empty">Connection issue — retrying…</div>';
+    paintTickerStream(stream, ['<div class="chat-msg-empty">Connection issue — retrying…</div>']);
   }
 }
 
@@ -9228,10 +9292,12 @@ async function loadTeamVibes() {
       if (v) merged.push({ ts: Date.now() - (i * 60000), html: chatRenderSystemVibe(v) });
     }
   }
-  stream.innerHTML = merged.slice(0, CHAT_VIBES_LIMIT).map(m => m.html).join('') || '<div class="chat-msg-empty">Setting the mood…</div>';
+  const vibeItems = merged.slice(0, CHAT_VIBES_LIMIT).map(m => m.html);
+  paintTickerStream(stream, vibeItems.length ? vibeItems : ['<div class="chat-msg-empty">Setting the mood…</div>']);
 }
 
-/* Periodically rotate in a fresh canned vibe so the box stays alive */
+/* v1.7.10: Periodically inject a fresh canned vibe.
+   Calls loadTeamVibes so the ticker rebuilds cleanly with the new content. */
 function startVibeRotation() {
   if (_vibeRotateTimer) clearInterval(_vibeRotateTimer);
   _vibeRotateTimer = setInterval(async () => {
@@ -9240,15 +9306,20 @@ function startVibeRotation() {
     await loadVibeSeeds();
     const v = pickRandomVibe();
     if (!v) return;
-    const newMsg = chatRenderSystemVibe(v);
-    // Insert at the bottom (which is "newest" because flex column-reverse)
-    stream.insertAdjacentHTML('afterbegin', newMsg);
-    // Cap total
-    const msgs = stream.querySelectorAll('.chat-msg');
-    if (msgs.length > CHAT_VIBES_LIMIT) {
-      msgs[msgs.length - 1].remove();
-    }
-  }, 90000); // every 90 seconds
+    // Post the vibe as a system message into the team_chat_messages table
+    // so it appears for all viewers and shows up the next time loadTeamVibes runs.
+    try {
+      await sb.from('team_chat_messages').insert({
+        author_name: 'Sophia',
+        author_color: '#ffd46a',
+        message: v.message,
+        channel: 'vibes',
+        is_system: true
+      });
+      // Refresh the vibes feed so the ticker rebuilds with the new entry included
+      loadTeamVibes();
+    } catch (e) { console.warn('[vibe rotate insert]', e); }
+  }, 90000);
 }
 
 function openVibePostBox() {
