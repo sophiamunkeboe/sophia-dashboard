@@ -219,6 +219,16 @@ gap: 12px;
 flex-wrap: wrap;
 }
 
+/* v1.7.6: header-center holds the twin chat boxes between logo and stats */
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  padding: 0 16px;
+}
+
 .mini-stat {
 padding: 6px 10px;
 border-radius: 10px;
@@ -302,16 +312,18 @@ font-weight: 700;
  * ============================================================ */
 .twin-chat-bar {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: stretch;
-  height: 110px;
+  height: 96px;
   flex: 1;
   min-width: 0;
+  max-width: 720px;
 }
 .chat-box {
   flex: 1;
   min-width: 0;
-  max-width: 380px;
+  max-width: 360px;
+  min-height: 96px;
   background: linear-gradient(180deg, rgba(8,16,30,.85), rgba(10,20,38,.78));
   border: 1px solid rgba(124,236,255,.18);
   border-radius: 14px;
@@ -2121,22 +2133,61 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 .tiny-route { display: inline-flex; margin-top: 8px; }
 
 /* ITEM CHIPS / DOLLAR / SIGNALS */
-/* v1.7.5: tighter column widths so all 13 columns fit on standard monitors */
-.slim-table th, .slim-table td { white-space: nowrap; }
-.slim-table th:nth-child(1), .slim-table td:nth-child(1) { width: 90px; max-width: 110px; }   /* Company */
-.slim-table th:nth-child(2), .slim-table td:nth-child(2) { width: 70px; max-width: 90px; }    /* Source */
-.slim-table th:nth-child(3), .slim-table td:nth-child(3) { width: auto; max-width: 200px; white-space: normal; }   /* Name (allow wrap) */
-.slim-table th:nth-child(4), .slim-table td:nth-child(4) { width: 130px; }                    /* Phone */
-.slim-table th:nth-child(5), .slim-table td:nth-child(5) { width: 96px; font-size: 12px; }    /* Event Date */
-.slim-table th:nth-child(6), .slim-table td:nth-child(6) { width: 110px; }                    /* Route */
-.slim-table th:nth-child(7), .slim-table td:nth-child(7) { width: 80px; }                     /* Status */
-.slim-table th:nth-child(8), .slim-table td:nth-child(8) { width: auto; min-width: 110px; }   /* Signals */
-.slim-table th:nth-child(9), .slim-table td:nth-child(9) { width: 84px; font-size: 12px; }    /* Assigned */
-.slim-table th:nth-child(10), .slim-table td:nth-child(10) { width: 76px; font-size: 11px; }  /* Follow Up */
-.slim-table th:nth-child(11), .slim-table td:nth-child(11) { width: 88px; }                   /* Assign */
-.slim-table th:nth-child(12), .slim-table td:nth-child(12) { width: 56px; }                   /* Done */
-.slim-table th:nth-child(13), .slim-table td:nth-child(13) { width: 76px; font-size: 11px; }  /* Received */
-.slim-table th { font-size: 11px; padding: 8px 10px; }
+/* v1.7.6: aggressive table compression — table-layout:fixed forces columns
+   to honor declared widths regardless of content. Overflow handled per-cell. */
+.slim-table { table-layout: fixed; width: 100%; }
+.slim-table th, .slim-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 6px 6px;
+  font-size: 11.5px;
+}
+.slim-table th { font-size: 10px; padding: 8px 6px; letter-spacing: .04em; }
+/* Column widths sum: 80+60+170+115+82+92+72+118+80+72+78+50+72 = 1241px + ~13*4px borders = 1293px
+   Leaves room for left rail 80, right rail ~60, panel padding ~32 — fits in 1500px content area */
+.slim-table th:nth-child(1),  .slim-table td:nth-child(1)  { width: 80px; }    /* Company */
+.slim-table th:nth-child(2),  .slim-table td:nth-child(2)  { width: 60px; }    /* Source */
+.slim-table th:nth-child(3),  .slim-table td:nth-child(3)  { width: 170px; white-space: normal; }   /* Name — wrap allowed */
+.slim-table th:nth-child(4),  .slim-table td:nth-child(4)  { width: 115px; }   /* Phone */
+.slim-table th:nth-child(5),  .slim-table td:nth-child(5)  { width: 82px; }    /* Event Date */
+.slim-table th:nth-child(6),  .slim-table td:nth-child(6)  { width: 92px; }    /* Route */
+.slim-table th:nth-child(7),  .slim-table td:nth-child(7)  { width: 72px; }    /* Status */
+.slim-table th:nth-child(8),  .slim-table td:nth-child(8)  { width: 118px; white-space: normal; }   /* Signals — wrap allowed */
+.slim-table th:nth-child(9),  .slim-table td:nth-child(9)  { width: 80px; }    /* Assigned */
+.slim-table th:nth-child(10), .slim-table td:nth-child(10) { width: 72px; }    /* Follow Up */
+.slim-table th:nth-child(11), .slim-table td:nth-child(11) { width: 78px; }    /* Assign */
+.slim-table th:nth-child(12), .slim-table td:nth-child(12) { width: 50px; }    /* Done */
+.slim-table th:nth-child(13), .slim-table td:nth-child(13) { width: 72px; }    /* Received */
+
+/* Tighten the assign dropdown trigger so it doesn't bust 78px column */
+.slim-table .assign-trigger {
+  font-size: 10px !important;
+  padding: 3px 5px !important;
+  max-width: 100%;
+}
+.slim-table .assign-trigger .avatar { width: 16px !important; height: 16px !important; }
+.slim-table .assign-trigger span:not(.caret) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 50px;
+}
+.slim-table .assign-trigger .caret { font-size: 8px !important; }
+/* Tighten the Done button */
+.slim-table .done-btn {
+  font-size: 10px !important;
+  padding: 4px 6px !important;
+  white-space: nowrap;
+}
+/* Pills inside cells should not exceed the cell */
+.slim-table .pill, .slim-table .route-pill {
+  font-size: 10px;
+  padding: 2px 6px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
 tbody tr.slim-row { height: 56px; }
 tbody tr.slim-row td { padding: 8px 14px; vertical-align: middle; font-size: 13px; }
 .item-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .04em; border: 1px solid rgba(255,255,255,.10); white-space: nowrap; line-height: 1; }
@@ -3988,36 +4039,40 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 <span id="vaultPulse" class="vault-click-pulse"></span>
 </div>
 
-<div class="header-right">
-<!-- v1.7.5: twin chat boxes replace the horizontal marquee.
-     Both stream upward like a chat room. -->
-<div class="twin-chat-bar">
-  <div class="chat-box chat-box-calls" id="chatBoxCalls" title="Live call activity across all brands">
-    <div class="chat-box-head">
-      <span class="chat-box-icon">📞</span>
-      <span class="chat-box-label">LIVE CALLS</span>
-      <span class="chat-box-pulse"></span>
+<!-- v1.7.6: twin chat boxes moved to CENTER of header (between logo and stats) -->
+<div class="header-center">
+  <div class="twin-chat-bar">
+    <div class="chat-box chat-box-calls" id="chatBoxCalls" title="Live call activity across all brands">
+      <div class="chat-box-head">
+        <span class="chat-box-icon">📞</span>
+        <span class="chat-box-label">LIVE CALLS</span>
+        <span class="chat-box-pulse"></span>
+      </div>
+      <div class="chat-box-stream" id="chatBoxCallsStream">
+        <div class="chat-msg" style="opacity:.7;"><span class="chat-msg-actor" style="color:#7cecff;">📡 Sophia</span><span>online — listening across 5 brands</span></div>
+      </div>
     </div>
-    <div class="chat-box-stream" id="chatBoxCallsStream">
-      <div class="chat-msg-empty">Waiting for activity…</div>
-    </div>
-  </div>
-  <div class="chat-box chat-box-vibes" id="chatBoxVibes" title="Team vibes — wins, losses, jokes, motivation">
-    <div class="chat-box-head">
-      <span class="chat-box-icon">✨</span>
-      <span class="chat-box-label">TEAM VIBES</span>
-      <button class="chat-vibe-post-btn" id="chatVibePostBtn" onclick="openVibePostBox()" title="Post a message to the team">+</button>
-    </div>
-    <div class="chat-box-stream" id="chatBoxVibesStream">
-      <div class="chat-msg-empty">Setting the mood…</div>
-    </div>
-    <div class="chat-vibe-input-wrap" id="chatVibeInputWrap" style="display:none;">
-      <input id="chatVibeInput" class="chat-vibe-input" placeholder="Hey team…" maxlength="280" onkeydown="if(event.key==='Enter') postVibeMessage()" />
-      <button class="chat-vibe-send" onclick="postVibeMessage()">↑</button>
-      <button class="chat-vibe-cancel" onclick="closeVibePostBox()">×</button>
+    <div class="chat-box chat-box-vibes" id="chatBoxVibes" title="Team vibes — wins, losses, jokes, motivation">
+      <div class="chat-box-head">
+        <span class="chat-box-icon">✨</span>
+        <span class="chat-box-label">TEAM VIBES</span>
+        <button class="chat-vibe-post-btn" id="chatVibePostBtn" onclick="openVibePostBox()" title="Post a message to the team">+</button>
+      </div>
+      <div class="chat-box-stream" id="chatBoxVibesStream">
+        <div class="chat-msg chat-msg-vibe-motivation chat-msg-system"><span>☕ Coffee in hand, conquer mode on. Lets gooo.</span></div>
+        <div class="chat-msg chat-msg-vibe-joke chat-msg-system"><span>😄 The wedding tent fell over. It was strapped for cash.</span></div>
+        <div class="chat-msg chat-msg-vibe-motivation chat-msg-system"><span>💡 Tip: Customers who hear back within 5 minutes are 9x more likely to convert.</span></div>
+      </div>
+      <div class="chat-vibe-input-wrap" id="chatVibeInputWrap" style="display:none;">
+        <input id="chatVibeInput" class="chat-vibe-input" placeholder="Hey team…" maxlength="280" onkeydown="if(event.key==='Enter') postVibeMessage()" />
+        <button class="chat-vibe-send" onclick="postVibeMessage()">↑</button>
+        <button class="chat-vibe-cancel" onclick="closeVibePostBox()">×</button>
+      </div>
     </div>
   </div>
 </div>
+
+<div class="header-right">
 <div class="mini-stat">
 <div class="mini-label">Calls Today</div>
 <div class="mini-value" id="callsToday">0</div>
@@ -4032,7 +4087,7 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.5</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.6</span></div>
 </div>
 </div>
 </div>
@@ -7191,6 +7246,20 @@ function renderRoutingRow(o, dotColor) {
 /* ============================================================
  *  RAIL PANELS
  *
+ *  v1.7.6 (2026-05-02 micro-fix)
+ *  - MOVED: twin chat boxes from far-right to CENTER of header.
+ *    New .header-center wrapper sits between brand logo and the
+ *    mini-stats / status, with flex:1 + justify-content:center.
+ *  - DEFAULT CONTENT: chat boxes now show seeded messages on
+ *    first paint instead of "Waiting for activity…". Live Calls
+ *    falls back to a friendly Sophia status line when no calls
+ *    in last 24h. Team Vibes ships with 3 starter messages.
+ *  - REAL COLUMN FIT: switched Live Leads table to
+ *    table-layout:fixed with overflow:hidden + ellipsis. All 13
+ *    column widths sum to 1241px so they actually fit instead of
+ *    pushing past container. Assign trigger (avatar+name+caret)
+ *    and Done button shrunk so they fit in 78px and 50px columns.
+ *
  *  v1.7.5 (2026-05-02)
  *  - FIX: Route column now shows colored pills again (was plain text).
  *    The post-render code had `cells.length < 14` guard that fell
@@ -9022,13 +9091,23 @@ function pickRandomVibe() {
 async function loadLiveCalls() {
   const stream = $('chatBoxCallsStream');
   if (!stream) return;
-  const { data: leads } = await sb
-    .from('leads')
-    .select('id, full_name, caller_provided_name, company_key, created_at')
-    .order('created_at', { ascending: false })
-    .limit(CHAT_CALLS_LIMIT);
-  const html = (leads || []).map(chatRenderCallMsg).join('');
-  stream.innerHTML = html || '<div class="chat-msg-empty">No call activity yet.</div>';
+  try {
+    const { data: leads } = await sb
+      .from('leads')
+      .select('id, full_name, caller_provided_name, company_key, created_at')
+      .order('created_at', { ascending: false })
+      .limit(CHAT_CALLS_LIMIT);
+    const items = (leads || []).map(chatRenderCallMsg);
+    if (items.length === 0) {
+      // v1.7.6: friendly default instead of empty
+      items.push('<div class="chat-msg" style="opacity:.7;"><span class="chat-msg-actor" style="color:#7cecff;">📡 Sophia</span><span>online — listening across 5 brands</span></div>');
+      items.push('<div class="chat-msg" style="opacity:.6;"><span class="chat-msg-actor" style="color:#7cecff;">☎️</span><span>No calls in last 24h. Quiet day.</span></div>');
+    }
+    stream.innerHTML = items.join('');
+  } catch (e) {
+    console.warn('[live calls]', e);
+    stream.innerHTML = '<div class="chat-msg-empty">Connection issue — retrying…</div>';
+  }
 }
 
 async function loadTeamVibes() {
