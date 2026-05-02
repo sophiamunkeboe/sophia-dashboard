@@ -2575,18 +2575,18 @@ body.leads-compact #leadsCompactToggle {
  *  Email + Text history beside the main client detail
  *  ============================================================ */
 .comms-drawer {
-  /* v1.7.0: anchored to the LEFT of the middle drawer, fills remaining viewport */
+  /* v1.7.1: always renders; sizing adapts. Wide: fills space LEFT of middle drawer.
+     Narrow: slides over leads area as a left panel like v1.6.9. */
   position: fixed;
   top: 86px;
   bottom: 16px;
-  /* leadDrawer = 560px right, extensionDrawer = 480px immediately left of it */
-  /* So Comms starts at right: 1040px and stretches to left: 80px (rail width) */
   left: 80px;
   right: calc(560px + 480px + 8px);
+  min-width: 320px;
   background: linear-gradient(180deg, rgba(8,16,30,.97) 0%, rgba(10,20,38,.96) 100%);
   border: 1px solid rgba(124,236,255,.22);
   border-radius: 24px;
-  z-index: 36;  /* below leadDrawer (40+) and extensionDrawer (49) */
+  z-index: 36;
   transform: translateX(-30px);
   visibility: hidden;
   opacity: 0;
@@ -2605,12 +2605,23 @@ body.leads-compact #leadsCompactToggle {
   pointer-events: auto;
   transition: transform .26s ease, opacity .22s ease, visibility 0s linear 0s;
 }
-@media (max-width: 1500px) {
-  .comms-drawer { right: calc(560px + 480px); }
+/* Medium-wide screens: shrink width, slide as overlay to the right of rail */
+@media (max-width: 1700px) {
+  .comms-drawer {
+    right: auto;
+    left: 80px;
+    width: clamp(380px, calc(100vw - 1080px), 520px);
+  }
 }
-@media (max-width: 1200px) {
-  /* On narrow screens, comms isn't useful as a side panel — hide it */
-  .comms-drawer { display: none; }
+@media (max-width: 1400px) {
+  .comms-drawer {
+    width: clamp(360px, calc(100vw - 1060px), 460px);
+  }
+}
+@media (max-width: 1280px) {
+  .comms-drawer {
+    width: min(420px, calc(100vw - 90px));
+  }
 }
 .comms-drawer-head {
   padding: 14px 18px;
@@ -3680,7 +3691,7 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.0</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.1</span></div>
 </div>
 </div>
 </div>
@@ -3938,11 +3949,18 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 <!-- EXTENSION DRAWER (cascade from primary) -->
 <aside id="extensionDrawer" class="extension-drawer">
   <div class="drawer-head">
-    <div>
+    <div style="flex:1; min-width:0;">
       <h3 class="drawer-title" id="extDrawerTitle">Extension</h3>
       <div class="drawer-sub" id="extDrawerSub">Client context</div>
     </div>
-    <button class="drawer-close" onclick="closeExtensionDrawer()">×</button>
+    <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
+      <button id="extCommsToggleBtn"
+        style="background:linear-gradient(180deg, rgba(124,236,255,.16), rgba(124,236,255,.08)); border:1px solid rgba(124,236,255,.40); color:#cbe7f5; padding:7px 11px; font-size:11px; font-weight:700; letter-spacing:.06em; border-radius:9px; cursor:pointer; white-space:nowrap; text-transform:uppercase; transition:all .15s ease;"
+        onmouseover="this.style.background='linear-gradient(180deg, rgba(124,236,255,.28), rgba(124,236,255,.14))'; this.style.borderColor='rgba(124,236,255,.65)'; this.style.color='#fff';"
+        onmouseout="this.style.background='linear-gradient(180deg, rgba(124,236,255,.16), rgba(124,236,255,.08))'; this.style.borderColor='rgba(124,236,255,.40)'; this.style.color='#cbe7f5';"
+        onclick="toggleCommsFromExtDrawer()" title="Open the Email + Text history panel for this customer">📡 Text/Email Intel</button>
+      <button class="drawer-close" onclick="closeExtensionDrawer()">×</button>
+    </div>
   </div>
   <div id="extDrawerBody" class="ext-body">
     <div class="muted">Loading...</div>
@@ -6753,6 +6771,18 @@ function renderRoutingRow(o, dotColor) {
 /* ============================================================
  *  RAIL PANELS
  *
+ *  v1.7.1 (2026-05-02)
+ *  - FIX: Comms drawer was hidden on screens narrower than 1200px
+ *    due to display:none in media query. Replaced with smart
+ *    responsive sizing — drawer always renders when .open is set,
+ *    width adapts based on viewport.
+ *  - NEW: 📡 TEXT/EMAIL INTEL button in middle (Order History)
+ *    drawer header. One tap toggles the Comms drawer (which has
+ *    both Email + Text panes inside). Visible always — list mode
+ *    or detail mode.
+ *  - DIAG: Console logs added to openCommsDrawer so we can verify
+ *    when the drawer is opening, suppressed, or missing.
+ *
  *  v1.7.0 (2026-05-02 early AM)
  *  - FIX: clicking a row from the Customer drawer (Client Detail)
  *    no longer force-opens the Lookup & Audit panel. Two paths
@@ -6880,10 +6910,17 @@ function copyOrderNumber(el, ev, num) {
 let commsAutoOpenEnabled = true;  // user can disable by closing it
 
 function openCommsDrawer(customer) {
-  if (!commsAutoOpenEnabled) return;
+  if (!commsAutoOpenEnabled) {
+    console.log('[comms] auto-open suppressed (user previously closed)');
+    return;
+  }
   const drawer = $('commsDrawer');
-  if (!drawer) return;
+  if (!drawer) {
+    console.warn('[comms] #commsDrawer element NOT FOUND in DOM');
+    return;
+  }
   drawer.classList.add('open');
+  console.log('[comms] drawer opened for customer:', customer && (customer.full_name || customer.phone) || '(unknown)');
   const subEl = $('commsDrawerCustomer');
   if (subEl) {
     subEl.textContent = customer
@@ -6896,7 +6933,32 @@ function openCommsDrawer(customer) {
 function closeCommsDrawer() {
   const drawer = $('commsDrawer');
   if (drawer) drawer.classList.remove('open');
-  commsAutoOpenEnabled = false;  // don't auto-reopen until user explicitly clicks Comms button
+  commsAutoOpenEnabled = false;
+}
+
+/* v1.7.1: manual toggle from the middle drawer header.
+   When user clicks "📡 Text/Email Intel" — open or close the Comms drawer. */
+function toggleCommsFromExtDrawer() {
+  const drawer = $('commsDrawer');
+  if (!drawer) {
+    console.warn('[comms] toggle: #commsDrawer NOT FOUND in DOM');
+    return;
+  }
+  if (drawer.classList.contains('open')) {
+    drawer.classList.remove('open');
+    console.log('[comms] manually closed via INTEL button');
+    return;
+  }
+  // Force re-enable since user explicitly asked
+  commsAutoOpenEnabled = true;
+  const lead = (typeof currentDrawerLead !== 'undefined' && currentDrawerLead) ? currentDrawerLead : null;
+  const customer = lead ? {
+    id: lead.matched_customer_id || null,
+    full_name: lead.full_name || lead.matched_name || lead.business_name,
+    phone: lead.phone || lead.call_from_number,
+    customer_name: lead.full_name
+  } : null;
+  openCommsDrawer(customer);
 }
 
 async function loadCommsForCustomer(customer) {
