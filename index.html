@@ -3390,7 +3390,7 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.6.0</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.6.8</span></div>
 </div>
 </div>
 </div>
@@ -3780,6 +3780,8 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
   <button class="rail-tab" onclick="openRailPanel('notesRailPanel')">Notes</button>
   <button class="rail-tab rail-tab-kudos" onclick="openKudosPanel()">🏆 KUDOS</button>
   <button class="rail-tab rail-tab-sync" onclick="openSyncPanel()">📥 SYNC</button>
+  <button id="needsRepRailTab" class="rail-tab" onclick="openRailPanel('needsRepRailPanel')" title="Online quotes/orders missing Sales Rep">📋 Need Rep<span id="needsRepTabBadge" class="rail-tab-badge amber" style="display:none;">0</span></button>
+  <button id="openQuotesRailTab" class="rail-tab" onclick="openRailPanel('openQuotesRailPanel')" title="Open quotes (no status set), sorted by age">⏳ Open Q<span id="openQuotesTabBadge" class="rail-tab-badge" style="display:none;">0</span></button>
   <button class="rail-tab" onclick="openRailPanel('logisticsRailPanel')">Logistics</button>
 </div>
 
@@ -3826,6 +3828,87 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
     <button class="rail-close" onclick="closeRailPanels()">×</button>
   </div>
   <div class="rail-panel-body" id="tasksRailBody" style="padding: 10px;">
+    <div class="lrp-empty">Loading…</div>
+  </div>
+</aside>
+
+<!-- ============================================================
+     NEEDS SALES REP RAIL PANEL — v1.6.8
+     Online-created quotes/orders that have no Sales Rep filled.
+     READ-ONLY: cleanup happens in RentMaster, sync flows back.
+     ============================================================ -->
+<aside id="needsRepRailPanel" class="rail-panel">
+  <div class="rail-panel-head">
+    <div>
+      <h3 class="rail-panel-title">📋 Needs Sales Rep</h3>
+      <div class="rail-panel-sub" id="needsRepRailSub">Online-created · Sales Rep blank</div>
+    </div>
+    <button class="rail-close" onclick="closeRailPanels()">×</button>
+  </div>
+  <div style="padding: 8px 12px 0; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+    <select id="needsRepWindowSelect" onchange="loadNeedsRepPanel()" style="background:rgba(124,236,255,.08); border:1px solid rgba(124,236,255,.25); color:#cbe7f5; font-size:11px; padding:4px 6px; border-radius:5px;">
+      <option value="30">Last 30 days</option>
+      <option value="90">Last 90 days</option>
+      <option value="180">Last 180 days</option>
+      <option value="365">Last year</option>
+      <option value="all">All time</option>
+    </select>
+    <select id="needsRepBrandSelect" onchange="loadNeedsRepPanel()" style="background:rgba(124,236,255,.08); border:1px solid rgba(124,236,255,.25); color:#cbe7f5; font-size:11px; padding:4px 6px; border-radius:5px;">
+      <option value="all">All brands</option>
+      <option value="taylor">Taylor</option>
+      <option value="munkeboe">Munkeboe</option>
+      <option value="thankq">Thank Q</option>
+      <option value="aer">AER</option>
+      <option value="sel">SEL</option>
+    </select>
+    <select id="needsRepSortSelect" onchange="loadNeedsRepPanel()" style="background:rgba(124,236,255,.08); border:1px solid rgba(124,236,255,.25); color:#cbe7f5; font-size:11px; padding:4px 6px; border-radius:5px;">
+      <option value="responsible">Sort: by Person</option>
+      <option value="recent">Sort: Recently touched</option>
+      <option value="oldest">Sort: Oldest first</option>
+      <option value="value">Sort: Highest $</option>
+    </select>
+  </div>
+  <div style="padding: 6px 12px; font-size:11px; color:#8fb4c9; line-height:1.5; border-bottom:1px solid rgba(124,236,255,.12); margin-bottom:4px;">
+    💡 Update <strong style="color:#cbe7f5;">Sales Rep</strong> directly in RentMaster.
+    The dashboard refreshes automatically within 60 seconds.
+  </div>
+  <div class="rail-panel-body" id="needsRepRailBody" style="padding: 8px;">
+    <div class="lrp-empty">Loading…</div>
+  </div>
+</aside>
+
+<!-- ============================================================
+     OPEN QUOTES RAIL PANEL — v1.6.8
+     Quotes with status_raw=null sorted by age-since-last-touched.
+     ============================================================ -->
+<aside id="openQuotesRailPanel" class="rail-panel">
+  <div class="rail-panel-head">
+    <div>
+      <h3 class="rail-panel-title">⏳ Open Quotes</h3>
+      <div class="rail-panel-sub" id="openQuotesRailSub">Status unset · sorted by age</div>
+    </div>
+    <button class="rail-close" onclick="closeRailPanels()">×</button>
+  </div>
+  <div style="padding: 8px 12px 0; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+    <select id="openQuotesWindowSelect" onchange="loadOpenQuotesPanel()" style="background:rgba(124,236,255,.08); border:1px solid rgba(124,236,255,.25); color:#cbe7f5; font-size:11px; padding:4px 6px; border-radius:5px;">
+      <option value="30">Last 30 days</option>
+      <option value="60">Last 60 days</option>
+      <option value="90" selected>Last 90 days</option>
+      <option value="180">Last 180 days</option>
+    </select>
+    <select id="openQuotesBrandSelect" onchange="loadOpenQuotesPanel()" style="background:rgba(124,236,255,.08); border:1px solid rgba(124,236,255,.25); color:#cbe7f5; font-size:11px; padding:4px 6px; border-radius:5px;">
+      <option value="all">All brands</option>
+      <option value="taylor">Taylor</option>
+      <option value="munkeboe">Munkeboe</option>
+      <option value="thankq">Thank Q</option>
+      <option value="aer">AER</option>
+      <option value="sel">SEL</option>
+    </select>
+  </div>
+  <div style="padding: 6px 12px; font-size:11px; color:#8fb4c9; line-height:1.5; border-bottom:1px solid rgba(124,236,255,.12); margin-bottom:4px;">
+    🔥 = Untouched 14+ days · ⚠️ = 7+ days · Recent = under a week
+  </div>
+  <div class="rail-panel-body" id="openQuotesRailBody" style="padding: 8px;">
     <div class="lrp-empty">Loading…</div>
   </div>
 </aside>
@@ -4883,6 +4966,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderTable();
       renderTeamPills();
       if ($('tasksRailPanel').classList.contains('open')) loadTasksPanel();
+  refreshNeedsRepBadge();
+  refreshOpenQuotesBadge();
       if ($('alertsRailPanel').classList.contains('open')) loadRailAlerts();
       updateTasksBadge();
       updateAlertsBadge();
@@ -5009,7 +5094,7 @@ async function loadDashboard() {
 
 async function loadPastDueOrders() {
   const { data, error } = await sb.from('historical_orders')
-    .select('id, order_no, customer_name, customer_company, phone, email, total, balance_due, status_raw, payment_status, payment_method, event_start_date, order_date, occasion, address, city, state, surface, location, company_key, company_label, ordered_items, sales_rep, driver, delivery_method')
+    .select('id, order_no, customer_name, customer_company, phone, email, total, balance_due, status_raw, payment_status, payment_method, event_start_date, order_date, occasion, address, city, state, surface, location, company_key, company_label, ordered_items, sales_rep, driver, delivery_method, user_name, last_modified_by, last_modified, rentmaster_last_modified')
     .gt('balance_due', 0).order('event_start_date', { ascending: false }).limit(150);
   if (error) { console.warn('past-due load:', error); allPastDueOrders = []; return; }
   const today = new Date(); today.setHours(0,0,0,0);
@@ -5258,6 +5343,8 @@ async function cyclePaymentOverride(orderNo, ev) {
   paymentOverridesByOrder[orderNo] = { order_no: orderNo, override_state: next };
   renderTable();
   if ($('tasksRailPanel').classList.contains('open')) loadTasksPanel();
+  refreshNeedsRepBadge();
+  refreshOpenQuotesBadge();
   if ($('alertsRailPanel').classList.contains('open')) loadRailAlerts();
   updateTasksBadge(); updateAlertsBadge();
   showSaveBanner(`${orderNo} marked: ${next.replace('_',' ')}`);
@@ -5988,7 +6075,12 @@ async function openOrderDetailPanel(r) {
       }
     }
   }
-  $('odpBody').innerHTML = linenCallout + crossStoreHtml + moneyRow + statusRow + logisticsRow + itemsRow;
+  // OWNERSHIP & AUDIT TRAIL — v1.6.8
+  // Show Created By / Sales Rep / Last Modified By with priority badge
+  const ownership = computeOwnership(r);
+  const ownershipRow = renderOwnershipSection(r, ownership);
+
+  $('odpBody').innerHTML = linenCallout + crossStoreHtml + moneyRow + statusRow + ownershipRow + logisticsRow + itemsRow;
   $('odpActions').innerHTML = `
     <button class="odp-action-btn primary" onclick="markLinensOrdered('${escapeHtml(r.record_no)}')">🛏️ Mark Linens Ordered</button>
     <button class="odp-action-btn" onclick="addOrderNote('${escapeHtml(r.record_no)}')">📝 Add Note</button>
@@ -5997,6 +6089,72 @@ async function openOrderDetailPanel(r) {
 }
 
 function closeOrderDetailPanel() { $('orderDetailPanel').classList.remove('open'); }
+
+/* ============================================================
+ *  OWNERSHIP / AUDIT TRAIL — v1.6.8
+ *  Priority chain: sales_rep -> last_modified_by -> user_name (creator)
+ *  ============================================================ */
+function computeOwnership(r) {
+  const sr = (r.sales_rep || '').trim();
+  const lmb = (r.last_modified_by || '').trim();
+  const cb = (r.user_name || r.created_by || '').trim();
+  let owner = '—';
+  let source = null;
+  if (sr) { owner = sr; source = 'sales_rep'; }
+  else if (lmb) { owner = lmb; source = 'last_modified_by'; }
+  else if (cb) { owner = cb; source = 'creator'; }
+  return {
+    owner,
+    source,
+    sales_rep: sr || null,
+    last_modified_by: lmb || null,
+    created_by: cb || null,
+    last_modified: r.last_modified || r.rentmaster_last_modified || null,
+    closed_on: r.closed_on || null
+  };
+}
+
+function renderOwnershipSection(r, o) {
+  const sourceLabel = o.source === 'sales_rep' ? 'Sales Rep'
+    : o.source === 'last_modified_by' ? 'Last Touched'
+    : o.source === 'creator' ? 'Creator'
+    : '—';
+  const sourceIcon = o.source === 'sales_rep' ? '⭐'
+    : o.source === 'last_modified_by' ? '✋'
+    : o.source === 'creator' ? '🤖' : '·';
+  const ownerStyle = o.source === 'sales_rep' ? 'color:#7cffa8; font-weight:800;'
+    : o.source === 'last_modified_by' ? 'color:#ffd46a; font-weight:700;'
+    : 'color:#cbe7f5;';
+
+  // Distinct rows for each name only when they differ from the displayed owner
+  const showSR = o.sales_rep && o.source !== 'sales_rep';
+  const showLMB = o.last_modified_by && o.source !== 'last_modified_by';
+  const showCB = o.created_by && o.source !== 'creator';
+
+  const isOnlineCreated = (o.created_by || '').toLowerCase() === 'online';
+  const onlineBadge = isOnlineCreated ? `<span style="display:inline-block; padding:1px 5px; background:rgba(184,156,255,.20); color:#efe2ff; font-size:9px; font-weight:700; border-radius:3px; margin-left:6px; vertical-align:middle;">AI/WEB</span>` : '';
+
+  const lmTime = o.last_modified ? fmtDate(o.last_modified) : '—';
+  const closedRow = o.closed_on ? `<div class="odp-kv"><span class="k">Closed On</span><span class="v" style="color:#7cffa8;">${fmtDate(o.closed_on)}</span></div>` : '';
+
+  return `
+    <div class="odp-section">
+      <div class="odp-section-title">📍 Ownership</div>
+      <div class="odp-kv-grid">
+        <div class="odp-kv full" style="background:rgba(124,236,255,.05); padding:6px 10px; border-radius:6px;">
+          <span class="k">${sourceIcon} ${sourceLabel} (Owns)</span>
+          <span class="v" style="${ownerStyle}">${escapeHtml(o.owner)}</span>
+        </div>
+        ${showSR ? `<div class="odp-kv"><span class="k">⭐ Sales Rep</span><span class="v" style="color:#7cffa8;">${escapeHtml(o.sales_rep)}</span></div>` : ''}
+        ${showLMB ? `<div class="odp-kv"><span class="k">✋ Last Modified By</span><span class="v" style="color:#ffd46a;">${escapeHtml(o.last_modified_by)}</span></div>` : ''}
+        ${showCB ? `<div class="odp-kv"><span class="k">🤖 Created By</span><span class="v">${escapeHtml(o.created_by)}${onlineBadge}</span></div>` : ''}
+        <div class="odp-kv"><span class="k">Last Touched</span><span class="v">${lmTime}</span></div>
+        ${closedRow}
+      </div>
+      ${!o.sales_rep ? `<div style="margin-top:8px; padding:6px 10px; background:rgba(255,212,106,.08); border-left:3px solid #ffd46a; font-size:11px; color:#ffd46a; line-height:1.4;">⚠️ Sales Rep blank. The person above (Last Touched / Creator) is responsible for filling it in inside RentMaster.</div>` : ''}
+    </div>
+  `;
+}
 function markLinensOrdered(orderNo) { showSaveBanner(`Linen order flagged for ${orderNo} (Phase 2: writes to linen_audit_log)`); }
 function addOrderNote(orderNo) { showSaveBanner(`Note action for ${orderNo} (Phase 2 stub)`); }
 function reassignOrder(orderNo) { showSaveBanner(`Reassign flow for ${orderNo} (Phase 2 stub)`); }
@@ -6080,6 +6238,19 @@ function renderRoutingRow(o, dotColor) {
 <script>
 /* ============================================================
  *  RAIL PANELS
+ *
+ *  v1.6.8 (2026-05-01)
+ *  - NEW: 📋 Need Rep panel — online quotes/orders missing Sales Rep,
+ *    grouped by responsible person (last_modified_by). READ-ONLY:
+ *    fixes happen in RentMaster, sync flows back automatically.
+ *  - NEW: ⏳ Open Q panel — quotes with no status_raw, sorted by
+ *    age-since-touched. 🔥/⚠️/⊙ tiers for staleness.
+ *  - NEW: 📍 Ownership section in order detail drawer — shows
+ *    Created By / Sales Rep / Last Modified By with priority badge,
+ *    plus closed_on if available.
+ *  - DATA: Backed by SQL views needs_sales_rep_quotes/orders +
+ *    open_quotes_panel. Sync function v18 fixed user_name=createdBy
+ *    (was incorrectly set to lastModifiedBy in v17).
  *  ============================================================ */
 function openRailPanel(id) {
   closeRailPanels();
@@ -6087,10 +6258,298 @@ function openRailPanel(id) {
   if (p) p.classList.add('open');
   if (id === 'alertsRailPanel') loadRailAlerts();
   if (id === 'tasksRailPanel') loadTasksPanel();
+  if (id === 'needsRepRailPanel') loadNeedsRepPanel();
+  if (id === 'openQuotesRailPanel') loadOpenQuotesPanel();
 }
 function closeRailPanels() {
   document.querySelectorAll('.rail-panel.open').forEach(p => p.classList.remove('open'));
   closeRepDeepPanel();
+}
+
+/* ============================================================
+ *  NEEDS SALES REP PANEL — v1.6.8
+ *  Pulls from views needs_sales_rep_quotes + needs_sales_rep_orders.
+ *  READ-ONLY: cleanup happens in RentMaster.
+ * ============================================================ */
+async function loadNeedsRepPanel() {
+  const body = $('needsRepRailBody');
+  const sub = $('needsRepRailSub');
+  if (!body) return;
+  body.innerHTML = '<div class="lrp-empty">Loading…</div>';
+
+  const winVal = ($('needsRepWindowSelect') || {}).value || '30';
+  const brand = ($('needsRepBrandSelect') || {}).value || 'all';
+  const sortBy = ($('needsRepSortSelect') || {}).value || 'responsible';
+
+  // Build queries — quotes are the primary list, orders secondary
+  let quotesQuery = sb.from('needs_sales_rep_quotes')
+    .select('quote_no, customer_name, customer_company, company_key, total, quote_date, event_start_date, last_modified, last_modified_by, created_by, responsible, responsible_source, hours_since_touched');
+  let ordersQuery = sb.from('needs_sales_rep_orders')
+    .select('order_no, customer_name, customer_company, company_key, total, order_date, event_start_date, balance_due, last_modified, last_modified_by, created_by, responsible, responsible_source, hours_since_touched');
+
+  if (winVal !== 'all') {
+    const days = parseInt(winVal, 10);
+    const cutoff = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10);
+    quotesQuery = quotesQuery.gte('quote_date', cutoff);
+    ordersQuery = ordersQuery.gte('order_date', cutoff);
+  }
+  if (brand !== 'all') {
+    quotesQuery = quotesQuery.eq('company_key', brand);
+    ordersQuery = ordersQuery.eq('company_key', brand);
+  }
+
+  const [qRes, oRes] = await Promise.all([
+    quotesQuery.limit(500),
+    ordersQuery.limit(200)
+  ]);
+
+  if (qRes.error) console.warn('[needsRep] quotes:', qRes.error);
+  if (oRes.error) console.warn('[needsRep] orders:', oRes.error);
+
+  const quotes = (qRes.data || []).map(r => ({ ...r, _kind: 'quote' }));
+  const orders = (oRes.data || []).map(r => ({ ...r, _kind: 'order' }));
+  const all = [...quotes, ...orders];
+
+  if (!all.length) {
+    body.innerHTML = '<div class="rail-soft-note" style="margin:12px;">🎉 No online-created records waiting for Sales Rep in this window.</div>';
+    sub.textContent = '0 in queue';
+    return;
+  }
+
+  // Sort
+  if (sortBy === 'responsible') {
+    all.sort((a, b) => {
+      const ra = (a.responsible || 'zzz').toLowerCase();
+      const rb = (b.responsible || 'zzz').toLowerCase();
+      if (ra !== rb) return ra.localeCompare(rb);
+      return (b.hours_since_touched || 0) - (a.hours_since_touched || 0);
+    });
+  } else if (sortBy === 'recent') {
+    all.sort((a, b) => (a.hours_since_touched || 9e9) - (b.hours_since_touched || 9e9));
+  } else if (sortBy === 'oldest') {
+    all.sort((a, b) => (b.hours_since_touched || 0) - (a.hours_since_touched || 0));
+  } else if (sortBy === 'value') {
+    all.sort((a, b) => (parseFloat(b.total) || 0) - (parseFloat(a.total) || 0));
+  }
+
+  // Group by responsible person if that's the sort
+  const groupedByPerson = {};
+  if (sortBy === 'responsible') {
+    for (const r of all) {
+      const k = r.responsible || '(unknown)';
+      if (!groupedByPerson[k]) groupedByPerson[k] = [];
+      groupedByPerson[k].push(r);
+    }
+  }
+
+  sub.textContent = `${all.length} need rep · ${quotes.length} quotes · ${orders.length} orders`;
+
+  let html = '';
+  if (sortBy === 'responsible') {
+    for (const person of Object.keys(groupedByPerson).sort()) {
+      const items = groupedByPerson[person];
+      const isOnline = (person || '').toLowerCase() === 'online';
+      html += `<div style="margin: 10px 4px 4px; padding: 6px 8px; background: ${isOnline ? 'rgba(184,156,255,.10)' : 'rgba(124,236,255,.08)'}; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: ${isOnline ? '#d4c2ff' : '#cbe7f5'}; display:flex; justify-content: space-between; align-items: center;">
+        <span>${isOnline ? '🤖 ' : '👤 '}${escapeHtml(person)}</span>
+        <span style="color: #8fb4c9; font-weight: 500; text-transform: none; letter-spacing: 0;">${items.length} item${items.length !== 1 ? 's' : ''}</span>
+      </div>`;
+      for (const r of items) html += renderNeedsRepCard(r);
+    }
+  } else {
+    for (const r of all) html += renderNeedsRepCard(r);
+  }
+
+  body.innerHTML = html;
+
+  // Update tab badge
+  updateNeedsRepBadge(all.length);
+}
+
+function renderNeedsRepCard(r) {
+  const num = r.quote_no || r.order_no || '';
+  const company = lc(r.company_key) || detectBrand(num, r.company_key);
+  const dotColor = (typeof COMPANY_COLORS !== 'undefined') ? (COMPANY_COLORS[company] || '#7cecff') : '#7cecff';
+  const total = fmtMoney(r.total);
+  const hrs = parseFloat(r.hours_since_touched) || 0;
+  const ago = hrs < 1 ? 'just now' :
+              hrs < 24 ? `${Math.round(hrs)}h ago` :
+              hrs < 24 * 7 ? `${Math.round(hrs / 24)}d ago` :
+              hrs < 24 * 30 ? `${Math.round(hrs / (24 * 7))}w ago` :
+              `${Math.round(hrs / (24 * 30))}mo ago`;
+  const eventLabel = r.event_start_date ? `Event ${fmtDate(r.event_start_date)}` : '';
+  const recordIcon = r._kind === 'quote' ? 'Q' : 'O';
+  const recordType = r._kind === 'quote' ? 'quote' : 'order';
+
+  const respIcon = r.responsible_source === 'creator' ? '🤖' :
+                   r.responsible_source === 'last_modified_by' ? '✋' :
+                   r.responsible_source === 'sales_rep' ? '⭐' : '?';
+
+  // Click: open the order detail panel
+  const recordPayload = {
+    record_no: num,
+    record_type: recordType,
+    customer_name: r.customer_name,
+    customer_company: r.customer_company,
+    total: r.total,
+    company_key: r.company_key,
+    event_start_date: r.event_start_date,
+    record_date: r.quote_date || r.order_date,
+    balance_due: r.balance_due
+  };
+
+  return `
+    <div class="rail-alert-card clickable-alert" style="margin-bottom:6px; border-color: rgba(184,156,255,.25); background: linear-gradient(180deg, rgba(184,156,255,.04), rgba(255,255,255,.01));"
+         onclick='openOrderDetailFromLookup(${JSON.stringify(JSON.stringify(recordPayload)).replace(/'/g, "&#39;")})'>
+      <div class="rail-alert-top">
+        <span class="rail-alert-company">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dotColor};box-shadow:0 0 6px ${dotColor};margin-right:6px;vertical-align:middle;"></span>
+          <span style="display:inline-block; padding: 1px 5px; background: rgba(184,156,255,.20); color: #efe2ff; font-size: 9px; font-weight: 700; border-radius: 3px; margin-right: 5px; vertical-align: middle;">${recordIcon}</span>
+          ${escapeHtml((typeof COMPANY_LABELS !== 'undefined' && COMPANY_LABELS[company]) || company)} · ${escapeHtml(num)}
+        </span>
+        <span style="color:#fff; font-weight: 700; font-size: 13px;">${total}</span>
+      </div>
+      <div class="rail-alert-text">${escapeHtml(r.customer_name || r.customer_company || '—')}</div>
+      <div class="rail-alert-meta" style="display: flex; justify-content: space-between; gap: 8px;">
+        <span>${eventLabel}</span>
+        <span title="${r.responsible_source === 'creator' ? 'Created by' : r.responsible_source === 'last_modified_by' ? 'Last touched by' : 'Sales Rep'}">${respIcon} ${escapeHtml(r.responsible || '—')} · ${ago}</span>
+      </div>
+    </div>
+  `;
+}
+
+function updateNeedsRepBadge(count) {
+  const tab = $('needsRepRailTab');
+  const badge = $('needsRepTabBadge');
+  if (!tab || !badge) return;
+  if (count > 0) {
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.style.display = '';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// Auto-load badge count on dashboard boot (cheap query)
+async function refreshNeedsRepBadge() {
+  try {
+    const cutoff = new Date(Date.now() - 30 * 86400 * 1000).toISOString().slice(0, 10);
+    const { count, error } = await sb.from('needs_sales_rep_quotes')
+      .select('*', { count: 'exact', head: true })
+      .gte('quote_date', cutoff);
+    if (error) return;
+    updateNeedsRepBadge(count || 0);
+  } catch (e) { /* best effort */ }
+}
+
+/* ============================================================
+ *  OPEN QUOTES PANEL — v1.6.8
+ *  Quotes with status_raw=null, sorted by age-since-touched
+ * ============================================================ */
+async function loadOpenQuotesPanel() {
+  const body = $('openQuotesRailBody');
+  const sub = $('openQuotesRailSub');
+  if (!body) return;
+  body.innerHTML = '<div class="lrp-empty">Loading…</div>';
+
+  const days = parseInt(($('openQuotesWindowSelect') || {}).value || '90', 10);
+  const brand = ($('openQuotesBrandSelect') || {}).value || 'all';
+
+  const cutoff = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10);
+  let q = sb.from('open_quotes_panel')
+    .select('quote_no, customer_name, customer_company, company_key, total, quote_date, event_start_date, owned_by, owned_by_source, days_since_touched, last_modified')
+    .gte('quote_date', cutoff)
+    .order('days_since_touched', { ascending: false })
+    .limit(300);
+  if (brand !== 'all') q = q.eq('company_key', brand);
+
+  const { data, error } = await q;
+  if (error) {
+    body.innerHTML = `<div class="lrp-empty" style="color:#ff8aa3;">Error: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+  if (!data || !data.length) {
+    body.innerHTML = '<div class="rail-soft-note" style="margin:12px;">No open quotes in this window. ✓</div>';
+    sub.textContent = '0 open';
+    return;
+  }
+
+  // Tier counts
+  const onFire = data.filter(r => (r.days_since_touched || 0) >= 14).length;
+  const warming = data.filter(r => (r.days_since_touched || 0) >= 7 && (r.days_since_touched || 0) < 14).length;
+  const fresh = data.length - onFire - warming;
+  sub.textContent = `${data.length} open · 🔥 ${onFire} · ⚠️ ${warming} · ⊙ ${fresh}`;
+
+  body.innerHTML = data.map(r => {
+    const num = r.quote_no || '';
+    const company = lc(r.company_key) || 'master';
+    const dotColor = (typeof COMPANY_COLORS !== 'undefined') ? (COMPANY_COLORS[company] || '#7cecff') : '#7cecff';
+    const days = parseFloat(r.days_since_touched) || 0;
+    const tier = days >= 14 ? 'fire' : days >= 7 ? 'warm' : 'fresh';
+    const tierIcon = tier === 'fire' ? '🔥' : tier === 'warm' ? '⚠️' : '⊙';
+    const tierColor = tier === 'fire' ? '#ff5a78' : tier === 'warm' ? '#ffd46a' : '#7cecff';
+    const tierBorder = tier === 'fire' ? 'rgba(255,90,120,.45)' : tier === 'warm' ? 'rgba(255,212,106,.35)' : 'rgba(124,236,255,.20)';
+    const tierBg = tier === 'fire' ? 'rgba(255,90,120,.06)' : tier === 'warm' ? 'rgba(255,212,106,.05)' : 'rgba(124,236,255,.02)';
+    const total = fmtMoney(r.total);
+    const ageLabel = days < 1 ? 'today' : days < 7 ? `${Math.round(days)}d` : days < 30 ? `${Math.round(days / 7)}w` : `${Math.round(days / 30)}mo`;
+    const eventLabel = r.event_start_date ? `Event ${fmtDate(r.event_start_date)}` : '';
+    const ownerSource = r.owned_by_source === 'sales_rep' ? '⭐' :
+                        r.owned_by_source === 'last_modified_by' ? '✋' :
+                        r.owned_by_source === 'creator' ? '🤖' : '?';
+
+    const recordPayload = {
+      record_no: num,
+      record_type: 'quote',
+      customer_name: r.customer_name,
+      customer_company: r.customer_company,
+      total: r.total,
+      company_key: r.company_key,
+      event_start_date: r.event_start_date,
+      record_date: r.quote_date
+    };
+
+    return `
+      <div class="rail-alert-card clickable-alert" style="margin-bottom:6px; border-color: ${tierBorder}; background: ${tierBg};"
+           onclick='openOrderDetailFromLookup(${JSON.stringify(JSON.stringify(recordPayload)).replace(/'/g, "&#39;")})'>
+        <div class="rail-alert-top">
+          <span class="rail-alert-company">
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dotColor};box-shadow:0 0 6px ${dotColor};margin-right:6px;vertical-align:middle;"></span>
+            ${escapeHtml((typeof COMPANY_LABELS !== 'undefined' && COMPANY_LABELS[company]) || company)} · ${escapeHtml(num)}
+          </span>
+          <span style="color:${tierColor}; font-weight:800; font-size:12px;">${tierIcon} ${ageLabel}</span>
+        </div>
+        <div class="rail-alert-text">${escapeHtml(r.customer_name || r.customer_company || '—')} · <span style="color:#fff; font-weight:700;">${total}</span></div>
+        <div class="rail-alert-meta" style="display:flex; justify-content:space-between; gap:8px;">
+          <span>${eventLabel}</span>
+          <span title="${r.owned_by_source === 'sales_rep' ? 'Sales Rep' : r.owned_by_source === 'last_modified_by' ? 'Last touched by' : 'Created by'}">${ownerSource} ${escapeHtml(r.owned_by || '—')}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  updateOpenQuotesBadge(data.length);
+}
+
+function updateOpenQuotesBadge(count) {
+  const tab = $('openQuotesRailTab');
+  const badge = $('openQuotesTabBadge');
+  if (!tab || !badge) return;
+  if (count > 0) {
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.style.display = '';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+async function refreshOpenQuotesBadge() {
+  try {
+    const cutoff = new Date(Date.now() - 90 * 86400 * 1000).toISOString().slice(0, 10);
+    const { count, error } = await sb.from('open_quotes_panel')
+      .select('*', { count: 'exact', head: true })
+      .gte('quote_date', cutoff);
+    if (error) return;
+    updateOpenQuotesBadge(count || 0);
+  } catch (e) { /* best effort */ }
 }
 
 function updateTasksBadge() {
@@ -8956,8 +9415,9 @@ function injectDrawerAudioCard(lead) {
     card.className = 'drawer-audio-card';
     notesZone.parentNode.insertBefore(card, notesZone);
   }
+  const subtitle = lead.call_id ? `Call ID: ${escapeHtml(lead.call_id)}` : '';
   if (lead.recording_url) {
-    const subtitle = lead.call_id ? `Call ID: ${escapeHtml(lead.call_id)}` : '';
+    // Direct URL — wire native player
     card.innerHTML = `
       <div class="audio-card-head">
         <span class="audio-card-title">🎙️ Call Recording</span>
@@ -8972,14 +9432,55 @@ function injectDrawerAudioCard(lead) {
         </a>
       </div>
     `;
+  } else if (lead.call_id) {
+    // No URL but have call_id — show "Fetch recording" button that loads on demand
+    card.innerHTML = `
+      <div class="audio-card-head">
+        <span class="audio-card-title">🎙️ Call Recording</span>
+        <span class="audio-card-subtitle">${subtitle}</span>
+      </div>
+      <div id="drawerAudioFetchWrap" style="text-align:center;padding:8px 4px;">
+        <button onclick="drawerFetchAndPlayRecording('${escapeHtml(lead.id)}', '${escapeHtml(lead.call_id)}')"
+                style="padding:8px 16px;border-radius:8px;border:1px solid rgba(124,236,255,.5);background:linear-gradient(180deg,rgba(124,236,255,.18),rgba(100,168,255,.10));color:#fff;font-weight:700;font-size:12px;cursor:pointer;letter-spacing:.04em;">
+          ▶ Fetch & Play Recording
+        </button>
+        <div style="font-size:10px;color:#8fb4c9;margin-top:6px;font-style:italic;">Pulled from Retell on demand</div>
+      </div>
+    `;
   } else {
     card.innerHTML = `
       <div class="audio-card-head">
         <span class="audio-card-title">🎙️ Call Recording</span>
-        <span class="audio-card-subtitle">${lead.call_id ? 'Call ID: ' + escapeHtml(lead.call_id) : ''}</span>
+        <span class="audio-card-subtitle">${subtitle}</span>
       </div>
-      <div class="drawer-audio-empty">No recording captured for this call yet.</div>
+      <div class="drawer-audio-empty">No recording or call ID for this lead.</div>
     `;
+  }
+}
+
+/* Drawer-side: fetch Retell recording then swap the card to a player */
+async function drawerFetchAndPlayRecording(leadId, callId) {
+  const wrap = document.getElementById('drawerAudioFetchWrap');
+  if (wrap) wrap.innerHTML = '<div style="font-size:11px;color:#8fb4c9;padding:8px;">Fetching from Retell…</div>';
+  try {
+    const url = await fetchRetellRecording(callId, leadId);
+    if (!url) {
+      if (wrap) wrap.innerHTML = '<div class="drawer-audio-empty">No recording available — call may still be processing.</div>';
+      return;
+    }
+    // Update lead local cache
+    const lead = allLeads.find(l => l.id === leadId);
+    if (lead) lead.recording_url = url;
+    if (currentDrawerLead && currentDrawerLead.id === leadId) currentDrawerLead.recording_url = url;
+    // Swap the card to a real player
+    if (currentDrawerLead) injectDrawerAudioCard(currentDrawerLead);
+    // Auto-play
+    setTimeout(() => {
+      const audio = document.querySelector('#drawerAudioCard audio');
+      if (audio) audio.play().catch(() => {});
+    }, 200);
+  } catch (e) {
+    if (wrap) wrap.innerHTML = `<div class="drawer-audio-empty" style="color:#ff8aa3;">Error: ${escapeHtml(e.message || 'fetch failed')}</div>`;
   }
 }
 
@@ -9486,21 +9987,31 @@ function renderRoutePill(route) {
 /* ----------------------------------------------------------------
  *  ROW RECORDING BUTTON — small play button in the Phone column
  *  When clicked, shows a floating audio popover anchored to the row.
+ *  v1.6.7.2: support fetching from Retell API when only call_id is set
+ *           (Retell recordings aren't auto-saved to recording_url)
  * ---------------------------------------------------------------- */
 let _rowAudioCurrentBtn = null;
 
 function renderRowRecBtn(lead) {
-  const has = lead.recording_url && lead.recording_url.trim();
-  const cls = has ? '' : 'disabled';
-  const onclick = has
-    ? `onclick="event.stopPropagation(); playRowRecording('${escapeHtml(lead.id)}', this)"`
-    : 'title="No recording captured for this call"';
-  return `<button class="row-rec-btn ${cls}" ${onclick}>▶</button>`;
+  const hasUrl = lead.recording_url && lead.recording_url.trim();
+  const hasCallId = lead.call_id && lead.call_id.trim();
+  if (!hasUrl && !hasCallId) return ''; // No URL and no call_id → nothing to play
+  const tooltip = hasUrl ? 'Play call recording' : 'Fetch & play recording (Retell)';
+  return `<button class="row-rec-btn" title="${escapeHtml(tooltip)}"
+    onclick="event.stopPropagation(); playRowRecording('${escapeHtml(lead.id)}', this)">▶</button>`;
 }
 
-function playRowRecording(leadId, btnEl) {
+async function playRowRecording(leadId, btnEl) {
   const lead = allLeads.find(l => l.id === leadId);
-  if (!lead || !lead.recording_url) return;
+  if (!lead) return;
+
+  const hasUrl = lead.recording_url && lead.recording_url.trim();
+  const hasCallId = lead.call_id && lead.call_id.trim();
+  if (!hasUrl && !hasCallId) {
+    showSaveBanner('No recording or call_id available for this call', true);
+    return;
+  }
+
   const popover = $('rowAudioPopover');
   const player = $('rowAudioPlayer');
   // Clear previous active state
@@ -9508,11 +10019,7 @@ function playRowRecording(leadId, btnEl) {
   btnEl.classList.add('playing');
   _rowAudioCurrentBtn = btnEl;
 
-  // Set source and load
-  player.src = lead.recording_url;
-  player.load();
-
-  // Position popover near the button
+  // Position popover near the button BEFORE we await anything
   const rect = btnEl.getBoundingClientRect();
   let left = rect.left;
   if (left + 400 > window.innerWidth - 16) left = window.innerWidth - 400 - 16;
@@ -9528,9 +10035,45 @@ function playRowRecording(leadId, btnEl) {
   $('rowAudioWho').textContent = who + (lead.call_id ? ' · ' + lead.call_id : '');
 
   popover.classList.add('open');
-  // Auto-play
+
+  // If we have a direct URL already, play it
+  let urlToPlay = hasUrl ? lead.recording_url.trim() : null;
+
+  // Otherwise fetch it from Retell via our edge function
+  if (!urlToPlay && hasCallId) {
+    $('rowAudioWho').textContent = 'Fetching from Retell…';
+    try {
+      const url = await fetchRetellRecording(lead.call_id, lead.id);
+      if (url) {
+        urlToPlay = url;
+        // Cache it locally so subsequent clicks skip the round-trip
+        lead.recording_url = url;
+        // Update display
+        $('rowAudioWho').textContent = who + ' · ' + lead.call_id;
+      } else {
+        $('rowAudioWho').textContent = 'No recording available for this call';
+        if (_rowAudioCurrentBtn) _rowAudioCurrentBtn.classList.remove('playing');
+        return;
+      }
+    } catch (e) {
+      console.error('[recording] fetch failed:', e);
+      $('rowAudioWho').textContent = 'Error: ' + (e.message || 'fetch failed');
+      if (_rowAudioCurrentBtn) _rowAudioCurrentBtn.classList.remove('playing');
+      return;
+    }
+  }
+
+  // Set source and load
+  player.src = urlToPlay;
+  player.load();
+  // Auto-play with error reporting
   setTimeout(() => {
-    player.play().catch(() => { /* autoplay restrictions; user can hit play */ });
+    player.play().then(() => {
+      console.log('[recording] playing', urlToPlay);
+    }).catch((err) => {
+      console.warn('[recording] autoplay blocked or failed:', err);
+      // Don't error toast — user can still hit the play button manually
+    });
   }, 100);
 
   // Listener: clear playing class when audio ends
@@ -9543,6 +10086,50 @@ function playRowRecording(leadId, btnEl) {
       _rowAudioCurrentBtn.classList.remove('playing');
     }
   };
+  player.onerror = (ev) => {
+    const errorCodes = { 1: 'Aborted', 2: 'Network error', 3: 'Decode error', 4: 'Source not supported / blocked' };
+    const code = player.error && player.error.code;
+    const msg = errorCodes[code] || ('Error code ' + code);
+    console.error('[recording] playback failed:', msg, urlToPlay);
+    showSaveBanner('Recording playback failed: ' + msg, true);
+    if (_rowAudioCurrentBtn) _rowAudioCurrentBtn.classList.remove('playing');
+  };
+}
+
+/* Call our Supabase edge function which proxies to Retell.
+   Returns the recording_url string, or null if Retell has no recording yet. */
+async function fetchRetellRecording(callId, leadId) {
+  // Build the function URL from the same SUPABASE_URL the client uses
+  // sb.supabaseUrl is the public URL (https://aeonjnohadmbxfuoirqa.supabase.co)
+  const fnBase = (typeof sb !== 'undefined' && sb && sb.supabaseUrl)
+    ? sb.supabaseUrl
+    : 'https://aeonjnohadmbxfuoirqa.supabase.co';
+  const fnUrl = `${fnBase}/functions/v1/retell-recording?call_id=${encodeURIComponent(callId)}&lead_id=${encodeURIComponent(leadId)}`;
+
+  // Use the anon key for auth — sb has it bundled in headers, but for fetch() we need it explicit
+  const anonKey = (typeof SUPABASE_ANON_KEY !== 'undefined' && SUPABASE_ANON_KEY)
+    ? SUPABASE_ANON_KEY
+    : (sb && sb.supabaseKey) || '';
+
+  const resp = await fetch(fnUrl, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${anonKey}`,
+      'apikey': anonKey,
+    },
+  });
+
+  if (!resp.ok) {
+    const errText = await resp.text();
+    let errBody;
+    try { errBody = JSON.parse(errText); } catch(e) { errBody = { detail: errText }; }
+    if (errBody && errBody.error === 'RETELL_API_KEY not configured') {
+      throw new Error('Retell API key not set in Supabase Edge Function secrets');
+    }
+    throw new Error(errBody.error || ('HTTP ' + resp.status));
+  }
+  const data = await resp.json();
+  return data.recording_url || null;
 }
 
 function closeRowAudio() {
