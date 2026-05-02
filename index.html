@@ -558,7 +558,6 @@ tbody tr.pastdue-row.silenced { animation: none; border-left-color: rgba(255,212
 .table-wrap[data-company="sel"] tbody tr.active-row { background: linear-gradient(90deg, rgba(255,90,110,.26), rgba(255,255,255,.05)) !important; box-shadow: inset 0 0 0 2px rgba(255,90,110,.42); }
 
 .name-cell { font-weight: 700; font-size: 15px; }
-.products-cell { max-width: 340px; line-height: 1.35; color: #deebff; }
 .muted { color: var(--muted); }
 
 /* STATUS PILLS */
@@ -1888,9 +1887,6 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 /* ITEM CHIPS / DOLLAR / SIGNALS */
 tbody tr.slim-row { height: 56px; }
 tbody tr.slim-row td { padding: 8px 14px; vertical-align: middle; font-size: 13px; }
-tbody tr.slim-row td.products-cell { max-width: 340px; }
-.products-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; font-size: 13px; color: #deebff; }
-.products-chip-row { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; align-items: center; }
 .item-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .04em; border: 1px solid rgba(255,255,255,.10); white-space: nowrap; line-height: 1; }
 .item-chip.tier-1 { color: #dff7ff; background: linear-gradient(180deg, rgba(124,236,255,.22), rgba(24,96,120,.18)); border-color: rgba(124,236,255,.30); }
 .item-chip.tier-2 { color: #fff1c9; background: linear-gradient(180deg, rgba(255,212,106,.22), rgba(132,92,20,.18)); border-color: rgba(255,212,106,.32); }
@@ -2518,41 +2514,6 @@ tbody tr.slim-row .employee-buttons { display: none; }
 }
 .coach-history-row .label { color: #8fb4c9; }
 .coach-history-row .val { font-weight: 700; }
-
-/* ============================================================
- *  COMPACT MODE — v1.6.9
- *  When body has class .leads-compact, hide non-essential cols
- *  in the Live Leads table. Keeps Company / Source / Name / Phone
- *  visible plus a tiny Status pill. Click row to see all details.
- *  ============================================================ */
-body.leads-compact .slim-table th:nth-child(5),  /* Event Date */
-body.leads-compact .slim-table th:nth-child(6),  /* Products */
-body.leads-compact .slim-table th:nth-child(7),  /* Route */
-body.leads-compact .slim-table th:nth-child(9),  /* Signals */
-body.leads-compact .slim-table th:nth-child(10), /* Assigned */
-body.leads-compact .slim-table th:nth-child(11), /* Follow Up */
-body.leads-compact .slim-table th:nth-child(12), /* Assign */
-body.leads-compact .slim-table th:nth-child(13), /* Done */
-body.leads-compact .slim-table th:nth-child(14), /* Received */
-body.leads-compact .slim-table td:nth-child(5),
-body.leads-compact .slim-table td:nth-child(6),
-body.leads-compact .slim-table td:nth-child(7),
-body.leads-compact .slim-table td:nth-child(9),
-body.leads-compact .slim-table td:nth-child(10),
-body.leads-compact .slim-table td:nth-child(11),
-body.leads-compact .slim-table td:nth-child(12),
-body.leads-compact .slim-table td:nth-child(13),
-body.leads-compact .slim-table td:nth-child(14) {
-  display: none !important;
-}
-body.leads-compact .slim-table {
-  table-layout: auto;
-}
-body.leads-compact #leadsCompactToggle {
-  background: linear-gradient(180deg, rgba(124,236,255,.20), rgba(124,236,255,.10));
-  border-color: rgba(124,236,255,.45);
-  color: #cbe7f5;
-}
 
 /* Click-to-copy for order/quote numbers */
 .copy-num {
@@ -3791,7 +3752,7 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.3</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.4</span></div>
 </div>
 </div>
 </div>
@@ -3827,11 +3788,7 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 <h2 class="panel-title">Live Leads</h2>
 <div class="panel-sub" id="liveLeadsSubtitle">Recent calls, assignments, follow-up, and routing outcomes</div>
 </div>
-<div style="display:flex; gap:10px; align-items:center; flex:1; justify-content:flex-end;">
-<input id="searchInput" class="search" placeholder="Search name, phone, products, route, notes..." style="flex:1; max-width:480px;" />
-<button id="leadsCompactToggle" class="glass-btn" onclick="toggleLeadsCompactMode()" title="Toggle between compact and full column view"
-  style="font-size:11px; padding:6px 10px; white-space:nowrap;">📋 Compact</button>
-</div>
+<input id="searchInput" class="search" placeholder="Search name, phone, route, notes..." />
 </div>
 
 <div class="table-wrap" id="tableWrap">
@@ -3843,7 +3800,6 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 <th>Name</th>
 <th>Phone</th>
 <th>Event Date</th>
-<th>Products</th>
 <th>Route</th>
 <th>Status</th>
 <th class="signals-col">Signals</th>
@@ -3855,7 +3811,7 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </tr>
 </thead>
 <tbody id="tableBody">
-<tr><td colspan="14" class="muted">Loading data...</td></tr>
+<tr><td colspan="13" class="muted">Loading data...</td></tr>
 </tbody>
 </table>
 </div>
@@ -5102,7 +5058,7 @@ try {
   document.addEventListener('DOMContentLoaded', function() {
     var tb = document.getElementById('tableBody');
     if (tb) {
-      tb.innerHTML = '<tr><td colspan="14" style="color:#ffd0db;font-family:monospace;font-size:12px;padding:20px;">❌ Supabase failed to initialize: ' + initErr.message + '</td></tr>';
+      tb.innerHTML = '<tr><td colspan="13" style="color:#ffd0db;font-family:monospace;font-size:12px;padding:20px;">❌ Supabase failed to initialize: ' + initErr.message + '</td></tr>';
     }
   });
 }
@@ -5389,7 +5345,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const setBootStatus = (txt) => {
     const tb = document.getElementById('tableBody');
     if (tb && tb.querySelector('td.muted')) {
-      tb.innerHTML = `<tr><td colspan="14" class="muted" style="font-family:monospace;font-size:12px;">⏳ ${txt}</td></tr>`;
+      tb.innerHTML = `<tr><td colspan="13" class="muted" style="font-family:monospace;font-size:12px;">⏳ ${txt}</td></tr>`;
     }
   };
   const safe = async (label, fn) => {
@@ -5692,7 +5648,7 @@ function renderTable() {
         msg = 'No active leads right now.';
       }
     }
-    tbody.innerHTML = `<tr><td colspan="14" class="muted">${msg}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="13" class="muted">${msg}</td></tr>`;
     const sub = $('liveLeadsSubtitle');
     if (sub) {
       let parts = [];
@@ -5753,10 +5709,6 @@ function renderLeadRow(l) {
       <td><div class="name-cell">${l.full_name && l.full_name.trim() ? escapeHtml(l.full_name) : (l.full_name_phantom ? `<span style="color:#ffd46a;">${escapeHtml(l.full_name_phantom)}</span><span class="phantom-likely">LIKELY · ☎</span>` : '<span class="muted">—</span>')}${agingBadge}${nameMismatch}</div>${businessHint}</td>
       <td>${phone}</td>
       <td>${escapeHtml(safeText(l.event_date))}</td>
-      <td class="products-cell">
-        <div class="products-text">${escapeHtml(safeText(l.products_requested))}</div>
-        ${itemChips ? `<div class="products-chip-row">${itemChips}</div>` : ''}
-      </td>
       <td>${escapeHtml(safeText(l.workflow_route))}</td>
       <td>${statusHtml}</td>
       <td class="signals-col"><div class="signals-wrap">${confidenceLadder}${signals}</div></td>
@@ -6956,6 +6908,16 @@ function renderRoutingRow(o, dotColor) {
 /* ============================================================
  *  RAIL PANELS
  *
+ *  v1.7.4 (2026-05-02)
+ *  - REMOVED: Products column from Live Leads table (was column 6).
+ *    Pushed action columns off-frame on most monitors. Products are
+ *    visible in the drawer when you click a row, where they belong.
+ *  - REMOVED: half-baked "📋 Compact" toggle button + .leads-compact
+ *    CSS + toggleLeadsCompactMode() JS. Was hiding random columns
+ *    instead of solving the real problem (one bloated column).
+ *  - All right-side action columns (Assign, Done, Received) now fit
+ *    in frame on standard-width monitors without horizontal scroll.
+ *
  *  v1.7.3 (2026-05-02)
  *  - FIX: clicking a lead with a generic shared-mailbox email
  *    (admin@, info@, etc) used to count hundreds of unrelated
@@ -7076,21 +7038,6 @@ function openRailPanel(id) {
 function closeRailPanels() {
   document.querySelectorAll('.rail-panel.open').forEach(p => p.classList.remove('open'));
   closeRepDeepPanel();
-}
-
-/* ============================================================
- *  COMPACT MODE TOGGLE — v1.6.9
- *  Persists across reloads via in-memory + sessionStorage backed
- *  by Supabase user prefs is overkill for now; keep simple.
- * ============================================================ */
-function toggleLeadsCompactMode() {
-  document.body.classList.toggle('leads-compact');
-  const compact = document.body.classList.contains('leads-compact');
-  const btn = $('leadsCompactToggle');
-  if (btn) btn.textContent = compact ? '📊 Show all' : '📋 Compact';
-  try { window.__leadsCompactPref = compact; } catch (e) {}
-  // Recalculate any layout-dependent things
-  setTimeout(() => { try { window.dispatchEvent(new Event('resize')); } catch (e) {} }, 50);
 }
 
 /* ============================================================
