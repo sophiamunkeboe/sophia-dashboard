@@ -2575,23 +2575,24 @@ body.leads-compact #leadsCompactToggle {
  *  Email + Text history beside the main client detail
  *  ============================================================ */
 .comms-drawer {
-  /* v1.7.1: always renders; sizing adapts. Wide: fills space LEFT of middle drawer.
-     Narrow: slides over leads area as a left panel like v1.6.9. */
+  /* v1.7.2: docked mode — sits left of middle drawer, fills available space.
+     Frame-guarded with clamp() so it never slides off-frame on small laptops. */
   position: fixed;
   top: 86px;
   bottom: 16px;
   left: 80px;
   right: calc(560px + 480px + 8px);
-  min-width: 320px;
+  min-width: 300px;
+  max-width: calc(100vw - 90px);
   background: linear-gradient(180deg, rgba(8,16,30,.97) 0%, rgba(10,20,38,.96) 100%);
   border: 1px solid rgba(124,236,255,.22);
   border-radius: 24px;
-  z-index: 36;
+  z-index: 48;
   transform: translateX(-30px);
   visibility: hidden;
   opacity: 0;
   pointer-events: none;
-  transition: transform .26s ease, opacity .22s ease, visibility 0s linear .26s;
+  transition: transform .26s ease, opacity .22s ease, visibility 0s linear .26s, left .26s ease, right .26s ease, width .26s ease;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2603,25 +2604,99 @@ body.leads-compact #leadsCompactToggle {
   visibility: visible;
   opacity: 1;
   pointer-events: auto;
-  transition: transform .26s ease, opacity .22s ease, visibility 0s linear 0s;
+  transition: transform .26s ease, opacity .22s ease, visibility 0s linear 0s, left .26s ease, right .26s ease, width .26s ease;
 }
-/* Medium-wide screens: shrink width, slide as overlay to the right of rail */
+/* Auto-fit for screens that can't fit all 3 drawers side by side */
 @media (max-width: 1700px) {
-  .comms-drawer {
+  .comms-drawer:not(.expanded) {
     right: auto;
     left: 80px;
-    width: clamp(380px, calc(100vw - 1080px), 520px);
+    width: clamp(360px, calc(100vw - 1080px), 520px);
   }
 }
 @media (max-width: 1400px) {
-  .comms-drawer {
-    width: clamp(360px, calc(100vw - 1060px), 460px);
+  .comms-drawer:not(.expanded) {
+    width: clamp(340px, calc(100vw - 1060px), 460px);
   }
 }
 @media (max-width: 1280px) {
-  .comms-drawer {
+  .comms-drawer:not(.expanded) {
     width: min(420px, calc(100vw - 90px));
   }
+}
+
+/* ============================================================
+ *  v1.7.2: EXPANDED MODE
+ *  Comms drawer takes all space EXCEPT the right Customer Detail
+ *  drawer (560px) which stays visible. Email + Text become side-by-side.
+ *  Frame-guarded for small screens too — if customer drawer doesn't fit,
+ *  comms still gets a usable max-width.
+ * ============================================================ */
+.comms-drawer.expanded {
+  left: 80px;
+  right: 560px;
+  width: auto;
+  max-width: calc(100vw - 90px);
+  z-index: 51;  /* above leadDrawer (50) when expanded so we own focus */
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.7), 0 0 40px rgba(124,236,255,.18);
+}
+@media (max-width: 1100px) {
+  /* On really small screens, let comms expand to nearly full width;
+     customer drawer can be re-opened via clicks if needed */
+  .comms-drawer.expanded {
+    right: min(560px, calc(100vw - 380px));
+  }
+}
+@media (max-width: 800px) {
+  .comms-drawer.expanded {
+    right: 8px;
+  }
+}
+
+/* Side-by-side panes when expanded */
+.comms-drawer.expanded .comms-drawer-body {
+  flex-direction: row;
+  gap: 14px;
+}
+.comms-drawer.expanded .comms-section {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+@media (max-width: 900px) {
+  /* Stack again on small screens since horizontal split would be too narrow */
+  .comms-drawer.expanded .comms-drawer-body {
+    flex-direction: column;
+  }
+}
+
+/* Expand button */
+.comms-expand-btn {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(124,236,255,.20);
+  color: #8fb4c9;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  margin-right: 6px;
+  transition: all .15s ease;
+}
+.comms-expand-btn:hover {
+  background: rgba(124,236,255,.18);
+  color: #fff;
+  border-color: rgba(124,236,255,.50);
+}
+.comms-drawer.expanded .comms-expand-btn {
+  background: rgba(124,236,255,.20);
+  color: #cbe7f5;
+  border-color: rgba(124,236,255,.45);
 }
 .comms-drawer-head {
   padding: 14px 18px;
@@ -3691,7 +3766,7 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.1</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.2</span></div>
 </div>
 </div>
 </div>
@@ -4095,7 +4170,10 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
       <div class="comms-drawer-title">📡 Comms · 3-Point Contact</div>
       <div class="comms-drawer-customer" id="commsDrawerCustomer">—</div>
     </div>
-    <button class="comms-drawer-close" onclick="closeCommsDrawer()" title="Close Comms drawer">×</button>
+    <div style="display:flex; align-items:center;">
+      <button id="commsExpandBtn" class="comms-expand-btn" onclick="toggleCommsExpand()" title="Expand to full view">⛶</button>
+      <button class="comms-drawer-close" onclick="closeCommsDrawer()" title="Close Comms drawer">×</button>
+    </div>
   </div>
   <div class="comms-drawer-body">
     <div class="comms-section">
@@ -6771,6 +6849,25 @@ function renderRoutingRow(o, dotColor) {
 /* ============================================================
  *  RAIL PANELS
  *
+ *  v1.7.2 (2026-05-02)
+ *  - FIX: Comms drawer z-index bumped 36 → 48 so it sits above
+ *    the .drawer-overlay (z-index 40) which dims everything when
+ *    the right Customer Detail drawer opens. (Was: drawer opened
+ *    but appeared faded behind the dimmer.)
+ *  - NEW: ⛶ Expand button in Comms drawer header. Click to take
+ *    full view (everything except the 560px right Customer drawer).
+ *    Email + Text panes go from stacked to side-by-side for big
+ *    readable thread previews. Click again to collapse back.
+ *  - BEHAVIOR: When expanding, middle drawer (Order History)
+ *    auto-closes for focus; when collapsing, middle drawer
+ *    auto-reopens to whatever mode it was on. Customer Detail
+ *    drawer always stays visible.
+ *  - SAFETY: Frame-guarded sizing — clamp() + max-width: 100vw
+ *    means drawer can never slide off-frame regardless of screen
+ *    size. Tested for 1280px laptop screens and 27" monitors.
+ *  - DIAG: window.resize listener (currently no-op, CSS handles
+ *    via clamp + media queries).
+ *
  *  v1.7.1 (2026-05-02)
  *  - FIX: Comms drawer was hidden on screens narrower than 1200px
  *    due to display:none in media query. Replaced with smart
@@ -6932,9 +7029,74 @@ function openCommsDrawer(customer) {
 
 function closeCommsDrawer() {
   const drawer = $('commsDrawer');
-  if (drawer) drawer.classList.remove('open');
+  if (drawer) {
+    drawer.classList.remove('open');
+    drawer.classList.remove('expanded');  // v1.7.2: reset expand on close
+  }
+  const btn = $('commsExpandBtn');
+  if (btn) { btn.textContent = '⛶'; btn.title = 'Expand to full view'; }
+  // If user closes Comms while expanded, restore middle drawer
+  if (_extDrawerKindBeforeExpand && typeof openExtensionDrawer === 'function') {
+    const kind = _extDrawerKindBeforeExpand;
+    _extDrawerKindBeforeExpand = null;
+    setTimeout(() => openExtensionDrawer(kind), 80);
+  }
   commsAutoOpenEnabled = false;
 }
+
+/* v1.7.2: expand/collapse the Comms drawer to/from full view.
+   When expanding: auto-close the middle drawer (Order History) for focus.
+   When collapsing: auto-reopen the middle drawer if there's a current lead. */
+let _extDrawerKindBeforeExpand = null;  // remembers what middle-drawer mode was active
+function toggleCommsExpand() {
+  const drawer = $('commsDrawer');
+  const btn = $('commsExpandBtn');
+  if (!drawer) return;
+  const isExpanded = drawer.classList.contains('expanded');
+  const extDrawer = $('extensionDrawer');
+
+  if (isExpanded) {
+    // Collapse: shrink back to docked
+    drawer.classList.remove('expanded');
+    if (btn) {
+      btn.textContent = '⛶';
+      btn.title = 'Expand to full view';
+    }
+    // Re-open middle drawer if we closed it on expand
+    if (_extDrawerKindBeforeExpand && typeof openExtensionDrawer === 'function') {
+      const kind = _extDrawerKindBeforeExpand;
+      _extDrawerKindBeforeExpand = null;
+      // Small delay so transition looks clean
+      setTimeout(() => openExtensionDrawer(kind), 80);
+    }
+    console.log('[comms] collapsed back to docked');
+  } else {
+    // Expand: take full view, auto-close middle drawer
+    if (extDrawer && extDrawer.classList.contains('open')) {
+      // Remember which mode was active so we can restore on collapse
+      _extDrawerKindBeforeExpand = (typeof currentExtension !== 'undefined' && currentExtension) ? currentExtension : 'orders';
+      extDrawer.classList.remove('open');
+      document.querySelectorAll('.drawer-ext-btn').forEach(b => b.classList.remove('active'));
+    }
+    drawer.classList.add('expanded');
+    if (btn) {
+      btn.textContent = '⛶';  // same icon, just colored differently when active
+      btn.title = '← Back to docked view';
+    }
+    console.log('[comms] expanded to full view');
+  }
+}
+
+/* Window resize: keep things sane if the user changes window width.
+   No active layout changes — CSS handles it via clamp() and media queries —
+   but we re-affirm sanity if the drawer is currently open. */
+window.addEventListener('resize', () => {
+  const drawer = $('commsDrawer');
+  if (!drawer || !drawer.classList.contains('open')) return;
+  // No-op on the JS side; CSS clamp() and media queries handle the rest.
+  // Just log for diagnostics.
+  // console.log('[comms] resize event, viewport:', window.innerWidth);
+});
 
 /* v1.7.1: manual toggle from the middle drawer header.
    When user clicks "📡 Text/Email Intel" — open or close the Comms drawer. */
