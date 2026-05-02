@@ -1804,6 +1804,29 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 .extension-drawer.open { transform: translateX(0); visibility: visible; opacity: 1; pointer-events: auto; transition: transform .26s ease, opacity .22s ease, visibility 0s linear 0s; }
 .ext-body { display: flex; flex-direction: column; gap: 10px; }
 .ext-row-card { border-radius: 14px; padding: 12px 14px; background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015)); border: 1px solid rgba(124,236,255,.14); cursor: pointer; }
+/* v1.7.3: supply transfer rows — internal stock movement, visually muted */
+.ext-row-card.supply-transfer {
+  background: linear-gradient(180deg, rgba(184,156,255,.06), rgba(184,156,255,.02));
+  border-color: rgba(184,156,255,.22);
+}
+.ext-row-card.supply-transfer:hover {
+  border-color: rgba(184,156,255,.45);
+  box-shadow: 0 0 14px rgba(184,156,255,.18);
+}
+.supply-transfer-chip {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 6px;
+  background: rgba(184,156,255,.18);
+  border: 1px solid rgba(184,156,255,.40);
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #d4c2ff;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
 /* v1.7.0: inline detail mode in middle drawer */
 .ext-detail-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(124,236,255,.14); }
 .ext-back-btn {
@@ -2606,21 +2629,23 @@ body.leads-compact #leadsCompactToggle {
   pointer-events: auto;
   transition: transform .26s ease, opacity .22s ease, visibility 0s linear 0s, left .26s ease, right .26s ease, width .26s ease;
 }
-/* Auto-fit for screens that can't fit all 3 drawers side by side */
+/* v1.7.3: docked Comms drawer stretches all the way to the middle
+   drawer's left edge instead of being capped at a fixed width. This
+   fills the "void" between the rail and the middle drawer. */
 @media (max-width: 1700px) {
   .comms-drawer:not(.expanded) {
-    right: auto;
     left: 80px;
-    width: clamp(360px, calc(100vw - 1080px), 520px);
+    right: calc(560px + 480px + 4px);
+    width: auto;
+    min-width: 320px;
   }
 }
-@media (max-width: 1400px) {
-  .comms-drawer:not(.expanded) {
-    width: clamp(340px, calc(100vw - 1060px), 460px);
-  }
-}
+/* On very narrow screens where the middle drawer doesn't have room,
+   collapse Comms to a fixed-width overlay instead. */
 @media (max-width: 1280px) {
   .comms-drawer:not(.expanded) {
+    left: 80px;
+    right: auto;
     width: min(420px, calc(100vw - 90px));
   }
 }
@@ -3766,7 +3791,7 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.2</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.3</span></div>
 </div>
 </div>
 </div>
@@ -6106,10 +6131,64 @@ function sendAdminAutomation(kind) {
   });
 }
 
+/* v1.7.3: identity-match email guards.
+   Generic shared mailboxes (admin@, info@, etc) match hundreds of
+   unrelated records. Internal staff emails (chris@trsstore.com,
+   james@trsstore.com) belong to reps, not customers — their email
+   shows up on internal supply-transfer records.
+   Keep these in sync with public.is_generic_email() and
+   public.is_internal_staff_email() in the database. */
+const GENERIC_EMAIL_PREFIXES = ['admin@','info@','office@','sales@','support@','noreply@','no-reply@','hello@','contact@','orders@','customerservice@','cs@'];
+const INTERNAL_STAFF_EMAILS = new Set([
+  'chris@trsstore.com',
+  'james@trsstore.com'
+  // Add other reps' emails here as discovered
+]);
+function isGenericEmail(email) {
+  if (!email) return false;
+  const e = String(email).toLowerCase().trim();
+  return GENERIC_EMAIL_PREFIXES.some(p => e.startsWith(p));
+}
+function isInternalStaffEmail(email) {
+  if (!email) return false;
+  return INTERNAL_STAFF_EMAILS.has(String(email).toLowerCase().trim());
+}
+function shouldSuppressEmailMatch(email) {
+  return isGenericEmail(email) || isInternalStaffEmail(email);
+}
+
+/* v1.7.3: detect inter-company supply-transfer records.
+   When customer name/business contains a sister-brand keyword AND
+   the order's brand differs, label as a supply transfer.
+   Returns the source brand code or null. */
+function detectSupplyTransfer(customerName, customerCompany, orderBrand) {
+  const hay = ((customerName || '') + ' ' + (customerCompany || '')).toLowerCase();
+  const brand = (orderBrand || '').toLowerCase();
+  if ((hay.includes('munkeboe') || hay.includes('mb linen') || hay.includes('mb wholesale'))
+      && !['munkeboe','mb'].includes(brand)) return 'MB';
+  if ((hay.includes('special event') && hay.includes('linen'))
+      || hay.includes('sel linen') || hay.includes('sel rental')
+      && !['sel','special'].includes(brand)) return 'SEL';
+  if ((hay.includes('taylor equipment') || hay.includes('taylor rental'))
+      && !['taylor','tr'].includes(brand)) return 'TR';
+  if ((hay.includes('arizona event rental') || hay.includes('a.e.r.'))
+      && !['aer','arizona'].includes(brand)) return 'AER';
+  if ((hay.includes('thank q') || hay.includes('thankq') || hay.includes('thank-q'))
+      && !['thankq','tq'].includes(brand)) return 'TQ';
+  return null;
+}
+
 /* EXTENSION DRAWER */
 async function preloadExtensionCounts(lead) {
   const phone = (lead.phone || '').replace(/\D/g, '').slice(-10);
-  const email = lc(lead.email);
+  const rawEmail = lc(lead.email);
+  // v1.7.3: drop generic & internal-staff emails from identity match
+  const emailSuppressed = shouldSuppressEmailMatch(rawEmail);
+  const email = emailSuppressed ? '' : rawEmail;
+  lead._suppressedEmail = emailSuppressed ? rawEmail : null;
+  if (emailSuppressed) {
+    console.log('[ext] suppressing email for identity match:', rawEmail);
+  }
   if (!phone && !email) {
     extCounts = { orders: 0, quotes: 0, delivery: 0 };
     updateExtCountUI();
@@ -6144,7 +6223,18 @@ async function openExtensionDrawer(kind) {
   if (btn) btn.classList.add('active');
   const titles = { orders: '📦 Order History', quotes: '📄 Quote History', delivery: '🚚 Delivery History', intel: '📊 Client Intel' };
   $('extDrawerTitle').textContent = titles[kind] || 'Extension';
-  $('extDrawerSub').textContent = currentDrawerLead.full_name || '';
+  // v1.7.3: subtitle includes a chip if email was suppressed
+  const _lead0 = currentDrawerLead;
+  const _suppEmail = _lead0 && shouldSuppressEmailMatch(lc(_lead0.email)) ? lc(_lead0.email) : null;
+  if (_suppEmail) {
+    const isInternal = isInternalStaffEmail(_suppEmail);
+    const chipColor = isInternal ? 'rgba(184,156,255' : 'rgba(255,212,106';
+    const chipTextColor = isInternal ? '#d4c2ff' : '#ffd46a';
+    const reason = isInternal ? 'Internal staff email' : 'Shared mailbox';
+    $('extDrawerSub').innerHTML = `${escapeHtml(_lead0.full_name || '')} <span style="display:inline-block; margin-left:8px; padding:2px 7px; background:${chipColor},.10); border:1px solid ${chipColor},.35); border-radius:4px; font-size:9px; font-weight:700; color:${chipTextColor}; letter-spacing:.04em; text-transform:uppercase;" title="${reason}: '${escapeHtml(_suppEmail)}' is being ignored for identity match. Showing phone-matched records only.">${isInternal ? '👤' : '⚠'} ${isInternal ? 'STAFF EMAIL' : 'SHARED INBOX'} IGNORED</span>`;
+  } else {
+    $('extDrawerSub').textContent = _lead0 ? (_lead0.full_name || '') : '';
+  }
   $('extensionDrawer').classList.add('open');
   // v1.7.0: auto-open Comms drawer alongside the middle drawer (3-point contact view)
   try {
@@ -6271,12 +6361,16 @@ function renderExtensionDetailInline(r) {
     }
   } catch (e) { console.warn('[ownership inline]', e); }
 
-  // Header
+  // Header — v1.7.3 includes supply-transfer chip if applicable
+  const supplyTransferBrand = detectSupplyTransfer(r.customer_name, r.customer_company, r.brand);
+  const supplyChip = supplyTransferBrand
+    ? `<span class="supply-transfer-chip" title="Supply transfer from ${supplyTransferBrand} — internal stock movement, not a customer order">📦 SOURCE: ${escapeHtml(supplyTransferBrand)}</span>`
+    : '';
   const headerHtml = `
     <div class="ext-detail-header">
       <button class="ext-back-btn" onclick="restoreExtensionList()">← Back to list</button>
       <div class="ext-detail-num">
-        ${recordIcon} ${recordLabel} · ${renderCopyableNumber(recordNo)}
+        ${recordIcon} ${recordLabel} · ${renderCopyableNumber(recordNo)}${supplyChip}
       </div>
     </div>
     <div class="ext-detail-customer">${escapeHtml(r.customer_name || r.customer_company || '—')}</div>
@@ -6300,7 +6394,12 @@ async function loadExtensionRecords(kind) {
   const lead = currentDrawerLead;
   if (!lead) return;
   const phone = (lead.phone || '').replace(/\D/g, '').slice(-10);
-  const email = lc(lead.email);
+  // v1.7.3: drop generic / internal-staff emails (same logic as preload)
+  const _rawEmail = lc(lead.email);
+  const email = shouldSuppressEmailMatch(_rawEmail) ? '' : _rawEmail;
+  if (shouldSuppressEmailMatch(_rawEmail)) {
+    lead._suppressedEmail = _rawEmail;
+  }
   const orFilter = [];
   if (phone) orFilter.push(`phone_digits.eq.${phone}`);
   if (email) orFilter.push(`email_norm.eq.${email}`);
@@ -6317,14 +6416,22 @@ async function loadExtensionRecords(kind) {
   if (!data || !data.length) { $('extDrawerBody').innerHTML = '<div class="ext-empty">No records found.</div>'; return; }
   const totalRev = data.reduce((s, r) => s + (parseFloat(r.total) || 0), 0);
   const summary = `<div class="ext-summary"><div class="ext-summary-stat"><div class="label">Records</div><div class="value">${data.length}</div></div><div class="ext-summary-stat"><div class="label">Total Value</div><div class="value">${fmtMoney(totalRev)}</div></div></div>`;
-  const rows = data.map(r => `
-    <div class="ext-row-card" onclick="openOrderDetailFromExtension('${escapeHtml(r.record_no)}', '${escapeHtml(r.record_type)}')">
-      <div class="ext-row-top"><span class="ext-row-order">${escapeHtml(r.record_no || '')}</span><span class="ext-row-date">${fmtDate(r.record_date)}</span></div>
-      <div class="ext-row-meta">${r.event_start_date ? `📅 ${fmtDate(r.event_start_date)}` : ''}${r.delivery_method ? ` · ${escapeHtml(r.delivery_method)}` : ''}${r.surface ? ` · <strong>${escapeHtml(surfaceLabel(r.surface))}</strong>` : ''}</div>
+  const rows = data.map(r => {
+    // v1.7.3: detect inter-company supply transfers and label them
+    const supplyTransferBrand = detectSupplyTransfer(r.customer_name, r.customer_company, r.brand);
+    const supplyChip = supplyTransferBrand
+      ? `<span class="supply-transfer-chip" title="Supply transfer from ${supplyTransferBrand} — internal stock movement, not a customer order">📦 SOURCE: ${escapeHtml(supplyTransferBrand)}</span>`
+      : '';
+    const rowClass = supplyTransferBrand ? 'ext-row-card supply-transfer' : 'ext-row-card';
+    return `
+    <div class="${rowClass}" onclick="openOrderDetailFromExtension('${escapeHtml(r.record_no)}', '${escapeHtml(r.record_type)}')">
+      <div class="ext-row-top"><span class="ext-row-order">${renderCopyableNumber(r.record_no || '')}</span><span class="ext-row-date">${fmtDate(r.record_date)}</span></div>
+      <div class="ext-row-meta">${r.event_start_date ? `📅 ${fmtDate(r.event_start_date)}` : ''}${r.delivery_method ? ` · ${escapeHtml(r.delivery_method)}` : ''}${r.surface ? ` · <strong>${escapeHtml(surfaceLabel(r.surface))}</strong>` : ''}${supplyChip}</div>
       ${r.items_text ? `<div class="ext-row-items">${escapeHtml(r.items_text)}</div>` : ''}
       <div class="ext-row-top" style="margin-top:6px;"><span class="ext-row-status-pill ${r.record_type === 'order' ? 'delivered' : 'open'}">${escapeHtml((r.status_raw || r.record_type).toUpperCase())}</span><span class="ext-row-total">${fmtMoney(r.total)}</span></div>
     </div>
-  `).join('');
+  `;
+  }).join('');
   $('extDrawerBody').innerHTML = summary + rows;
 }
 
@@ -6848,6 +6955,32 @@ function renderRoutingRow(o, dotColor) {
 <script>
 /* ============================================================
  *  RAIL PANELS
+ *
+ *  v1.7.3 (2026-05-02)
+ *  - FIX: clicking a lead with a generic shared-mailbox email
+ *    (admin@, info@, etc) used to count hundreds of unrelated
+ *    records as "this person's order history". Now suppressed —
+ *    such emails are dropped from the identity OR-filter, only
+ *    phone match is used. Subtitle shows ⚠ SHARED INBOX IGNORED
+ *    chip so user knows.
+ *  - FIX: same suppression for internal staff emails
+ *    (chris@trsstore.com, james@trsstore.com). Their email shows
+ *    up on internal supply-transfer records — those should not
+ *    count as their personal customer history. Subtitle shows
+ *    👤 STAFF EMAIL IGNORED chip.
+ *  - NEW: supply-transfer detection. Records where the customer
+ *    name/business contains a sister-brand keyword (Munkeboe, SEL,
+ *    Taylor, AER, Thank Q) AND the order brand differs are flagged
+ *    in both the list view and inline detail view with a
+ *    📦 SOURCE: XX chip. Records remain visible (audit history)
+ *    but visually muted purple so they don't blend into customer
+ *    orders. About 1,431 records flagged across all 5 brands.
+ *  - FIX: Comms drawer in DOCKED mode now stretches all the way
+ *    to the middle drawer's left edge instead of being capped at
+ *    360-520px. The void area is gone.
+ *  - DB: new helpers is_internal_staff_email(), identity_email(),
+ *    detect_supply_transfer() in public schema. Keep dashboard's
+ *    JS suppression list in sync with these.
  *
  *  v1.7.2 (2026-05-02)
  *  - FIX: Comms drawer z-index bumped 36 → 48 so it sits above
