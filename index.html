@@ -2194,28 +2194,28 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 .tiny-route { display: inline-flex; margin-top: 8px; }
 
 /* ITEM CHIPS / DOLLAR / SIGNALS */
-/* v1.7.9: 10-column layout (Event Date moved to drawer header).
-   Reclaimed ~92px and redistributed mostly to Name + Signals.
-   Total ~1131px sum (similar to v1.7.7) so still safe at 1280px+. */
+/* v1.7.11: tighter 10-column layout. Total ~990px so columns sit
+   closer together with breathing room for any monitor. Padding cut
+   from 6px to 4px horizontal saves another ~24px. */
 .slim-table { table-layout: fixed; width: 100%; }
 .slim-table th, .slim-table td {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 6px 6px;
+  padding: 6px 4px;
   font-size: 11.5px;
 }
-.slim-table th { font-size: 10px; padding: 8px 6px; letter-spacing: .04em; }
-.slim-table th:nth-child(1),  .slim-table td:nth-child(1)  { width: 90px; }    /* Company */
-.slim-table th:nth-child(2),  .slim-table td:nth-child(2)  { width: 230px; white-space: normal; }   /* Name — wrap allowed (extra room) */
-.slim-table th:nth-child(3),  .slim-table td:nth-child(3)  { width: 135px; }   /* Phone */
-.slim-table th:nth-child(4),  .slim-table td:nth-child(4)  { width: 110px; }   /* Route (extra room) */
-.slim-table th:nth-child(5),  .slim-table td:nth-child(5)  { width: 82px; }    /* Status */
-.slim-table th:nth-child(6),  .slim-table td:nth-child(6)  { width: 150px; white-space: normal; }   /* Signals — wrap allowed (extra room) */
-.slim-table th:nth-child(7),  .slim-table td:nth-child(7)  { width: 92px; }    /* Assigned */
-.slim-table th:nth-child(8),  .slim-table td:nth-child(8)  { width: 90px; }    /* Assign */
-.slim-table th:nth-child(9),  .slim-table td:nth-child(9)  { width: 56px; }    /* Done */
-.slim-table th:nth-child(10), .slim-table td:nth-child(10) { width: 78px; }    /* Received */
+.slim-table th { font-size: 10px; padding: 8px 4px; letter-spacing: .04em; }
+.slim-table th:nth-child(1),  .slim-table td:nth-child(1)  { width: 78px; }    /* Company */
+.slim-table th:nth-child(2),  .slim-table td:nth-child(2)  { width: 200px; white-space: normal; }   /* Name — wrap allowed */
+.slim-table th:nth-child(3),  .slim-table td:nth-child(3)  { width: 118px; }   /* Phone */
+.slim-table th:nth-child(4),  .slim-table td:nth-child(4)  { width: 86px; }    /* Route */
+.slim-table th:nth-child(5),  .slim-table td:nth-child(5)  { width: 72px; }    /* Status */
+.slim-table th:nth-child(6),  .slim-table td:nth-child(6)  { width: 150px; white-space: normal; }   /* Signals — wrap allowed */
+.slim-table th:nth-child(7),  .slim-table td:nth-child(7)  { width: 82px; }    /* Assigned */
+.slim-table th:nth-child(8),  .slim-table td:nth-child(8)  { width: 82px; }    /* Assign */
+.slim-table th:nth-child(9),  .slim-table td:nth-child(9)  { width: 50px; }    /* Done */
+.slim-table th:nth-child(10), .slim-table td:nth-child(10) { width: 72px; }    /* Received */
 
 /* Tighten the assign dropdown trigger so it doesn't bust 78px column */
 .slim-table .assign-trigger {
@@ -4148,7 +4148,7 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.10</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.11</span></div>
 <button onclick="window.launchFireworks(6000); window.showCelebrationBanner('🎆 TEST FIREWORKS 🎆','Just checking the lights work',4000); return false;"
   title="Test fireworks animation"
   style="margin-top:6px;background:linear-gradient(180deg,rgba(255,215,0,.20),rgba(255,138,163,.15));border:1px solid rgba(255,215,0,.45);color:#ffd700;font-size:9px;font-weight:700;letter-spacing:.06em;padding:3px 8px;border-radius:6px;cursor:pointer;text-transform:uppercase;">🎆 Test FX</button>
@@ -7315,6 +7315,18 @@ function renderRoutingRow(o, dotColor) {
 <script>
 /* ============================================================
  *  RAIL PANELS
+ *
+ *  v1.7.11 (2026-05-02 tighter columns + DB cleanup)
+ *  - TIGHTER: Live Leads columns reduced from ~1113px total to
+ *    ~990px. Cell padding cut from 6px to 4px horizontal so cells
+ *    sit visibly closer together. Name + Signals retain wrap.
+ *  - DB FIX: one polluted lead phone field cleaned ("Caller ID:
+ *    +18135374842 Text OK: unknown" → "+18135374842"). Added DB
+ *    trigger sanitize_lead_phone() that prevents this transcript
+ *    pollution from happening again on insert/update.
+ *  - DB CLEANUP: deleted 48 finished SEL backfill jobs from
+ *    backfill_jobs (history, no longer needed). staff_actions
+ *    and customer_messages left as-is (audit value / empty).
  *
  *  v1.7.10 (2026-05-02 auto-scrolling chat boxes)
  *  - NEW: both top chat boxes now auto-scroll vertically with a
