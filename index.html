@@ -127,9 +127,9 @@ background: rgba(110, 231, 255, 0.38);
 
 .app {
 position: relative;
-max-width: 1720px;
+max-width: 1900px;
 margin: 0 auto;
-padding: 0px 22px 16px;
+padding: 0px 18px 16px;
 z-index: 1;
 }
 
@@ -314,16 +314,16 @@ font-weight: 700;
   display: flex;
   gap: 8px;
   align-items: stretch;
-  height: 96px;
+  height: 112px;
   flex: 1;
   min-width: 0;
-  max-width: 720px;
+  max-width: 740px;
 }
 .chat-box {
   flex: 1;
   min-width: 0;
-  max-width: 360px;
-  min-height: 96px;
+  max-width: 370px;
+  min-height: 112px;
   background: linear-gradient(180deg, rgba(8,16,30,.85), rgba(10,20,38,.78));
   border: 1px solid rgba(124,236,255,.18);
   border-radius: 14px;
@@ -737,7 +737,7 @@ font-size: 14px;
 }
 
 .search::placeholder { color: #9eb2ca; }
-.table-wrap { overflow-x: auto; }
+.table-wrap { overflow-x: auto; overflow-y: hidden; }
 table { width: 100%; min-width: 1620px; border-collapse: collapse; }
 
 thead th {
@@ -2133,8 +2133,9 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 .tiny-route { display: inline-flex; margin-top: 8px; }
 
 /* ITEM CHIPS / DOLLAR / SIGNALS */
-/* v1.7.6: aggressive table compression — table-layout:fixed forces columns
-   to honor declared widths regardless of content. Overflow handled per-cell. */
+/* v1.7.7: 11-column layout (Source + Follow Up removed). Total width
+   sum = ~1130px which fits inside the panel content area on any screen
+   1280px or wider. Panel itself widens to 1900px max. */
 .slim-table { table-layout: fixed; width: 100%; }
 .slim-table th, .slim-table td {
   white-space: nowrap;
@@ -2144,21 +2145,17 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   font-size: 11.5px;
 }
 .slim-table th { font-size: 10px; padding: 8px 6px; letter-spacing: .04em; }
-/* Column widths sum: 80+60+170+115+82+92+72+118+80+72+78+50+72 = 1241px + ~13*4px borders = 1293px
-   Leaves room for left rail 80, right rail ~60, panel padding ~32 — fits in 1500px content area */
-.slim-table th:nth-child(1),  .slim-table td:nth-child(1)  { width: 80px; }    /* Company */
-.slim-table th:nth-child(2),  .slim-table td:nth-child(2)  { width: 60px; }    /* Source */
-.slim-table th:nth-child(3),  .slim-table td:nth-child(3)  { width: 170px; white-space: normal; }   /* Name — wrap allowed */
-.slim-table th:nth-child(4),  .slim-table td:nth-child(4)  { width: 115px; }   /* Phone */
-.slim-table th:nth-child(5),  .slim-table td:nth-child(5)  { width: 82px; }    /* Event Date */
-.slim-table th:nth-child(6),  .slim-table td:nth-child(6)  { width: 92px; }    /* Route */
-.slim-table th:nth-child(7),  .slim-table td:nth-child(7)  { width: 72px; }    /* Status */
-.slim-table th:nth-child(8),  .slim-table td:nth-child(8)  { width: 118px; white-space: normal; }   /* Signals — wrap allowed */
-.slim-table th:nth-child(9),  .slim-table td:nth-child(9)  { width: 80px; }    /* Assigned */
-.slim-table th:nth-child(10), .slim-table td:nth-child(10) { width: 72px; }    /* Follow Up */
-.slim-table th:nth-child(11), .slim-table td:nth-child(11) { width: 78px; }    /* Assign */
-.slim-table th:nth-child(12), .slim-table td:nth-child(12) { width: 50px; }    /* Done */
-.slim-table th:nth-child(13), .slim-table td:nth-child(13) { width: 72px; }    /* Received */
+.slim-table th:nth-child(1),  .slim-table td:nth-child(1)  { width: 86px; }    /* Company */
+.slim-table th:nth-child(2),  .slim-table td:nth-child(2)  { width: 200px; white-space: normal; }   /* Name — wrap allowed */
+.slim-table th:nth-child(3),  .slim-table td:nth-child(3)  { width: 130px; }   /* Phone */
+.slim-table th:nth-child(4),  .slim-table td:nth-child(4)  { width: 92px; }    /* Event Date */
+.slim-table th:nth-child(5),  .slim-table td:nth-child(5)  { width: 105px; }   /* Route */
+.slim-table th:nth-child(6),  .slim-table td:nth-child(6)  { width: 78px; }    /* Status */
+.slim-table th:nth-child(7),  .slim-table td:nth-child(7)  { width: 130px; white-space: normal; }   /* Signals — wrap allowed */
+.slim-table th:nth-child(8),  .slim-table td:nth-child(8)  { width: 90px; }    /* Assigned */
+.slim-table th:nth-child(9),  .slim-table td:nth-child(9)  { width: 88px; }    /* Assign */
+.slim-table th:nth-child(10), .slim-table td:nth-child(10) { width: 56px; }    /* Done */
+.slim-table th:nth-child(11), .slim-table td:nth-child(11) { width: 76px; }    /* Received */
 
 /* Tighten the assign dropdown trigger so it doesn't bust 78px column */
 .slim-table .assign-trigger {
@@ -4087,7 +4084,7 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.6</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.7</span></div>
 </div>
 </div>
 </div>
@@ -4131,7 +4128,6 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 <thead>
 <tr>
 <th>Company</th>
-<th>Source</th>
 <th>Name</th>
 <th>Phone</th>
 <th>Event Date</th>
@@ -4139,14 +4135,13 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 <th>Status</th>
 <th class="signals-col">Signals</th>
 <th>Assigned</th>
-<th>Follow Up</th>
 <th>Assign</th>
 <th>Done</th>
 <th>Received</th>
 </tr>
 </thead>
 <tbody id="tableBody">
-<tr><td colspan="13" class="muted">Loading data...</td></tr>
+<tr><td colspan="11" class="muted">Loading data...</td></tr>
 </tbody>
 </table>
 </div>
@@ -5393,7 +5388,7 @@ try {
   document.addEventListener('DOMContentLoaded', function() {
     var tb = document.getElementById('tableBody');
     if (tb) {
-      tb.innerHTML = '<tr><td colspan="13" style="color:#ffd0db;font-family:monospace;font-size:12px;padding:20px;">❌ Supabase failed to initialize: ' + initErr.message + '</td></tr>';
+      tb.innerHTML = '<tr><td colspan="11" style="color:#ffd0db;font-family:monospace;font-size:12px;padding:20px;">❌ Supabase failed to initialize: ' + initErr.message + '</td></tr>';
     }
   });
 }
@@ -5680,7 +5675,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const setBootStatus = (txt) => {
     const tb = document.getElementById('tableBody');
     if (tb && tb.querySelector('td.muted')) {
-      tb.innerHTML = `<tr><td colspan="13" class="muted" style="font-family:monospace;font-size:12px;">⏳ ${txt}</td></tr>`;
+      tb.innerHTML = `<tr><td colspan="11" class="muted" style="font-family:monospace;font-size:12px;">⏳ ${txt}</td></tr>`;
     }
   };
   const safe = async (label, fn) => {
@@ -5986,7 +5981,7 @@ function renderTable() {
         msg = 'No active leads right now.';
       }
     }
-    tbody.innerHTML = `<tr><td colspan="13" class="muted">${msg}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" class="muted">${msg}</td></tr>`;
     const sub = $('liveLeadsSubtitle');
     if (sub) {
       let parts = [];
@@ -6043,7 +6038,6 @@ function renderLeadRow(l) {
   return `
     <tr class="slim-row" data-lead-id="${escapeHtml(l.id)}" onclick="openDrawer('${escapeHtml(l.id)}')">
       <td>${companyDot}<strong>${escapeHtml(COMPANY_LABELS[company] || company)}</strong></td>
-      <td>${sourceTag}${onlineFlag ? '<br>' + onlineFlag : ''}</td>
       <td><div class="name-cell">${l.full_name && l.full_name.trim() ? escapeHtml(l.full_name) : (l.full_name_phantom ? `<span style="color:#ffd46a;">${escapeHtml(l.full_name_phantom)}</span><span class="phantom-likely">LIKELY · ☎</span>` : '<span class="muted">—</span>')}${agingBadge}${nameMismatch}</div>${businessHint}</td>
       <td>${phone}</td>
       <td>${escapeHtml(safeText(l.event_date))}</td>
@@ -6051,7 +6045,6 @@ function renderLeadRow(l) {
       <td>${statusHtml}</td>
       <td class="signals-col"><div class="signals-wrap">${confidenceLadder}${signals}</div></td>
       <td>${assignedHtml}</td>
-      <td>${l.follow_up_status ? '<span class="pill ready">Done</span>' : '<span class="pill partial">Pending</span>'}</td>
       <td onclick="event.stopPropagation();">${assignDropdown}</td>
       <td onclick="event.stopPropagation();">
         ${!l.follow_up_status ? `<button class="glass-btn done-btn" onclick="markFollowedFromTable('${escapeHtml(l.id)}', event)">Done</button>` : '<span class="muted">✓</span>'}
@@ -7245,6 +7238,19 @@ function renderRoutingRow(o, dotColor) {
 <script>
 /* ============================================================
  *  RAIL PANELS
+ *
+ *  v1.7.7 (2026-05-02)
+ *  - REAL FIT: dropped two redundant columns from Live Leads:
+ *      SOURCE (always rendered "OTHER" for all leads — dead column)
+ *      FOLLOW UP (redundant with the Done button column)
+ *    Net: 11 columns instead of 13. Total table width ~1131px,
+ *    fits comfortably on any 1280px+ screen. All right-side action
+ *    columns (Assigned/Assign/Done/Received) now visible.
+ *  - WIDENED: .app max-width 1720 → 1900px to let big monitors
+ *    actually use their real estate.
+ *  - TALLER chat: twin chat boxes 96 → 112px (a hair more).
+ *  - INDEXES: post-render guard cells.length 13 → 11; Phone cell
+ *    3→2, Event Date 4→3, Route 5→4.
  *
  *  v1.7.6 (2026-05-02 micro-fix)
  *  - MOVED: twin chat boxes from far-right to CENTER of header.
@@ -12068,20 +12074,20 @@ window.renderTable = function() {
     const lead = allLeads.find(l => l.id === leadId);
     if (!lead) return;
     const cells = tr.querySelectorAll('td');
-    // v1.7.5: column count is now 13 (Products column removed)
-    if (cells.length < 13) return;
-    // Cell index 3 = Phone — append rec button if not already present
-    const phoneCell = cells[3];
+    // v1.7.7: column count is now 11 (Source + Follow Up removed)
+    if (cells.length < 11) return;
+    // Cell index 2 = Phone — append rec button if not already present
+    const phoneCell = cells[2];
     if (phoneCell && !phoneCell.querySelector('.row-rec-btn')) {
       phoneCell.insertAdjacentHTML('beforeend', renderRowRecBtn(lead));
     }
-    // Cell index 4 = Event Date — wrap with editor unless already wrapped
-    const eventCell = cells[4];
+    // Cell index 3 = Event Date — wrap with editor unless already wrapped
+    const eventCell = cells[3];
     if (eventCell && !eventCell.querySelector('.event-date-edit-btn')) {
       eventCell.innerHTML = renderEventDateCell(lead);
     }
-    // Cell index 5 = Route — was index 6, shifted down after Products removal
-    const routeCell = cells[5];
+    // Cell index 4 = Route — replace plain text with pill
+    const routeCell = cells[4];
     if (routeCell && !routeCell.querySelector('.route-pill')) {
       routeCell.innerHTML = renderRoutePill(lead.workflow_route);
     }
