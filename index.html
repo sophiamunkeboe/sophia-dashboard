@@ -3390,7 +3390,7 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.6.8</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.6.9</span></div>
 </div>
 </div>
 </div>
@@ -3426,7 +3426,11 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 <h2 class="panel-title">Live Leads</h2>
 <div class="panel-sub" id="liveLeadsSubtitle">Recent calls, assignments, follow-up, and routing outcomes</div>
 </div>
-<input id="searchInput" class="search" placeholder="Search name, phone, products, route, notes..." />
+<div style="display:flex; gap:10px; align-items:center; flex:1; justify-content:flex-end;">
+<input id="searchInput" class="search" placeholder="Search name, phone, products, route, notes..." style="flex:1; max-width:480px;" />
+<button id="leadsCompactToggle" class="glass-btn" onclick="toggleLeadsCompactMode()" title="Toggle between compact and full column view"
+  style="font-size:11px; padding:6px 10px; white-space:nowrap;">📋 Compact</button>
+</div>
 </div>
 
 <div class="table-wrap" id="tableWrap">
@@ -3770,6 +3774,49 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
     <div class="lrp-empty">Click an order row to see details</div>
   </div>
   <div class="odp-actions" id="odpActions"></div>
+</aside>
+
+<!-- ============================================================
+     COMMS DRAWER — v1.6.9 NEW
+     Stacked Email + Text panes for the customer in the main drawer.
+     Empty until Meta tracking pipeline populates customer_messages.
+     ============================================================ -->
+<aside id="commsDrawer" class="comms-drawer">
+  <div class="comms-drawer-head">
+    <div>
+      <div class="comms-drawer-title">📡 Comms · 3-Point Contact</div>
+      <div class="comms-drawer-customer" id="commsDrawerCustomer">—</div>
+    </div>
+    <button class="comms-drawer-close" onclick="closeCommsDrawer()" title="Close Comms drawer">×</button>
+  </div>
+  <div class="comms-drawer-body">
+    <div class="comms-section">
+      <div class="comms-section-head">
+        <span>📧 Email History</span>
+        <span class="count-badge" id="commsEmailCount">0</span>
+      </div>
+      <div class="comms-section-body" id="commsEmailBody">
+        <div class="comms-empty">
+          <span class="icon">📧</span>
+          <strong>No email history yet</strong>
+          Awaiting Meta tracking pipeline.
+        </div>
+      </div>
+    </div>
+    <div class="comms-section">
+      <div class="comms-section-head">
+        <span>💬 Text History (Meta)</span>
+        <span class="count-badge" id="commsTextCount">0</span>
+      </div>
+      <div class="comms-section-body" id="commsTextBody">
+        <div class="comms-empty">
+          <span class="icon">💬</span>
+          <strong>No texts yet</strong>
+          Awaiting Meta tracking pipeline.
+        </div>
+      </div>
+    </div>
+  </div>
 </aside>
 
 <!-- RIGHT UTILITY RAIL -->
@@ -4892,6 +4939,240 @@ function renderLastSeenMeta(lead) {
   return `<span class="last-seen-meta">Last seen <strong>${escapeHtml(who)}</strong> · ${escapeHtml(what)} · ${escapeHtml(when)}</span>`;
 }
 
+/* ============================================================
+ *  COMPACT MODE — v1.6.9
+ *  When body has class .leads-compact, hide non-essential cols
+ *  in the Live Leads table. Keeps Company / Source / Name / Phone
+ *  visible plus a tiny Status pill. Click row to see all details.
+ *  ============================================================ */
+body.leads-compact .slim-table th:nth-child(5),  /* Event Date */
+body.leads-compact .slim-table th:nth-child(6),  /* Products */
+body.leads-compact .slim-table th:nth-child(7),  /* Route */
+body.leads-compact .slim-table th:nth-child(9),  /* Signals */
+body.leads-compact .slim-table th:nth-child(10), /* Assigned */
+body.leads-compact .slim-table th:nth-child(11), /* Follow Up */
+body.leads-compact .slim-table th:nth-child(12), /* Assign */
+body.leads-compact .slim-table th:nth-child(13), /* Done */
+body.leads-compact .slim-table th:nth-child(14), /* Received */
+body.leads-compact .slim-table td:nth-child(5),
+body.leads-compact .slim-table td:nth-child(6),
+body.leads-compact .slim-table td:nth-child(7),
+body.leads-compact .slim-table td:nth-child(9),
+body.leads-compact .slim-table td:nth-child(10),
+body.leads-compact .slim-table td:nth-child(11),
+body.leads-compact .slim-table td:nth-child(12),
+body.leads-compact .slim-table td:nth-child(13),
+body.leads-compact .slim-table td:nth-child(14) {
+  display: none !important;
+}
+body.leads-compact .slim-table {
+  table-layout: auto;
+}
+body.leads-compact #leadsCompactToggle {
+  background: linear-gradient(180deg, rgba(124,236,255,.20), rgba(124,236,255,.10));
+  border-color: rgba(124,236,255,.45);
+  color: #cbe7f5;
+}
+
+/* Click-to-copy for order/quote numbers */
+.copy-num {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  border-radius: 4px;
+  padding: 1px 5px;
+  background: rgba(124,236,255,.06);
+  border: 1px solid rgba(124,236,255,.18);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: .92em;
+  letter-spacing: .02em;
+  transition: all .15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.copy-num:hover {
+  background: rgba(124,236,255,.16);
+  border-color: rgba(124,236,255,.45);
+  color: #fff;
+}
+.copy-num::after {
+  content: "📋";
+  opacity: .55;
+  font-size: .85em;
+  margin-left: 2px;
+}
+.copy-num.just-copied {
+  background: rgba(124,255,168,.20);
+  border-color: rgba(124,255,168,.55);
+  color: #b8ffc8;
+}
+.copy-num.just-copied::after {
+  content: "✓";
+  opacity: 1;
+  color: #7cffa8;
+}
+
+/* ============================================================
+ *  COMMS DRAWER — v1.6.9 NEW (leftmost)
+ *  Email + Text history beside the main client detail
+ *  ============================================================ */
+.comms-drawer {
+  position: fixed;
+  top: 0;
+  left: -560px;
+  bottom: 0;
+  width: 540px;
+  max-width: 90vw;
+  background: linear-gradient(180deg, #0a1320 0%, #0d1828 100%);
+  border-right: 1px solid rgba(124,236,255,.18);
+  z-index: 9985;
+  transition: left .26s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 8px 0 30px rgba(0,0,0,.6);
+}
+.comms-drawer.open { left: 0; }
+.comms-drawer-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(124,236,255,.14);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(180deg, rgba(124,236,255,.06), transparent);
+}
+.comms-drawer-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #cbe7f5;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.comms-drawer-customer {
+  font-size: 12px;
+  color: #8fb4c9;
+  margin-top: 2px;
+}
+.comms-drawer-close {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(124,236,255,.20);
+  color: #8fb4c9;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+.comms-drawer-close:hover {
+  background: rgba(255,255,255,.10);
+  color: #fff;
+}
+.comms-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.comms-section {
+  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(124,236,255,.14);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+}
+.comms-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #cbe7f5;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(124,236,255,.12);
+}
+.comms-section-head .count-badge {
+  background: rgba(124,236,255,.12);
+  color: #cbe7f5;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.comms-section-body {
+  flex: 1;
+  overflow-y: auto;
+  font-size: 13px;
+  color: #cbe7f5;
+}
+.comms-empty {
+  text-align: center;
+  padding: 32px 12px;
+  color: #6a8ba0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.comms-empty .icon { font-size: 32px; opacity: .35; display: block; margin-bottom: 8px; }
+.comms-empty strong { color: #8fb4c9; display: block; margin-bottom: 4px; font-size: 13px; }
+.comms-msg {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: rgba(124,236,255,.05);
+  border-left: 3px solid rgba(124,236,255,.35);
+}
+.comms-msg.outbound {
+  background: rgba(184,156,255,.06);
+  border-left-color: rgba(184,156,255,.40);
+  margin-left: 24px;
+}
+.comms-msg .msg-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #8fb4c9;
+  margin-bottom: 4px;
+}
+.comms-msg .msg-body {
+  font-size: 13px;
+  color: #e5f1f8;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+/* PHANTOM CALLER — likely-customer chip on lead rows */
+.phantom-likely {
+  display: inline-block;
+  padding: 1px 6px;
+  margin-left: 6px;
+  background: rgba(255,212,106,.10);
+  border: 1px solid rgba(255,212,106,.35);
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #ffd46a;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.phantom-source {
+  font-size: 10px;
+  color: #ffd46a;
+  margin-left: 4px;
+  opacity: .8;
+}
+
 /* AGING THRESHOLDS — v1.6.3 calmer schedule (1 hour to ON FIRE)
  * Bucket 5  → 15+ min  (gentle green tag)
  * Bucket 10 → 30+ min  (amber)
@@ -5077,7 +5358,37 @@ function setActiveCompany(key, el) {
 /* === LOAD DASHBOARD — uses v_leads_enriched view for derived flags === */
 async function loadDashboard() {
   // Try enriched view first; fall back to leads if view fails
-  let { data, error } = await sb.from('v_leads_enriched').select('*').order('created_at', { ascending: false }).limit(500);
+  // v1.6.9: also pull phantom-caller identity matches in parallel
+let { data, error } = await sb.from('v_leads_enriched').select('*').order('created_at', { ascending: false }).limit(500);
+// Best-effort: enrich with phantom caller matches
+try {
+  if (data && data.length > 0) {
+    const ids = data.map(d => d.id).filter(Boolean);
+    if (ids.length > 0) {
+      const { data: matches } = await sb.from('v_lead_identity_match')
+        .select('lead_id, matched_customer_id, matched_name, matched_email, matched_business, resolved_name, resolved_name_source')
+        .in('lead_id', ids);
+      if (matches && matches.length > 0) {
+        const mmap = {};
+        matches.forEach(m => { mmap[m.lead_id] = m; });
+        data.forEach(l => {
+          const m = mmap[l.id];
+          if (!m) return;
+          l.matched_customer_id = m.matched_customer_id;
+          l.matched_name = m.matched_name;
+          l.matched_email = m.matched_email;
+          l.matched_business = m.matched_business;
+          l.resolved_name = m.resolved_name;
+          l.resolved_name_source = m.resolved_name_source;
+          // If we have no name from caller but a phone match, fill it as a "phantom" so display works
+          if ((!l.full_name || !l.full_name.trim()) && m.matched_name && m.resolved_name_source === 'phone_match') {
+            l.full_name_phantom = m.matched_name;
+          }
+        });
+      }
+    }
+  }
+} catch (e) { console.warn('[phantom caller enrich] failed:', e); }
   if (error) {
     console.warn('v_leads_enriched failed, falling back to leads:', error);
     const fallback = await sb.from('leads').select('*').order('created_at', { ascending: false }).limit(500);
@@ -5262,7 +5573,7 @@ function renderLeadRow(l) {
     <tr class="slim-row" data-lead-id="${escapeHtml(l.id)}" onclick="openDrawer('${escapeHtml(l.id)}')">
       <td>${companyDot}<strong>${escapeHtml(COMPANY_LABELS[company] || company)}</strong></td>
       <td>${sourceTag}${onlineFlag ? '<br>' + onlineFlag : ''}</td>
-      <td><div class="name-cell">${escapeHtml(safeText(l.full_name))}${agingBadge}${nameMismatch}</div>${businessHint}</td>
+      <td><div class="name-cell">${l.full_name && l.full_name.trim() ? escapeHtml(l.full_name) : (l.full_name_phantom ? `<span style="color:#ffd46a;">${escapeHtml(l.full_name_phantom)}</span><span class="phantom-likely">LIKELY · ☎</span>` : '<span class="muted">—</span>')}${agingBadge}${nameMismatch}</div>${businessHint}</td>
       <td>${phone}</td>
       <td>${escapeHtml(safeText(l.event_date))}</td>
       <td class="products-cell">
@@ -5462,6 +5773,17 @@ function openDrawer(leadId) {
   drawer.setAttribute('data-company', company);
   drawer.classList.add('open');
   $('drawerOverlay').classList.add('open');
+
+  // v1.6.9: also auto-open Comms drawer alongside (unless user closed it)
+  try {
+    const customerForComms = {
+      id: lead.matched_customer_id || null,
+      full_name: lead.full_name || lead.matched_name || lead.business_name,
+      phone: lead.phone || lead.call_from_number,
+      customer_name: lead.full_name
+    };
+    openCommsDrawer(customerForComms);
+  } catch (e) { console.warn('[comms auto-open]', e); }
 
   // Identity zone
   const canonicalName = lead.canonical_customer_name;
@@ -6004,7 +6326,12 @@ function openOrderDetailFromExtension(recordNo, recordType) {
 async function openOrderDetailPanel(r) {
   const panel = $('orderDetailPanel');
   panel.classList.add('open');
-  $('odpOrderNo').textContent = (r.record_type === 'quote' ? 'QUOTE · ' : 'ORDER · ') + (r.record_no || '');
+  // v1.6.9: make order/quote number copyable
+  const odpOrderNoEl = $('odpOrderNo');
+  if (odpOrderNoEl) {
+    const prefix = r.record_type === 'quote' ? 'QUOTE · ' : 'ORDER · ';
+    odpOrderNoEl.innerHTML = `${prefix}${renderCopyableNumber(r.record_no || '')}`;
+  }
   $('odpCustomer').textContent = r.customer_name || '—';
   $('odpBusiness').textContent = r.customer_company || '';
 
@@ -6028,7 +6355,7 @@ async function openOrderDetailPanel(r) {
       <div class="odp-section-title">💰 Money</div>
       <div class="odp-money-row">
         <div class="odp-money-stat"><div class="k" style="font-size:10px;color:#8fb4c9;text-transform:uppercase;letter-spacing:.08em;">Total</div><div class="v">${fmtMoney(r.total)}</div></div>
-        ${r.balance_due != null ? `<div class="odp-money-stat"><div class="k" style="font-size:10px;color:#8fb4c9;text-transform:uppercase;letter-spacing:.08em;">Balance Due</div><div class="v ${balanceClass}">${fmtMoney(r.balance_due)}</div></div>` : ''}
+        <div class="odp-money-stat"><div class="k" style="font-size:10px;color:#8fb4c9;text-transform:uppercase;letter-spacing:.08em;">Balance Due</div><div class="v ${balanceClass}" style="${(parseFloat(r.balance_due) || 0) === 0 ? 'color:#7cffa8;' : ''}">${r.balance_due != null ? fmtMoney(r.balance_due) : '<span style=\"color:#6a8ba0; font-size:14px;\">—</span>'}</div></div>
         ${r.delivery_fee ? `<div class="odp-money-stat"><div class="k" style="font-size:10px;color:#8fb4c9;text-transform:uppercase;letter-spacing:.08em;">Delivery</div><div class="v" style="color:#fff;font-size:14px;">${fmtMoney(r.delivery_fee)}</div></div>` : ''}
       </div>
     </div>
@@ -6239,6 +6566,28 @@ function renderRoutingRow(o, dotColor) {
 /* ============================================================
  *  RAIL PANELS
  *
+ *  v1.6.9 (2026-05-01 evening)
+ *  - PHASE 0: Live Leads compact-mode toggle (📋 Compact / 📊 Show all).
+ *    Default keeps Company / Source / Name / Phone / Status visible;
+ *    other columns hide. Click row to see all detail in drawer.
+ *  - PHASE 1: Click-to-copy on order/quote numbers anywhere they
+ *    render (drawer header, Open Q panel, Needs Rep panel). Click
+ *    the number → copies + toast → paste into RentMaster Lookup.
+ *  - PHASE 4: NEW Comms drawer (left side, slides in alongside
+ *    main drawer). Stacked 📧 Email + 💬 Text panes. Reads from
+ *    customer_messages table (empty until Meta tracking pipeline
+ *    writes rows). Auto-opens with main drawer; X button closes
+ *    just comms (then stays closed until user re-opens).
+ *  - PHASE 5: Balance Due always shown in drawer Money section
+ *    (even when $0 — colored green to indicate paid).
+ *  - PHASE 6: Phantom Caller Lookup. When a lead has no name
+ *    but the call_from_number matches a known customer in our
+ *    historical data, the row shows "<Name> · LIKELY ☎" in
+ *    yellow. Backed by v_lead_identity_match SQL view.
+ *  - DATA: customer_messages table created (schema for Meta
+ *    tracking integration), v_lead_identity_match view, plus
+ *    phone_digits_only() helper now strips US country code.
+ *
  *  v1.6.8 (2026-05-01)
  *  - NEW: 📋 Need Rep panel — online quotes/orders missing Sales Rep,
  *    grouped by responsible person (last_modified_by). READ-ONLY:
@@ -6264,6 +6613,161 @@ function openRailPanel(id) {
 function closeRailPanels() {
   document.querySelectorAll('.rail-panel.open').forEach(p => p.classList.remove('open'));
   closeRepDeepPanel();
+}
+
+/* ============================================================
+ *  COMPACT MODE TOGGLE — v1.6.9
+ *  Persists across reloads via in-memory + sessionStorage backed
+ *  by Supabase user prefs is overkill for now; keep simple.
+ * ============================================================ */
+function toggleLeadsCompactMode() {
+  document.body.classList.toggle('leads-compact');
+  const compact = document.body.classList.contains('leads-compact');
+  const btn = $('leadsCompactToggle');
+  if (btn) btn.textContent = compact ? '📊 Show all' : '📋 Compact';
+  try { window.__leadsCompactPref = compact; } catch (e) {}
+  // Recalculate any layout-dependent things
+  setTimeout(() => { try { window.dispatchEvent(new Event('resize')); } catch (e) {} }, 50);
+}
+
+/* ============================================================
+ *  CLICK-TO-COPY for order/quote numbers — v1.6.9
+ *  Use renderCopyableNumber(num) wherever a number is rendered.
+ *  Triggers a small "Copied" toast.
+ *  ============================================================ */
+function renderCopyableNumber(num) {
+  if (!num) return '<span class="muted">—</span>';
+  const safe = String(num).replace(/[^A-Za-z0-9_-]/g, '');
+  return `<span class="copy-num" onclick="copyOrderNumber(this, event, '${escapeHtml(num)}')" title="Click to copy ${escapeHtml(num)}">${escapeHtml(num)}</span>`;
+}
+
+function copyOrderNumber(el, ev, num) {
+  if (ev) ev.stopPropagation();
+  if (!num) num = el.dataset.num || el.textContent.trim();
+  // Modern clipboard API
+  const fallback = () => {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = num;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch (e) { /* nothing */ }
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(num).catch(fallback);
+    } else {
+      fallback();
+    }
+  } catch (e) { fallback(); }
+  el.classList.add('just-copied');
+  setTimeout(() => el.classList.remove('just-copied'), 1300);
+  showSaveBanner(`Copied ${num} — paste into RentMaster Lookup`);
+}
+
+/* ============================================================
+ *  COMMS DRAWER — v1.6.9 NEW
+ *  Reads from customer_messages table (empty until Meta tracking
+ *  pipeline writes rows). Auto-opens when client drawer opens.
+ * ============================================================ */
+let commsAutoOpenEnabled = true;  // user can disable by closing it
+
+function openCommsDrawer(customer) {
+  if (!commsAutoOpenEnabled) return;
+  const drawer = $('commsDrawer');
+  if (!drawer) return;
+  drawer.classList.add('open');
+  const subEl = $('commsDrawerCustomer');
+  if (subEl) {
+    subEl.textContent = customer
+      ? (customer.full_name || customer.customer_name || customer.business_name || customer.phone || '—')
+      : '—';
+  }
+  loadCommsForCustomer(customer);
+}
+
+function closeCommsDrawer() {
+  const drawer = $('commsDrawer');
+  if (drawer) drawer.classList.remove('open');
+  commsAutoOpenEnabled = false;  // don't auto-reopen until user explicitly clicks Comms button
+}
+
+async function loadCommsForCustomer(customer) {
+  const emailBody = $('commsEmailBody');
+  const textBody = $('commsTextBody');
+  const emailCount = $('commsEmailCount');
+  const textCount = $('commsTextCount');
+  if (!emailBody || !textBody) return;
+  emailBody.innerHTML = '<div class="comms-empty"><span class="icon">📧</span><strong>Loading…</strong></div>';
+  textBody.innerHTML = '<div class="comms-empty"><span class="icon">💬</span><strong>Loading…</strong></div>';
+
+  let emailMsgs = [], smsMsgs = [];
+  try {
+    if (customer && (customer.id || customer.customer_id || customer.phone)) {
+      let q = sb.from('customer_messages').select('*');
+      const customerUuid = customer.id || customer.customer_id;
+      const phoneDigits = (customer.phone || '').replace(/\D/g, '');
+      const orParts = [];
+      if (customerUuid) orParts.push(`customer_id.eq.${customerUuid}`);
+      if (phoneDigits && phoneDigits.length >= 10) {
+        const last10 = phoneDigits.slice(-10);
+        orParts.push(`phone_digits.eq.${last10}`);
+      }
+      if (orParts.length === 0) {
+        emailMsgs = [];
+        smsMsgs = [];
+      } else {
+        const { data, error } = await q.or(orParts.join(',')).order('sent_at', { ascending: false }).limit(100);
+        if (!error && data) {
+          emailMsgs = data.filter(m => m.channel === 'email');
+          smsMsgs = data.filter(m => m.channel === 'sms' || m.channel === 'whatsapp');
+        }
+      }
+    }
+  } catch (e) { console.warn('[comms] load failed:', e); }
+
+  if (emailCount) emailCount.textContent = emailMsgs.length;
+  if (textCount) textCount.textContent = smsMsgs.length;
+
+  // Email render
+  if (emailMsgs.length === 0) {
+    emailBody.innerHTML = `<div class="comms-empty">
+      <span class="icon">📧</span>
+      <strong>No email history yet</strong>
+      Awaiting Meta tracking pipeline.<br>Once connected, sent &amp; received emails appear here.
+    </div>`;
+  } else {
+    emailBody.innerHTML = emailMsgs.map(renderCommsMessage).join('');
+  }
+
+  // SMS render
+  if (smsMsgs.length === 0) {
+    textBody.innerHTML = `<div class="comms-empty">
+      <span class="icon">💬</span>
+      <strong>No texts yet</strong>
+      Awaiting Meta tracking pipeline.<br>Once connected, SMS history appears here.
+    </div>`;
+  } else {
+    textBody.innerHTML = smsMsgs.map(renderCommsMessage).join('');
+  }
+}
+
+function renderCommsMessage(m) {
+  const dirClass = m.direction === 'outbound' ? 'outbound' : '';
+  const sentLabel = m.sent_at ? fmtRelativeTime(m.sent_at) : '';
+  const subj = m.subject ? `<strong>${escapeHtml(m.subject)}</strong><br>` : '';
+  const dirIcon = m.direction === 'outbound' ? '↗ Sent' : '↘ Received';
+  return `<div class="comms-msg ${dirClass}">
+    <div class="msg-head">
+      <span>${dirIcon}</span>
+      <span>${escapeHtml(sentLabel)}</span>
+    </div>
+    <div class="msg-body">${subj}${escapeHtml(m.body_preview || m.body || '').slice(0, 600)}</div>
+  </div>`;
 }
 
 /* ============================================================
@@ -6404,7 +6908,7 @@ function renderNeedsRepCard(r) {
         <span class="rail-alert-company">
           <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dotColor};box-shadow:0 0 6px ${dotColor};margin-right:6px;vertical-align:middle;"></span>
           <span style="display:inline-block; padding: 1px 5px; background: rgba(184,156,255,.20); color: #efe2ff; font-size: 9px; font-weight: 700; border-radius: 3px; margin-right: 5px; vertical-align: middle;">${recordIcon}</span>
-          ${escapeHtml((typeof COMPANY_LABELS !== 'undefined' && COMPANY_LABELS[company]) || company)} · ${escapeHtml(num)}
+          ${escapeHtml((typeof COMPANY_LABELS !== 'undefined' && COMPANY_LABELS[company]) || company)} · ${renderCopyableNumber(num)}
         </span>
         <span style="color:#fff; font-weight: 700; font-size: 13px;">${total}</span>
       </div>
@@ -6513,7 +7017,7 @@ async function loadOpenQuotesPanel() {
         <div class="rail-alert-top">
           <span class="rail-alert-company">
             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dotColor};box-shadow:0 0 6px ${dotColor};margin-right:6px;vertical-align:middle;"></span>
-            ${escapeHtml((typeof COMPANY_LABELS !== 'undefined' && COMPANY_LABELS[company]) || company)} · ${escapeHtml(num)}
+            ${escapeHtml((typeof COMPANY_LABELS !== 'undefined' && COMPANY_LABELS[company]) || company)} · ${renderCopyableNumber(num)}
           </span>
           <span style="color:${tierColor}; font-weight:800; font-size:12px;">${tierIcon} ${ageLabel}</span>
         </div>
