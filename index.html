@@ -1064,6 +1064,50 @@ padding: 22px;
 .drawer-extend-content.expanded { display: block; }
 
 .drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+
+/* v1.7.9: drawer header event-date quick-reference pill */
+.drawer-header-event-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: linear-gradient(180deg, rgba(124,236,255,.14), rgba(124,236,255,.05));
+  border: 1px solid rgba(124,236,255,.40);
+  border-radius: 10px;
+  width: fit-content;
+  max-width: 100%;
+  box-shadow: 0 0 14px rgba(124,236,255,.10);
+}
+.drawer-header-event-pill.urgent {
+  background: linear-gradient(180deg, rgba(255,138,163,.18), rgba(255,138,163,.06));
+  border-color: rgba(255,138,163,.55);
+  box-shadow: 0 0 14px rgba(255,138,163,.18);
+}
+.drawer-header-event-pill.soon {
+  background: linear-gradient(180deg, rgba(255,212,106,.18), rgba(255,212,106,.06));
+  border-color: rgba(255,212,106,.55);
+  box-shadow: 0 0 14px rgba(255,212,106,.16);
+}
+.drawer-header-event-pill .dhep-icon { font-size: 14px; line-height: 1; }
+.drawer-header-event-pill .dhep-label {
+  font-size: 9px; font-weight: 800; letter-spacing: .12em;
+  color: #8fb4c9; text-transform: uppercase;
+}
+.drawer-header-event-pill.urgent .dhep-label { color: #ffd0db; }
+.drawer-header-event-pill.soon .dhep-label { color: #fff1c9; }
+.drawer-header-event-pill .dhep-date {
+  font-size: 13px; font-weight: 800; color: #eef7ff;
+  letter-spacing: .02em;
+}
+.drawer-header-event-pill.urgent .dhep-date { color: #fff; }
+.drawer-header-event-pill .dhep-rel {
+  font-size: 10px; font-weight: 700;
+  color: #cbe7f5; opacity: .85;
+  padding: 1px 6px; border-radius: 8px;
+  background: rgba(255,255,255,.06);
+}
+.drawer-header-event-pill.urgent .dhep-rel { color: #ffd0db; background: rgba(255,138,163,.18); }
+.drawer-header-event-pill.soon .dhep-rel { color: #fff1c9; background: rgba(255,212,106,.18); }
 .drawer-title { margin: 0; font-size: 28px; letter-spacing: .02em; }
 .drawer-sub { margin-top: 6px; color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
 .drawer-close { width: 42px; height: 42px; border-radius: 12px; border: 1px solid rgba(124,236,255,.18); background: rgba(255,255,255,.04); color: white; font-size: 20px; cursor: pointer; }
@@ -2133,9 +2177,9 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
 .tiny-route { display: inline-flex; margin-top: 8px; }
 
 /* ITEM CHIPS / DOLLAR / SIGNALS */
-/* v1.7.7: 11-column layout (Source + Follow Up removed). Total width
-   sum = ~1130px which fits inside the panel content area on any screen
-   1280px or wider. Panel itself widens to 1900px max. */
+/* v1.7.9: 10-column layout (Event Date moved to drawer header).
+   Reclaimed ~92px and redistributed mostly to Name + Signals.
+   Total ~1131px sum (similar to v1.7.7) so still safe at 1280px+. */
 .slim-table { table-layout: fixed; width: 100%; }
 .slim-table th, .slim-table td {
   white-space: nowrap;
@@ -2145,17 +2189,16 @@ transition: right .28s cubic-bezier(.4,0,.2,1);
   font-size: 11.5px;
 }
 .slim-table th { font-size: 10px; padding: 8px 6px; letter-spacing: .04em; }
-.slim-table th:nth-child(1),  .slim-table td:nth-child(1)  { width: 86px; }    /* Company */
-.slim-table th:nth-child(2),  .slim-table td:nth-child(2)  { width: 200px; white-space: normal; }   /* Name — wrap allowed */
-.slim-table th:nth-child(3),  .slim-table td:nth-child(3)  { width: 130px; }   /* Phone */
-.slim-table th:nth-child(4),  .slim-table td:nth-child(4)  { width: 92px; }    /* Event Date */
-.slim-table th:nth-child(5),  .slim-table td:nth-child(5)  { width: 105px; }   /* Route */
-.slim-table th:nth-child(6),  .slim-table td:nth-child(6)  { width: 78px; }    /* Status */
-.slim-table th:nth-child(7),  .slim-table td:nth-child(7)  { width: 130px; white-space: normal; }   /* Signals — wrap allowed */
-.slim-table th:nth-child(8),  .slim-table td:nth-child(8)  { width: 90px; }    /* Assigned */
-.slim-table th:nth-child(9),  .slim-table td:nth-child(9)  { width: 88px; }    /* Assign */
-.slim-table th:nth-child(10), .slim-table td:nth-child(10) { width: 56px; }    /* Done */
-.slim-table th:nth-child(11), .slim-table td:nth-child(11) { width: 76px; }    /* Received */
+.slim-table th:nth-child(1),  .slim-table td:nth-child(1)  { width: 90px; }    /* Company */
+.slim-table th:nth-child(2),  .slim-table td:nth-child(2)  { width: 230px; white-space: normal; }   /* Name — wrap allowed (extra room) */
+.slim-table th:nth-child(3),  .slim-table td:nth-child(3)  { width: 135px; }   /* Phone */
+.slim-table th:nth-child(4),  .slim-table td:nth-child(4)  { width: 110px; }   /* Route (extra room) */
+.slim-table th:nth-child(5),  .slim-table td:nth-child(5)  { width: 82px; }    /* Status */
+.slim-table th:nth-child(6),  .slim-table td:nth-child(6)  { width: 150px; white-space: normal; }   /* Signals — wrap allowed (extra room) */
+.slim-table th:nth-child(7),  .slim-table td:nth-child(7)  { width: 92px; }    /* Assigned */
+.slim-table th:nth-child(8),  .slim-table td:nth-child(8)  { width: 90px; }    /* Assign */
+.slim-table th:nth-child(9),  .slim-table td:nth-child(9)  { width: 56px; }    /* Done */
+.slim-table th:nth-child(10), .slim-table td:nth-child(10) { width: 78px; }    /* Received */
 
 /* Tighten the assign dropdown trigger so it doesn't bust 78px column */
 .slim-table .assign-trigger {
@@ -4084,7 +4127,10 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </div>
 <div class="mini-stat" id="launchStatusPill">
 <div class="mini-label">System Status</div>
-<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.7</span></div>
+<div class="mini-value">Soft Launch <span style="font-size:10px;color:#7cecff;opacity:.7;">v1.7.9</span></div>
+<button onclick="window.launchFireworks(6000); window.showCelebrationBanner('🎆 TEST FIREWORKS 🎆','Just checking the lights work',4000); return false;"
+  title="Test fireworks animation"
+  style="margin-top:6px;background:linear-gradient(180deg,rgba(255,215,0,.20),rgba(255,138,163,.15));border:1px solid rgba(255,215,0,.45);color:#ffd700;font-size:9px;font-weight:700;letter-spacing:.06em;padding:3px 8px;border-radius:6px;cursor:pointer;text-transform:uppercase;">🎆 Test FX</button>
 </div>
 </div>
 </div>
@@ -4130,7 +4176,6 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 <th>Company</th>
 <th>Name</th>
 <th>Phone</th>
-<th>Event Date</th>
 <th>Route</th>
 <th>Status</th>
 <th class="signals-col">Signals</th>
@@ -4141,7 +4186,7 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 </tr>
 </thead>
 <tbody id="tableBody">
-<tr><td colspan="11" class="muted">Loading data...</td></tr>
+<tr><td colspan="10" class="muted">Loading data...</td></tr>
 </tbody>
 </table>
 </div>
@@ -4161,8 +4206,15 @@ tbody tr:hover .event-date-edit-btn { opacity: 0.85; }
 <!-- ============================================ -->
 <aside id="leadDrawer" class="drawer">
 <div class="drawer-head">
-<div style="flex:1;">
-<div class="drawer-top-strip">CLIENT DETAIL</div>
+<div style="flex:1; display:flex; flex-direction:column; gap:6px; min-width:0;">
+  <div class="drawer-top-strip">CLIENT DETAIL</div>
+  <!-- v1.7.9: quick-reference Event Date pill, immediately visible at top of drawer -->
+  <div id="drawerHeaderEventDate" class="drawer-header-event-pill" style="display:none;">
+    <span class="dhep-icon">📅</span>
+    <span class="dhep-label">EVENT</span>
+    <span class="dhep-date" id="drawerHeaderEventDateValue">—</span>
+    <span class="dhep-rel" id="drawerHeaderEventDateRel"></span>
+  </div>
 </div>
 <button class="drawer-close" onclick="closeDrawer()">×</button>
 </div>
@@ -5388,7 +5440,7 @@ try {
   document.addEventListener('DOMContentLoaded', function() {
     var tb = document.getElementById('tableBody');
     if (tb) {
-      tb.innerHTML = '<tr><td colspan="11" style="color:#ffd0db;font-family:monospace;font-size:12px;padding:20px;">❌ Supabase failed to initialize: ' + initErr.message + '</td></tr>';
+      tb.innerHTML = '<tr><td colspan="10" style="color:#ffd0db;font-family:monospace;font-size:12px;padding:20px;">❌ Supabase failed to initialize: ' + initErr.message + '</td></tr>';
     }
   });
 }
@@ -5675,7 +5727,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const setBootStatus = (txt) => {
     const tb = document.getElementById('tableBody');
     if (tb && tb.querySelector('td.muted')) {
-      tb.innerHTML = `<tr><td colspan="11" class="muted" style="font-family:monospace;font-size:12px;">⏳ ${txt}</td></tr>`;
+      tb.innerHTML = `<tr><td colspan="10" class="muted" style="font-family:monospace;font-size:12px;">⏳ ${txt}</td></tr>`;
     }
   };
   const safe = async (label, fn) => {
@@ -5981,7 +6033,7 @@ function renderTable() {
         msg = 'No active leads right now.';
       }
     }
-    tbody.innerHTML = `<tr><td colspan="11" class="muted">${msg}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" class="muted">${msg}</td></tr>`;
     const sub = $('liveLeadsSubtitle');
     if (sub) {
       let parts = [];
@@ -6040,7 +6092,6 @@ function renderLeadRow(l) {
       <td>${companyDot}<strong>${escapeHtml(COMPANY_LABELS[company] || company)}</strong></td>
       <td><div class="name-cell">${l.full_name && l.full_name.trim() ? escapeHtml(l.full_name) : (l.full_name_phantom ? `<span style="color:#ffd46a;">${escapeHtml(l.full_name_phantom)}</span><span class="phantom-likely">LIKELY · ☎</span>` : '<span class="muted">—</span>')}${agingBadge}${nameMismatch}</div>${businessHint}</td>
       <td>${phone}</td>
-      <td>${escapeHtml(safeText(l.event_date))}</td>
       <td>${escapeHtml(safeText(l.workflow_route))}</td>
       <td>${statusHtml}</td>
       <td class="signals-col"><div class="signals-wrap">${confidenceLadder}${signals}</div></td>
@@ -6256,6 +6307,8 @@ function openDrawer(leadId) {
   $('drawerPhone').innerHTML = lead.phone ? `<a href="tel:${escapeHtml(lead.phone)}" style="color:#7cecff;">${escapeHtml(lead.phone)}</a>` : '—';
   $('drawerEmail').textContent = safeText(lead.email);
   $('drawerEventDate').textContent = safeText(lead.event_date);
+  // v1.7.9: also populate the quick-reference pill at top of drawer
+  try { renderDrawerHeaderEventDate(lead); } catch(e) { console.warn('[drawer event pill]', e); }
   $('drawerDeliveryMethod').textContent = safeText(lead.delivery_method);
 
   // Extended view fields
@@ -6356,6 +6409,9 @@ function closeDrawerAssignMenu() {
 }
 
 function closeDrawer() {
+  // v1.7.9: reset the header event-date pill so next open starts clean
+  try { const dp = document.getElementById('drawerHeaderEventDate'); if (dp) dp.style.display = 'none'; } catch(e) {}
+
   $('leadDrawer').classList.remove('open');
   $('drawerOverlay').classList.remove('open');
   closeExtensionDrawer();
@@ -7238,6 +7294,42 @@ function renderRoutingRow(o, dotColor) {
 <script>
 /* ============================================================
  *  RAIL PANELS
+ *
+ *  v1.7.9 (2026-05-02 event date relocation)
+ *  - REMOVED: Event Date column from Live Leads table.
+ *    Now 10 columns instead of 11. Reclaimed ~92px and gave it
+ *    to Name (200→230), Route (105→110), and Signals (130→150).
+ *  - NEW: prominent EVENT DATE pill in the customer drawer
+ *    header (top-left, just under CLIENT DETAIL strip).
+ *    Visible the moment the drawer opens — no scrolling.
+ *    Color-codes by proximity:
+ *      past / today / tomorrow → red urgent
+ *      within 7 days           → gold soon
+ *      otherwise               → default cyan
+ *    Includes relative-time hint ("in 5d", "TOMORROW", "12d ago")
+ *  - KEPT: existing event date in the lower drawer body untouched.
+ *  - INDEXES: post-render guard cells.length 11 → 10. Phone cell
+ *    stays at 2; Route cell shifts 4 → 3 (since Event Date cell
+ *    is gone). Removed the row-level event-date editor wiring
+ *    since the column no longer exists — editing now happens via
+ *    the drawer body where the editor element still lives.
+ *
+ *  v1.7.8 (2026-05-02 fireworks repair)
+ *  - FIX: launchFireworks now self-heals if #fireworksCanvas is
+ *    missing (creates it on the fly), forces z-index 99999, fires
+ *    the first burst immediately so user sees something within 1
+ *    frame. Added [fireworks] console.logs at every stage.
+ *  - FIX: window.launchFireworks, window.celebrateMilestone, and
+ *    window.showCelebrationBanner are explicitly registered as
+ *    globals. Now callable from DevTools regardless of script
+ *    parse order.
+ *  - GUARD: celebrateMilestone wraps launchFireworks + banner in
+ *    try/catch so if one throws (e.g. fmtMoney failure on a weird
+ *    amount), the other still runs. DB writes deferred to
+ *    setTimeout so RLS errors do not block the visual show.
+ *  - NEW: 🎆 TEST FX button right on the dashboard (next to
+ *    SYSTEM STATUS pill) — one click fires the full show, no
+ *    DevTools required.
  *
  *  v1.7.7 (2026-05-02)
  *  - REAL FIT: dropped two redundant columns from Live Leads:
@@ -9200,20 +9292,36 @@ async function postVibeMessage() {
  *  v1.7.5: FIREWORKS PARTICLE ENGINE
  *  Pure canvas, ~6 second show, cyan/magenta/gold bursts
  * ============================================================ */
+/* v1.7.8: bulletproof fireworks with explicit global registration + diagnostics */
 let _fwAnim = null;
 function launchFireworks(durationMs) {
   durationMs = durationMs || 6000;
-  const canvas = $('fireworksCanvas');
-  if (!canvas) return;
+  console.log('[fireworks] launchFireworks called, duration=' + durationMs + 'ms');
+  let canvas = document.getElementById('fireworksCanvas');
+  if (!canvas) {
+    // Self-heal: create the canvas if missing
+    console.warn('[fireworks] #fireworksCanvas missing — creating one now');
+    canvas = document.createElement('canvas');
+    canvas.id = 'fireworksCanvas';
+    canvas.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:99999;';
+    document.body.appendChild(canvas);
+  }
+  // Lift z-index so nothing covers it
+  canvas.style.zIndex = '99999';
   canvas.style.display = 'block';
+  canvas.style.pointerEvents = 'none';
+  canvas.style.position = 'fixed';
+  canvas.style.inset = '0';
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   const ctx = canvas.getContext('2d');
+  if (!ctx) { console.error('[fireworks] could not get 2d context'); return; }
+
   const particles = [];
   const colors = ['#7cecff', '#ff8aa3', '#ffd700', '#b89cff', '#7cffa8', '#ffd46a'];
 
   function spawnBurst(x, y) {
-    const count = 50 + Math.floor(Math.random() * 30);
+    const count = 60 + Math.floor(Math.random() * 30);
     const color = colors[Math.floor(Math.random() * colors.length)];
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count + (Math.random() - .5) * .3;
@@ -9223,20 +9331,25 @@ function launchFireworks(durationMs) {
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         life: 1,
-        decay: 0.012 + Math.random() * 0.012,
+        decay: 0.010 + Math.random() * 0.012,
         color: color,
-        size: 2 + Math.random() * 2
+        size: 2.5 + Math.random() * 2
       });
     }
+    console.log('[fireworks] burst @', Math.round(x), Math.round(y), color, '(particles total: ' + particles.length + ')');
   }
 
-  let lastBurst = 0;
-  let burstCount = 0;
+  // Fire FIRST burst immediately so user sees something within 1 frame
+  spawnBurst(canvas.width * 0.5, canvas.height * 0.35);
+
+  let lastBurst = Date.now();
+  let burstCount = 1;
   const startedAt = Date.now();
+  let frameCount = 0;
   function tick() {
+    frameCount++;
     const now = Date.now();
     const elapsed = now - startedAt;
-    // Stop generating new bursts after duration, but keep animating particles
     if (elapsed < durationMs && now - lastBurst > 500) {
       const x = canvas.width * (0.15 + Math.random() * 0.7);
       const y = canvas.height * (0.20 + Math.random() * 0.45);
@@ -9244,21 +9357,20 @@ function launchFireworks(durationMs) {
       lastBurst = now;
       burstCount++;
     }
-    // Clear with slight fade for trail
+    // Clear with fade trail
     ctx.fillStyle = 'rgba(2, 6, 17, 0.15)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // Update + draw particles
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
       p.x += p.vx;
       p.y += p.vy;
-      p.vy += 0.06; // gravity
+      p.vy += 0.06;
       p.vx *= 0.99;
       p.life -= p.decay;
       if (p.life <= 0) { particles.splice(i, 1); continue; }
-      ctx.globalAlpha = p.life;
+      ctx.globalAlpha = Math.max(p.life, 0);
       ctx.fillStyle = p.color;
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 10;
       ctx.shadowColor = p.color;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
@@ -9272,11 +9384,15 @@ function launchFireworks(durationMs) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       canvas.style.display = 'none';
       _fwAnim = null;
+      console.log('[fireworks] complete — ' + burstCount + ' bursts, ' + frameCount + ' frames');
     }
   }
   if (_fwAnim) cancelAnimationFrame(_fwAnim);
   tick();
+  return 'fireworks running for ' + durationMs + 'ms';
 }
+// v1.7.8: GUARANTEE global access for DevTools and onclick handlers
+window.launchFireworks = launchFireworks;
 
 function showCelebrationBanner(text, sub, durationMs) {
   durationMs = durationMs || 5000;
@@ -9297,29 +9413,37 @@ function showCelebrationBanner(text, sub, durationMs) {
 }
 
 function celebrateMilestone(milestoneType, currentTotal) {
+  console.log('[celebration] celebrateMilestone called', milestoneType, currentTotal);
   const labels = {
-    'deposits_2500':  { text: '🎉 $2,500 IN DEPOSITS! 🎉', sub: `Daily threshold crossed — ${fmtMoney(currentTotal)} collected` },
-    'deposits_5000':  { text: '🚀 $5,000 DAY! 🚀', sub: `Crushing it — ${fmtMoney(currentTotal)} in deposits` },
-    'deposits_10000': { text: '🏆 $10,000 EPIC DAY! 🏆', sub: `Legendary — ${fmtMoney(currentTotal)} in deposits today` }
+    'deposits_2500':  { text: '🎉 $2,500 IN DEPOSITS! 🎉', sub: 'Daily threshold crossed — ' + fmtMoney(currentTotal) + ' collected' },
+    'deposits_5000':  { text: '🚀 $5,000 DAY! 🚀', sub: 'Crushing it — ' + fmtMoney(currentTotal) + ' in deposits' },
+    'deposits_10000': { text: '🏆 $10,000 EPIC DAY! 🏆', sub: 'Legendary — ' + fmtMoney(currentTotal) + ' in deposits today' }
   };
-  const label = labels[milestoneType] || { text: '🎉 MILESTONE HIT 🎉', sub: `${fmtMoney(currentTotal)} crossed` };
-  launchFireworks(milestoneType === 'deposits_10000' ? 9000 : 6000);
-  showCelebrationBanner(label.text, label.sub, 5000);
-  // Also drop a system vibe message into the team-vibes feed
-  try {
-    sb.from('team_chat_messages').insert({
-      author_name: 'Sophia',
-      author_color: '#ffd700',
-      message: `${label.text} ${label.sub}`,
-      channel: 'vibes',
-      is_system: true
-    }).then(() => loadTeamVibes()).catch(()=>{});
-  } catch (e) {}
-  // Mark celebrated server-side so we don't re-fire
-  try {
-    sb.rpc('mark_milestone_celebrated', { p_milestone_type: milestoneType }).catch(()=>{});
-  } catch (e) {}
+  const label = labels[milestoneType] || { text: '🎉 MILESTONE HIT 🎉', sub: fmtMoney(currentTotal) + ' crossed' };
+  try { launchFireworks(milestoneType === 'deposits_10000' ? 9000 : 6000); } catch(e) { console.error('[celebration] launchFireworks threw:', e); }
+  try { showCelebrationBanner(label.text, label.sub, 5000); } catch(e) { console.error('[celebration] banner threw:', e); }
+  // Best-effort: post system vibe + mark celebrated. Errors here MUST NOT block the show.
+  setTimeout(() => {
+    try {
+      if (typeof sb !== 'undefined' && sb && sb.from) {
+        sb.from('team_chat_messages').insert({
+          author_name: 'Sophia', author_color: '#ffd700',
+          message: label.text + ' ' + label.sub,
+          channel: 'vibes', is_system: true
+        }).then(() => { try { loadTeamVibes(); } catch(e){} }).catch((e)=>{ console.warn('[celebration] vibe post failed', e); });
+      }
+    } catch (e) { console.warn('[celebration] vibe insert err', e); }
+    try {
+      if (typeof sb !== 'undefined' && sb && sb.rpc) {
+        sb.rpc('mark_milestone_celebrated', { p_milestone_type: milestoneType }).catch((e)=>{ console.warn('[celebration] mark RPC failed', e); });
+      }
+    } catch (e) {}
+  }, 100);
+  return 'celebration started: ' + milestoneType;
 }
+// v1.7.8: GUARANTEE global access
+window.celebrateMilestone = celebrateMilestone;
+window.showCelebrationBanner = showCelebrationBanner;
 
 let _milestonePollTimer = null;
 async function pollDailyMilestones() {
@@ -11959,6 +12083,61 @@ document.addEventListener('click', (ev) => {
  * ---------------------------------------------------------------- */
 let eventDateContext = null;
 
+/* v1.7.9: populate the prominent event-date pill at the top of the
+   customer drawer. Color-codes by proximity:
+     Past or today/tomorrow → urgent (red glow)
+     Within 7 days          → soon (gold glow)
+     Otherwise              → default (cyan)
+   Hidden if no event_date present. */
+function renderDrawerHeaderEventDate(lead) {
+  const wrap = document.getElementById('drawerHeaderEventDate');
+  const valueEl = document.getElementById('drawerHeaderEventDateValue');
+  const relEl = document.getElementById('drawerHeaderEventDateRel');
+  if (!wrap || !valueEl) return;
+  const raw = (lead && lead.event_date) ? String(lead.event_date).trim() : '';
+  if (!raw) {
+    wrap.style.display = 'none';
+    return;
+  }
+  // Try to parse — accept YYYY-MM-DD, M/D/YYYY, etc
+  let parsed = null;
+  try {
+    const d1 = new Date(raw);
+    if (!isNaN(d1.getTime())) parsed = d1;
+    if (!parsed) {
+      const m = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+      if (m) {
+        const yr = m[3].length === 2 ? '20' + m[3] : m[3];
+        const d2 = new Date(parseInt(yr,10), parseInt(m[1],10)-1, parseInt(m[2],10));
+        if (!isNaN(d2.getTime())) parsed = d2;
+      }
+    }
+  } catch(e) {}
+  // Format display
+  let displayText = raw;
+  let relText = '';
+  let cls = '';
+  if (parsed) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const target = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+    const days = Math.round((target.getTime() - today.getTime()) / 86400000);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    displayText = months[target.getMonth()] + ' ' + target.getDate() + ', ' + target.getFullYear();
+    if (days < -1)      { relText = Math.abs(days) + 'd ago';  cls = 'urgent'; }
+    else if (days === -1){relText = 'Yesterday';                cls = 'urgent'; }
+    else if (days === 0) { relText = 'TODAY';                   cls = 'urgent'; }
+    else if (days === 1) { relText = 'TOMORROW';                cls = 'urgent'; }
+    else if (days <= 7)  { relText = 'in ' + days + 'd';        cls = 'soon';   }
+    else if (days <= 30) { relText = 'in ' + days + 'd';        cls = '';       }
+    else                 { relText = 'in ' + days + 'd';        cls = '';       }
+  }
+  valueEl.textContent = displayText;
+  if (relEl) relEl.textContent = relText;
+  wrap.classList.remove('urgent', 'soon');
+  if (cls) wrap.classList.add(cls);
+  wrap.style.display = 'inline-flex';
+}
+
 function renderEventDateCell(lead) {
   const date = lead.event_date || '';
   return `
@@ -12074,20 +12253,15 @@ window.renderTable = function() {
     const lead = allLeads.find(l => l.id === leadId);
     if (!lead) return;
     const cells = tr.querySelectorAll('td');
-    // v1.7.7: column count is now 11 (Source + Follow Up removed)
-    if (cells.length < 11) return;
+    // v1.7.9: column count is now 10 (Event Date moved to drawer header)
+    if (cells.length < 10) return;
     // Cell index 2 = Phone — append rec button if not already present
     const phoneCell = cells[2];
     if (phoneCell && !phoneCell.querySelector('.row-rec-btn')) {
       phoneCell.insertAdjacentHTML('beforeend', renderRowRecBtn(lead));
     }
-    // Cell index 3 = Event Date — wrap with editor unless already wrapped
-    const eventCell = cells[3];
-    if (eventCell && !eventCell.querySelector('.event-date-edit-btn')) {
-      eventCell.innerHTML = renderEventDateCell(lead);
-    }
-    // Cell index 4 = Route — replace plain text with pill
-    const routeCell = cells[4];
+    // Cell index 3 = Route — replace plain text with pill
+    const routeCell = cells[3];
     if (routeCell && !routeCell.querySelector('.route-pill')) {
       routeCell.innerHTML = renderRoutePill(lead.workflow_route);
     }
