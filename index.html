@@ -4819,6 +4819,234 @@ tr.d5-note-expander-row td { padding: 0 !important; }
 .d7-coord-save-btn { font-size: 12px; padding: 7px 14px; }
 /* PATCH:patch-d7-1-drawer-notes-hotfix-v1 — END CSS */
 
+/* PATCH:patch-d8-ext-drawer-buttons-v1 — START CSS */
+
+/* New stacked buttons (matches Text/Email Intel styling) */
+.d8-ext-action-btn {
+  background: linear-gradient(180deg, rgba(184,156,255,.16), rgba(184,156,255,.08));
+  border: 1px solid rgba(184,156,255,.40);
+  color: #d4c4ff;
+  padding: 7px 11px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  border-radius: 9px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-transform: uppercase;
+  transition: all .15s ease;
+}
+.d8-ext-action-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, rgba(184,156,255,.28), rgba(184,156,255,.14));
+  border-color: rgba(184,156,255,.65);
+  color: #fff;
+}
+.d8-ext-action-btn.d8-ext-disabled,
+.d8-ext-action-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  background: linear-gradient(180deg, rgba(160,160,180,.10), rgba(120,120,140,.05));
+  border-color: rgba(160,160,180,.20);
+  color: #8b95a8;
+}
+
+/* RentMaster Notes Reader panel — slides over the extension drawer */
+.d8-rm-notes-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(680px, calc(100vw - 40px));
+  height: 100vh;
+  background: linear-gradient(180deg, rgba(10,18,32,.99), rgba(8,16,30,.99));
+  border-left: 2px solid rgba(184,156,255,.35);
+  box-shadow: -24px 0 60px rgba(0,0,0,.50), -2px 0 24px rgba(184,156,255,.10);
+  transform: translateX(calc(100% + 700px));
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .28s ease, opacity .22s ease, visibility 0s linear .28s;
+  z-index: 60; /* above extension drawer (49) and client drawer (40s) */
+  overflow-y: auto;
+}
+.d8-rm-notes-panel.open {
+  transform: translateX(0);
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transition: transform .28s ease, opacity .22s ease, visibility 0s linear 0s;
+}
+.d8-rm-notes-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 22px 26px 18px 26px;
+  border-bottom: 1px solid rgba(184,156,255,.18);
+}
+.d8-rm-notes-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: .01em;
+}
+.d8-rm-notes-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #8fb4c9;
+  letter-spacing: .04em;
+}
+.d8-rm-notes-close {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.16);
+  color: #cfe6ff;
+  font-size: 22px;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  cursor: pointer;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.d8-rm-notes-close:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.32); }
+
+.d8-rm-notes-body {
+  padding: 18px 26px 26px 26px;
+}
+.d8-rm-status-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.d8-rm-status-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba(124,236,255,.12);
+  color: #7cecff;
+  border: 1px solid rgba(124,236,255,.28);
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.d8-rm-status-pill.synced { background: rgba(110,255,168,.12); color: #aaffce; border-color: rgba(110,255,168,.28); }
+.d8-rm-status-pill.override { background: rgba(255,212,106,.14); color: #ffd46a; border-color: rgba(255,212,106,.34); }
+
+.d8-rm-section {
+  margin-bottom: 18px;
+}
+.d8-rm-section-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: #cfe6ff;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.d8-rm-revert-btn {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid rgba(255,212,106,.32);
+  color: #ffd46a;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.d8-rm-revert-btn:hover { background: rgba(255,212,106,.10); border-color: rgba(255,212,106,.55); }
+
+.d8-rm-editor {
+  width: 100%;
+  min-height: 240px;
+  background: rgba(8,16,28,.65);
+  border: 1px solid rgba(184,156,255,.28);
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1.55;
+  padding: 14px 16px;
+  border-radius: 8px;
+  resize: vertical;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  white-space: pre-wrap;
+}
+.d8-rm-editor:focus {
+  outline: none;
+  border-color: rgba(184,156,255,.6);
+  box-shadow: 0 0 0 2px rgba(184,156,255,.15);
+}
+.d8-rm-install-view {
+  width: 100%;
+  background: rgba(8,16,28,.5);
+  border: 1px solid rgba(124,236,255,.16);
+  color: #e7eef9;
+  font-size: 13.5px;
+  line-height: 1.5;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-family: ui-monospace, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.d8-rm-action-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.d8-rm-save-btn {
+  background: linear-gradient(180deg, rgba(184,156,255,.30), rgba(184,156,255,.12));
+  border: 1px solid rgba(184,156,255,.55);
+  color: #fff;
+  padding: 9px 16px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.d8-rm-save-btn:hover {
+  background: linear-gradient(180deg, rgba(184,156,255,.45), rgba(184,156,255,.22));
+  border-color: rgba(184,156,255,.85);
+}
+.d8-rm-save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.d8-rm-save-hint {
+  font-size: 10.5px;
+  color: #8fb4c9;
+  letter-spacing: .03em;
+  flex: 1;
+  min-width: 200px;
+}
+
+.d8-rm-meta {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(184,156,255,.10);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11.5px;
+  color: #8fb4c9;
+}
+.d8-rm-meta .k { color: #6b7d8e; letter-spacing: .04em; text-transform: uppercase; font-size: 10px; margin-right: 6px; }
+.d8-rm-meta .v { color: #cfe6ff; font-variant-numeric: tabular-nums; }
+
+/* PATCH:patch-d8-ext-drawer-buttons-v1 — END CSS */
+
 /* Done pile rail tab */
 .left-rail-tab.donepile-tab .badge {
   display: inline-flex;
@@ -5700,17 +5928,66 @@ tr.d5-note-expander-row td { padding: 0 !important; }
       <h3 class="drawer-title" id="extDrawerTitle">Extension</h3>
       <div class="drawer-sub" id="extDrawerSub">Client context</div>
     </div>
-    <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
-      <button id="extCommsToggleBtn"
-        style="background:linear-gradient(180deg, rgba(124,236,255,.16), rgba(124,236,255,.08)); border:1px solid rgba(124,236,255,.40); color:#cbe7f5; padding:7px 11px; font-size:11px; font-weight:700; letter-spacing:.06em; border-radius:9px; cursor:pointer; white-space:nowrap; text-transform:uppercase; transition:all .15s ease;"
-        onmouseover="this.style.background='linear-gradient(180deg, rgba(124,236,255,.28), rgba(124,236,255,.14))'; this.style.borderColor='rgba(124,236,255,.65)'; this.style.color='#fff';"
-        onmouseout="this.style.background='linear-gradient(180deg, rgba(124,236,255,.16), rgba(124,236,255,.08))'; this.style.borderColor='rgba(124,236,255,.40)'; this.style.color='#cbe7f5';"
-        onclick="toggleCommsFromExtDrawer()" title="Open the Email + Text history panel for this customer">📡 Text/Email Intel</button>
+    <!-- PATCH:patch-d8-ext-drawer-buttons-v1 — stacked button column + new RentMaster Notes / Librarian buttons -->
+    <div style="display:flex; gap:6px; align-items:flex-start; flex-shrink:0;">
+      <div style="display:flex; flex-direction:column; gap:6px; align-items:stretch;">
+        <button id="extCommsToggleBtn"
+          style="background:linear-gradient(180deg, rgba(124,236,255,.16), rgba(124,236,255,.08)); border:1px solid rgba(124,236,255,.40); color:#cbe7f5; padding:7px 11px; font-size:11px; font-weight:700; letter-spacing:.06em; border-radius:9px; cursor:pointer; white-space:nowrap; text-transform:uppercase; transition:all .15s ease;"
+          onmouseover="this.style.background='linear-gradient(180deg, rgba(124,236,255,.28), rgba(124,236,255,.14))'; this.style.borderColor='rgba(124,236,255,.65)'; this.style.color='#fff';"
+          onmouseout="this.style.background='linear-gradient(180deg, rgba(124,236,255,.16), rgba(124,236,255,.08))'; this.style.borderColor='rgba(124,236,255,.40)'; this.style.color='#cbe7f5';"
+          onclick="toggleCommsFromExtDrawer()" title="Open the Email + Text history panel for this customer">📡 Text/Email Intel</button>
+        <button id="d8RmNotesBtn" class="d8-ext-action-btn"
+          onclick="window.__d8OpenRmNotes()"
+          title="Open RentMaster note for this record (editable, with override)">📜 RentMaster Notes</button>
+        <button id="d8LibrarianBtn" class="d8-ext-action-btn d8-ext-disabled"
+          disabled
+          title="Coming soon — AI email composer for quote / order emails (Sophia Librarian)">✨ Sophia Librarian</button>
+      </div>
       <button class="drawer-close" onclick="closeExtensionDrawer()">×</button>
     </div>
   </div>
   <div id="extDrawerBody" class="ext-body">
     <div class="muted">Loading...</div>
+  </div>
+</aside>
+
+<!-- PATCH:patch-d8-ext-drawer-buttons-v1 — RentMaster Notes Reader (slides over the extension drawer) -->
+<aside id="d8RmNotesPanel" class="d8-rm-notes-panel">
+  <div class="d8-rm-notes-head">
+    <div>
+      <h3 class="d8-rm-notes-title">📜 RentMaster Notes</h3>
+      <div class="d8-rm-notes-sub" id="d8RmNotesSub">No record loaded</div>
+    </div>
+    <button class="d8-rm-notes-close" onclick="window.__d8CloseRmNotes()" title="Close">×</button>
+  </div>
+  <div class="d8-rm-notes-body">
+    <div class="d8-rm-status-bar" id="d8RmNotesStatusBar">
+      <span class="d8-rm-status-pill" id="d8RmNotesSyncPill">⟳ Loading…</span>
+      <span class="d8-rm-status-pill" id="d8RmNotesOverridePill" style="display:none;">⚠ Override active</span>
+    </div>
+    <div class="d8-rm-section">
+      <div class="d8-rm-section-label">
+        Note
+        <button class="d5-copy-btn" id="d8RmNotesCopyBtn" data-d5-copy-target="d8RmNotesEditor" title="Copy current text">📋</button>
+        <button class="d8-rm-revert-btn" id="d8RmNotesRevertBtn" onclick="window.__d8RevertRmNotes()" title="Discard your override and show RentMaster's current note" style="display:none;">↩ Revert to RentMaster</button>
+      </div>
+      <textarea id="d8RmNotesEditor" class="d8-rm-editor" placeholder="No RentMaster note for this record."></textarea>
+      <div class="d8-rm-action-row">
+        <button class="d8-rm-save-btn" id="d8RmNotesSaveBtn" onclick="window.__d8SaveRmNotes()">💾 Save Override</button>
+        <span class="d8-rm-save-hint" id="d8RmNotesSaveHint">Edits save as a dashboard override. RentMaster sync wins on next change.</span>
+      </div>
+    </div>
+    <div class="d8-rm-section" id="d8RmInstallSection" style="display:none;">
+      <div class="d8-rm-section-label">
+        Installation Notes (read-only)
+        <button class="d5-copy-btn" id="d8RmInstallCopyBtn" data-d5-copy-target="d8RmInstallView" title="Copy installation notes">📋</button>
+      </div>
+      <pre id="d8RmInstallView" class="d8-rm-install-view"></pre>
+    </div>
+    <div class="d8-rm-meta">
+      <div><span class="k">RentMaster lastModified:</span> <span class="v" id="d8RmLastModified">—</span></div>
+      <div><span class="k">Override saved:</span> <span class="v" id="d8RmOverrideAt">—</span> <span class="v" id="d8RmOverrideBy"></span></div>
+    </div>
   </div>
 </aside>
 
@@ -9292,6 +9569,206 @@ window.__d6ToggleNote = function(uid, ev) {
   console.log('[Patch D.7 ✓] Drawer notes rewired — action history + threaded coordinator');
 })();
 /* PATCH:patch-d7-drawer-notes-rewire-v1 — END JS */
+
+/* PATCH:patch-d8-ext-drawer-buttons-v1 — START JS */
+(function () {
+  if (window.__patchD8Installed) return;
+  window.__patchD8Installed = true;
+
+  // Track which record the panel is showing
+  var d8CurrentRecord = null; // { id, record_no, record_type, ... }
+
+  function fmtDtPretty(iso) {
+    if (!iso) return '—';
+    try {
+      var dt = new Date(iso);
+      if (isNaN(dt.getTime())) return '—';
+      return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
+             ' · ' +
+             dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+               .toLowerCase().replace(' ', '');
+    } catch (e) { return '—'; }
+  }
+
+  // Open the panel for the currently-displayed extension-drawer record.
+  // We extract record_no from the extension drawer's most recent inline detail.
+  // Best path: read it from the in-flight record cache, fallback to DOM.
+  window.__d8OpenRmNotes = async function () {
+    var recordNo = null;
+    var recordType = null;
+
+    // Try to find the currently-displayed record from the rendered detail header
+    var headerNum = document.querySelector('#extDrawerBody .ext-detail-num');
+    if (headerNum) {
+      // Format: "📄 QUOTE · QTR10972..." or "📦 ORDER · 39477..."
+      var txt = headerNum.textContent || '';
+      var typeMatch = txt.match(/QUOTE|ORDER/i);
+      var noMatch = txt.match(/[A-Z]+\d+|\d+/); // first alphanumeric or numeric token
+      if (typeMatch) recordType = typeMatch[0].toLowerCase();
+      if (noMatch) recordNo = noMatch[0];
+    }
+
+    if (!recordNo) {
+      window.__d5Toast && window.__d5Toast('NO RECORD', 'Click a Quote or Order first to load its notes', { duration: 2400 });
+      return;
+    }
+
+    // Show panel, set loading state
+    var panel = document.getElementById('d8RmNotesPanel');
+    if (!panel) return;
+    panel.classList.add('open');
+    document.getElementById('d8RmNotesSub').textContent = (recordType ? recordType.toUpperCase() + ' · ' : '') + recordNo;
+    var syncPill = document.getElementById('d8RmNotesSyncPill');
+    syncPill.textContent = '⟳ Loading…';
+    syncPill.className = 'd8-rm-status-pill';
+    document.getElementById('d8RmNotesEditor').value = '';
+    document.getElementById('d8RmNotesEditor').disabled = true;
+    document.getElementById('d8RmNotesSaveBtn').disabled = true;
+
+    // Fetch from v_client_history (uses effective_note + has_override)
+    var query = sb.from('v_client_history')
+      .select('id, record_no, record_type, customer_name, effective_note, installation_note, dashboard_note_override, dashboard_note_override_at, dashboard_note_override_by, rentmaster_last_modified, has_override, rentmaster_note')
+      .eq('record_no', recordNo)
+      .limit(1);
+    if (recordType) query = query.eq('record_type', recordType);
+
+    var { data, error } = await query;
+    if (error || !data || !data.length) {
+      syncPill.textContent = '✗ Could not load';
+      syncPill.className = 'd8-rm-status-pill';
+      window.__d5Toast && window.__d5Toast('LOAD FAILED', error ? error.message : 'no record');
+      return;
+    }
+    var r = data[0];
+    d8CurrentRecord = r;
+
+    // Populate editor with effective_note
+    var editor = document.getElementById('d8RmNotesEditor');
+    editor.value = r.effective_note || '';
+    editor.disabled = false;
+    document.getElementById('d8RmNotesSaveBtn').disabled = false;
+
+    // Status pills
+    if (r.has_override) {
+      syncPill.textContent = '⚠ Dashboard override active';
+      syncPill.className = 'd8-rm-status-pill override';
+      document.getElementById('d8RmNotesOverridePill').style.display = 'none'; // single pill is enough
+      document.getElementById('d8RmNotesRevertBtn').style.display = 'inline-block';
+    } else {
+      syncPill.textContent = '✓ In sync with RentMaster';
+      syncPill.className = 'd8-rm-status-pill synced';
+      document.getElementById('d8RmNotesOverridePill').style.display = 'none';
+      document.getElementById('d8RmNotesRevertBtn').style.display = 'none';
+    }
+
+    // Installation notes section
+    var instSection = document.getElementById('d8RmInstallSection');
+    var instView = document.getElementById('d8RmInstallView');
+    if (r.installation_note && r.installation_note.trim()) {
+      instSection.style.display = '';
+      instView.textContent = r.installation_note;
+    } else {
+      instSection.style.display = 'none';
+      instView.textContent = '';
+    }
+
+    // Meta line
+    document.getElementById('d8RmLastModified').textContent = fmtDtPretty(r.rentmaster_last_modified);
+    document.getElementById('d8RmOverrideAt').textContent = r.dashboard_note_override_at ? fmtDtPretty(r.dashboard_note_override_at) : '—';
+    document.getElementById('d8RmOverrideBy').textContent = r.dashboard_note_override_by ? '· by ' + r.dashboard_note_override_by : '';
+  };
+
+  window.__d8CloseRmNotes = function () {
+    var panel = document.getElementById('d8RmNotesPanel');
+    if (panel) panel.classList.remove('open');
+    d8CurrentRecord = null;
+  };
+
+  // Save override — writes to historical_orders or historical_quotes
+  window.__d8SaveRmNotes = async function () {
+    if (!d8CurrentRecord) {
+      window.__d5Toast && window.__d5Toast('NO RECORD', 'No record loaded');
+      return;
+    }
+    var editor = document.getElementById('d8RmNotesEditor');
+    var newText = editor.value || '';
+
+    // Determine target table
+    var table = (d8CurrentRecord.record_type === 'order') ? 'historical_orders' : 'historical_quotes';
+    var actor = (typeof currentActor === 'function') ? currentActor() : 'manager';
+    var nowIso = new Date().toISOString();
+
+    var btn = document.getElementById('d8RmNotesSaveBtn');
+    btn.disabled = true;
+
+    var payload = {
+      dashboard_note_override: newText,
+      dashboard_note_override_at: nowIso,
+      dashboard_note_override_by: actor
+    };
+    var { error } = await sb.from(table).update(payload).eq('id', d8CurrentRecord.id);
+    btn.disabled = false;
+
+    if (error) {
+      window.__d5Toast && window.__d5Toast('SAVE FAILED', error.message);
+      return;
+    }
+
+    // Re-fetch to update pills + meta
+    window.__d5Toast && window.__d5Toast('OVERRIDE SAVED', 'Will display until RentMaster sync brings a newer note');
+    // Update local record reference
+    d8CurrentRecord.dashboard_note_override = newText;
+    d8CurrentRecord.dashboard_note_override_at = nowIso;
+    d8CurrentRecord.dashboard_note_override_by = actor;
+    d8CurrentRecord.has_override = true;
+
+    // Update pill + meta UI
+    var syncPill = document.getElementById('d8RmNotesSyncPill');
+    syncPill.textContent = '⚠ Dashboard override active';
+    syncPill.className = 'd8-rm-status-pill override';
+    document.getElementById('d8RmNotesRevertBtn').style.display = 'inline-block';
+    document.getElementById('d8RmOverrideAt').textContent = fmtDtPretty(nowIso);
+    document.getElementById('d8RmOverrideBy').textContent = '· by ' + actor;
+  };
+
+  // Revert — clear the override, return to RentMaster's note
+  window.__d8RevertRmNotes = async function () {
+    if (!d8CurrentRecord) return;
+    if (!confirm('Discard your override and show RentMaster\'s current note?')) return;
+
+    var table = (d8CurrentRecord.record_type === 'order') ? 'historical_orders' : 'historical_quotes';
+    var { error } = await sb.from(table).update({
+      dashboard_note_override: null,
+      dashboard_note_override_at: null,
+      dashboard_note_override_by: null
+    }).eq('id', d8CurrentRecord.id);
+
+    if (error) {
+      window.__d5Toast && window.__d5Toast('REVERT FAILED', error.message);
+      return;
+    }
+
+    window.__d5Toast && window.__d5Toast('REVERTED', 'Now showing RentMaster note');
+    // Reload the panel from scratch
+    var rno = d8CurrentRecord.record_no;
+    var rtype = d8CurrentRecord.record_type;
+    // Trigger the open flow again so the editor refills with rentmaster_note
+    setTimeout(function() { window.__d8OpenRmNotes(); }, 200);
+  };
+
+  // ESC closes the panel
+  document.addEventListener('keydown', function(ev) {
+    if (ev.key === 'Escape') {
+      var panel = document.getElementById('d8RmNotesPanel');
+      if (panel && panel.classList.contains('open')) {
+        window.__d8CloseRmNotes();
+      }
+    }
+  });
+
+  console.log('[Patch D.8 ✓] Extension drawer buttons + RentMaster Notes editor installed');
+})();
+/* PATCH:patch-d8-ext-drawer-buttons-v1 — END JS */
 
 function restoreExtensionList() {
   const body = $('extDrawerBody');
