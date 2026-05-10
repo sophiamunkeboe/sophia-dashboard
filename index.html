@@ -32597,5 +32597,386 @@ body.d7b35x-fs-large  { --d7b35x-fs: 1.15; }
 })();
 </script>
 
+
+<!-- PATCH:patch-d7b35.5-leads-column-resize-and-sort-v1 -->
+<style>
+/* The .d7e-rail and .d7e-sort-arrow CSS already exists from d7b34e.
+   We just need to make sure the LEAD card-list header has position:relative
+   so the rail can absolutely-position to its right edge. */
+.d7b-card-list-header-leads > span {
+  position: relative;
+  /* Keep existing padding / sizing — don't override */
+}
+
+/* Hint cursor on sortable headers */
+.d7b-card-list-header-leads > span[data-d7e-sortable="1"] {
+  cursor: pointer;
+}
+.d7b-card-list-header-leads > span[data-d7e-sortable="1"]:hover {
+  color: #cfe6ff;
+}
+</style>
+
+<script>
+/* =================================================================
+ * d7b35.5 — Leads tab column resize + sort
+ * Mirrors d7b34e's pattern for the leads tab specifically.
+ * ================================================================= */
+(function() {
+  if (window.__d7b35_5Init) return;
+  window.__d7b35_5Init = true;
+
+  /* Column definitions — must match d7b35's lead card-list header exactly.
+     Header markup (line 30717+):
+       customer | received | phone | source | status | done | assigned | assign | signals
+     Default widths chosen to match the d7b35 grid template:
+       minmax(280px, 1.6fr) 96px 140px 120px 120px 72px 110px 100px minmax(120px, 1fr)
+  */
+  var LEADS_COLS = [
+    { cls: 'customer', field: 'full_name',       w: 280, minW: 200, sortable: true,  type: 'string' },
+    { cls: 'received', field: 'first_seen_at',   w: 96,  minW: 80,  sortable: true,  type: 'date'   },
+    { cls: 'phone',    field: 'phone',           w: 140, minW: 110, sortable: false              },
+    { cls: 'source',   field: 'lead_source',     w: 120, minW: 90,  sortable: true,  type: 'string' },
+    { cls: 'status',   field: 'status',          w: 120, minW: 90,  sortable: true,  type: 'string' },
+    { cls: 'done',     field: 'done_at',         w: 72,  minW: 60,  sortable: false              },
+    { cls: 'assigned', field: 'assigned_to',     w: 110, minW: 80,  sortable: true,  type: 'string' },
+    { cls: 'assign',   field: '__assign_btn',    w: 100, minW: 80,  sortable: false              },
+    { cls: 'signals',  field: '__signals',       w: 120, minW: 100, sortable: false              }
+  ];
+
+  var prefsCache = {}; // { 'leads:Carina': { widths: {cls: px}, sort: {field, dir} } }
+  var saveTimer = null;
+
+  function getFolderKey() {
+    if (typeof activeRepFilter !== 'undefined' && activeRepFilter) return activeRepFilter;
+    return 'master';
+  }
+  function cacheKey(folder) { return 'leads:' + folder; }
+  function getPrefs(folder) {
+    return prefsCache[cacheKey(folder)] || { widths: {}, sort: null };
+  }
+  function setPrefs(folder, prefs) {
+    prefsCache[cacheKey(folder)] = prefs;
+    schedulePersist(folder, prefs);
+  }
+  function schedulePersist(folder, prefs) {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(function() {
+      if (!window.sb) return;
+      window.sb.rpc('set_user_table_prefs', {
+        p_folder: folder, p_tab: 'leads', p_prefs: prefs
+      }).then(function(r) {
+        if (r && r.error) console.warn('[d7b35.5] save prefs failed:', r.error);
+      });
+    }, 600);
+  }
+  async function loadPrefs(folder) {
+    if (!window.sb) return;
+    var ck = cacheKey(folder);
+    if (prefsCache[ck]) return prefsCache[ck];
+    try {
+      var res = await window.sb.rpc('get_user_table_prefs', { p_folder: folder, p_tab: 'leads' });
+      if (res && res.data) {
+        prefsCache[ck] = res.data;
+      } else {
+        prefsCache[ck] = { widths: {}, sort: null };
+      }
+    } catch(e) {
+      prefsCache[ck] = { widths: {}, sort: null };
+    }
+    return prefsCache[ck];
+  }
+
+  /* Apply the current widths via a dynamic <style> block — same approach as d7b34e */
+  function applyColumnWidths() {
+    var folder = getFolderKey();
+    var prefs = getPrefs(folder);
+    var widths = LEADS_COLS.map(function(d) {
+      var w = (prefs.widths && typeof prefs.widths[d.cls] === 'number' && prefs.widths[d.cls] >= d.minW)
+        ? prefs.widths[d.cls] : d.w;
+      return w + 'px';
+    });
+    var grid = widths.join(' ');
+    var minW = widths.reduce(function(s, v) { return s + parseInt(v, 10); }, 0);
+    var styleEl = document.getElementById('d7b35_5-leads-grid');
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'd7b35_5-leads-grid';
+      document.head.appendChild(styleEl);
+    }
+    styleEl.textContent =
+      '.d7b-card-list-header-leads, .d7b-card-list-leads .d7b-card {' +
+      ' grid-template-columns: ' + grid + ' !important;' +
+      ' min-width: ' + minW + 'px !important;' +
+      '}';
+  }
+
+  /* Apply sort indicators on the header spans */
+  function applySortIndicators() {
+    var folder = getFolderKey();
+    var prefs = getPrefs(folder);
+    var headerEl = document.querySelector('.d7b-card-list-header-leads');
+    if (!headerEl) return;
+    headerEl.querySelectorAll('span').forEach(function(span) {
+      var cls = (span.className.match(/d7b-col-(\w+)/) || [])[1];
+      if (!cls) return;
+      var def = LEADS_COLS.find(function(d) { return d.cls === cls; });
+      var arrow = span.querySelector('.d7e-sort-arrow');
+      if (!def || !def.sortable) {
+        span.removeAttribute('data-d7e-sortable');
+        if (arrow) arrow.remove();
+        return;
+      }
+      span.setAttribute('data-d7e-sortable', '1');
+      if (!arrow) {
+        arrow = document.createElement('span');
+        arrow.className = 'd7e-sort-arrow';
+        span.appendChild(arrow);
+      }
+      if (prefs.sort && prefs.sort.field === def.field) {
+        arrow.textContent = prefs.sort.dir === 'desc' ? '\u25BC' : '\u25B2';
+        span.setAttribute('data-d7e-sort-active', prefs.sort.dir);
+      } else {
+        arrow.textContent = '\u21C5';
+        span.removeAttribute('data-d7e-sort-active');
+      }
+    });
+  }
+
+  /* Header click → cycle sort */
+  function onHeaderClick(ev) {
+    /* Don't trigger sort if click landed on the rail (resize handle) */
+    if (ev.target.classList.contains('d7e-rail')) return;
+    var span = ev.target.closest('span[data-d7e-sortable="1"]');
+    if (!span) return;
+    var cls = (span.className.match(/d7b-col-(\w+)/) || [])[1];
+    var def = LEADS_COLS.find(function(d) { return d.cls === cls; });
+    if (!def || !def.sortable) return;
+    var folder = getFolderKey();
+    var prefs = getPrefs(folder);
+    var current = prefs.sort;
+    var nextSort;
+    if (!current || current.field !== def.field) {
+      nextSort = { field: def.field, dir: 'asc', type: def.type };
+    } else if (current.dir === 'asc') {
+      nextSort = { field: def.field, dir: 'desc', type: def.type };
+    } else {
+      nextSort = null;
+    }
+    prefs.sort = nextSort;
+    setPrefs(folder, prefs);
+    applySortIndicators();
+    if (typeof window.renderTable === 'function') {
+      try { window.renderTable(); } catch(e) {}
+    }
+  }
+
+  /* Sort `allLeads` in place (or visible rows) before render.
+     We hook getVisibleRows so the active sort applies to whatever the
+     leads view shows — without changing source data. */
+  function applySortToRows(rows) {
+    var folder = getFolderKey();
+    var prefs = getPrefs(folder);
+    if (!prefs.sort || !rows || !rows.length) return rows;
+    var s = prefs.sort;
+    var dir = (s.dir === 'desc') ? -1 : 1;
+    var sorted = rows.slice();
+    sorted.sort(function(a, b) {
+      var av = a[s.field];
+      var bv = b[s.field];
+      if (s.type === 'date') {
+        av = av ? new Date(av).getTime() : 0;
+        bv = bv ? new Date(bv).getTime() : 0;
+      } else if (s.type === 'number') {
+        av = parseFloat(av) || 0;
+        bv = parseFloat(bv) || 0;
+      } else {
+        av = (av == null) ? '' : String(av).toLowerCase();
+        bv = (bv == null) ? '' : String(bv).toLowerCase();
+      }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return  1 * dir;
+      return 0;
+    });
+    return sorted;
+  }
+
+  /* Attach resize rails to header column spans */
+  function attachRails() {
+    var headerEl = document.querySelector('.d7b-card-list-header-leads');
+    if (!headerEl) return;
+    headerEl.querySelectorAll('span').forEach(function(span) {
+      if (span.querySelector('.d7e-rail')) return;
+      var cls = (span.className.match(/d7b-col-(\w+)/) || [])[1];
+      if (!cls) return;
+      var rail = document.createElement('div');
+      rail.className = 'd7e-rail';
+      rail.dataset.col = cls;
+      rail.title = 'Drag to resize \u00b7 Double-click to reset';
+      span.appendChild(rail);
+      rail.addEventListener('mousedown', startDrag);
+      rail.addEventListener('dblclick', resetCol);
+    });
+  }
+
+  /* Drag-to-resize state */
+  var dragState = null;
+
+  function startDrag(ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    var rail = ev.currentTarget;
+    var cls = rail.dataset.col;
+    var def = LEADS_COLS.find(function(d) { return d.cls === cls; });
+    if (!def) return;
+    var folder = getFolderKey();
+    var prefs = getPrefs(folder);
+    var startW = (prefs.widths && prefs.widths[cls]) || def.w;
+    dragState = {
+      cls: cls, def: def,
+      startX: ev.clientX,
+      startW: startW
+    };
+    document.body.classList.add('col-resizing');
+    document.addEventListener('mousemove', onDragMove);
+    document.addEventListener('mouseup', onDragEnd);
+  }
+
+  function onDragMove(ev) {
+    if (!dragState) return;
+    var dx = ev.clientX - dragState.startX;
+    var newW = Math.max(dragState.def.minW, dragState.startW + dx);
+    var folder = getFolderKey();
+    var prefs = getPrefs(folder);
+    if (!prefs.widths) prefs.widths = {};
+    prefs.widths[dragState.cls] = newW;
+    /* Apply immediately for smooth feedback */
+    prefsCache[cacheKey(folder)] = prefs;
+    applyColumnWidths();
+  }
+
+  function onDragEnd() {
+    if (!dragState) return;
+    var folder = getFolderKey();
+    var prefs = getPrefs(folder);
+    setPrefs(folder, prefs); // schedule persistence
+    dragState = null;
+    document.body.classList.remove('col-resizing');
+    document.removeEventListener('mousemove', onDragMove);
+    document.removeEventListener('mouseup', onDragEnd);
+  }
+
+  function resetCol(ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    var rail = ev.currentTarget;
+    var cls = rail.dataset.col;
+    var def = LEADS_COLS.find(function(d) { return d.cls === cls; });
+    if (!def) return;
+    var folder = getFolderKey();
+    var prefs = getPrefs(folder);
+    if (prefs.widths) delete prefs.widths[cls];
+    setPrefs(folder, prefs);
+    applyColumnWidths();
+  }
+
+  /* Header click handler — wire once */
+  function bindHeaderClicks() {
+    var headerEl = document.querySelector('.d7b-card-list-header-leads');
+    if (!headerEl || headerEl.dataset.d7b355Bound) return;
+    headerEl.dataset.d7b355Bound = '1';
+    headerEl.addEventListener('click', onHeaderClick);
+  }
+
+  /* Tab activation — load prefs, apply, attach rails */
+  async function activateLeadsTab() {
+    var folder = getFolderKey();
+    await loadPrefs(folder);
+    applyColumnWidths();
+    applySortIndicators();
+    attachRails();
+    bindHeaderClicks();
+  }
+
+  /* Hook into setRepFolderTab for tab switching */
+  function installTabHook() {
+    if (typeof window.setRepFolderTab !== 'function') return false;
+    if (window.setRepFolderTab.__d7b355Hooked) return true;
+    var orig = window.setRepFolderTab;
+    window.setRepFolderTab = function(tab) {
+      var r = orig.apply(this, arguments);
+      if (tab === 'leads') {
+        setTimeout(activateLeadsTab, 80);
+      }
+      return r;
+    };
+    window.setRepFolderTab.__d7b355Hooked = true;
+    return true;
+  }
+
+  /* Hook into getVisibleRows so sort applies to the rendered cards */
+  function installSortHook() {
+    if (typeof window.getVisibleRows !== 'function') return false;
+    if (window.getVisibleRows.__d7b355Hooked) return true;
+    var orig = window.getVisibleRows;
+    window.getVisibleRows = function() {
+      var rows = orig.apply(this, arguments);
+      try { return applySortToRows(rows); } catch(e) { return rows; }
+    };
+    window.getVisibleRows.__d7b355Hooked = true;
+    return true;
+  }
+
+  /* Hook into renderTable so width/rail/sort indicators re-apply after each render
+     (since the lead card-list re-renders inside that wrap) */
+  function installRenderHook() {
+    if (typeof window.renderTable !== 'function') return false;
+    if (window.renderTable.__d7b355Hooked) return true;
+    var orig = window.renderTable;
+    window.renderTable = function() {
+      var r = orig.apply(this, arguments);
+      setTimeout(function() {
+        applyColumnWidths();
+        applySortIndicators();
+        attachRails();
+        bindHeaderClicks();
+      }, 90);
+      return r;
+    };
+    window.renderTable.__d7b355Hooked = true;
+    return true;
+  }
+
+  /* Re-activate when the rep filter changes (folder switch) */
+  function installRepFilterHook() {
+    /* The rep pills set window.activeRepFilter — easiest hook is the renderTable
+       wrap, which already re-runs the apply functions. Nothing extra to do. */
+  }
+
+  /* BOOT */
+  var bootTries = 0;
+  var bootIv = setInterval(function() {
+    var tabHook    = installTabHook();
+    var sortHook   = installSortHook();
+    var renderHook = installRenderHook();
+    var sbReady    = !!window.sb;
+
+    if (tabHook && sortHook && renderHook && sbReady) {
+      clearInterval(bootIv);
+      activateLeadsTab();
+      console.log('[d7b35.5] leads column resize + sort ready');
+    } else if (bootTries > 80) {
+      clearInterval(bootIv);
+      console.warn('[d7b35.5] partial boot — tabHook=' + tabHook + ', sortHook=' + sortHook +
+                   ', renderHook=' + renderHook + ', sb=' + sbReady);
+    }
+    bootTries++;
+  }, 250);
+
+  /* Expose for debugging */
+  window.d7b355Activate = activateLeadsTab;
+})();
+</script>
+
 </body>
 </html>
